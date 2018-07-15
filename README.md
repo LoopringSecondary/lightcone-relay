@@ -1,2 +1,2 @@
-# lightcone-relay
-AKKA Based Loopring Relay Implementation
+# lightcone
+Loopring Relay Cluster Based on AKKA Framework
