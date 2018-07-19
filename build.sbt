@@ -4,8 +4,17 @@ ThisBuild / organization := "org.loopring"
 val akkaVer = "2.5.13"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
+val commonSettings = Seq (
+  resolvers ++= Seq("ethereum release" at "https://dl.bintray.com/ethereum/maven/")
+)
+
+val commonDependencies = Seq (
+  "com.google.inject" % "guice" % "4.1.0"
+)
+
 val ethereumDependencies = Seq(
-  "org.web3j" % "core" % "3.4.0"
+  "org.web3j" % "core" % "3.4.0",
+  "org.ethereum" % "ethereumj-core" % "1.8.0-RELEASE",
 )
 
 val akkaDependencies = Seq(
@@ -42,12 +51,14 @@ lazy val data = (project in file("data"))
 
 lazy val core = (project in file("core"))
   .dependsOn(data)
+  .settings(commonSettings: _*)
   .settings(
     name := "lightcone-core",
     libraryDependencies += scalaTest % Test,
+    libraryDependencies ++= ethereumDependencies,
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= scalaPbDependencies,
-    libraryDependencies ++= ethereumDependencies,
+    libraryDependencies ++= commonDependencies,
   )
 
 PB.targets in Compile := Seq(
