@@ -1,7 +1,7 @@
 ThisBuild / scalaVersion := "2.12.6"
 ThisBuild / organization := "org.loopring"
 
-val akkaVer = "2.5.14"
+val akkaVer = "2.5.13"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
 val ethereumDependencies = Seq(
