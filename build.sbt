@@ -4,6 +4,10 @@ ThisBuild / organization := "org.loopring"
 val akkaVer = "2.5.13"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
 
+val ethereumDependencies = Seq(
+  "org.web3j" % "core" % "3.4.0"
+)
+
 val akkaDependencies = Seq(
     "com.typesafe.akka" %% "akka-remote" % akkaVer,
     "com.typesafe.akka" %% "akka-stream" % akkaVer,
@@ -42,6 +46,7 @@ lazy val core = (project in file("core"))
     libraryDependencies += scalaTest % Test,
     libraryDependencies ++= akkaDependencies,
     libraryDependencies ++= scalaPbDependencies,
+    libraryDependencies ++= ethereumDependencies,
   )
 
 PB.targets in Compile := Seq(
