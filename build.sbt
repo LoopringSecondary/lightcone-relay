@@ -15,6 +15,7 @@ val akkaDependencies = Seq(
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVer,
     "com.typesafe.akka" %% "akka-persistence" % akkaVer,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVer,
+    "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVer,
     "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
     "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap" % "0.14.0",
     "com.lightbend.akka.discovery" %% "akka-discovery-dns" % "0.14.0",
