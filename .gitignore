@@ -3,3 +3,23 @@ project/project/
 **/target/
 
 .history
+.gradle
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+/.idea
+*.iml
+*.ipr
+*.iws
+*.iml
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+/*/build/
+proguard/
+*.log
+

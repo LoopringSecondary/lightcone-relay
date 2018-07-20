@@ -1,0 +1,7 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+mainClassName = 'com.upblockchain.lightcone.main.GatewayMain'
+
