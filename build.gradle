@@ -1,8 +1,14 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+}
+
 plugins {
     id 'scala'
     id 'java'
     id "com.diffplug.gradle.spotless" version "3.13.0"
-    id "com.google.protobuf" version "0.8.6"
 }
 
 apply plugin: 'eclipse'
@@ -53,4 +59,3 @@ spotless {
 repositories {
     jcenter()
 }
-
