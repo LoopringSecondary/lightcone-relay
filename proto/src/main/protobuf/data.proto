@@ -1,5 +1,8 @@
 syntax = "proto3";
 
-message APIResult {
+package com.upblockchain.lightcone.proto;
+
+message ProtoDemo {
     string query = 1;
+    int64 demoId = 2;
 }
