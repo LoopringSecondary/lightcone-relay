@@ -8,6 +8,3 @@
  */
 
 rootProject.name = 'lightcone-relay'
-include 'lib'
-include 'gateway'
-include 'core'
