@@ -1,4 +1,4 @@
-syntax = "proto3"; // 我们使用proto3，这里第一行必须指定protoc按照proto3语法格式解析
+syntax = "proto3"; // 我们使用proto3，这里第一行必须指定protoc按照proto3语法格式解析，proto3 所有字段都是optional，没有required这种关键字了
 
 package com.upblockchain.lightcone.proto; // package 没什么可说的，按这个例子来就行
 //import "data.proto"; // 要引用其他.proto文件的message，使用import关键字
