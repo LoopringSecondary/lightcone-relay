@@ -80,18 +80,3 @@ message Foo {
 message DemoQuery {
 
 }
-
-// proto同样支持接口service定义， 但是我们这里应该只有jsonrpc可能会用到， 应该不太需要
-service SearchService {
-    rpc Search (DemoQuery) returns (Order);
-}
-
-// json序列化
-// protobuf 提供了json序列化库protobuf-java-format， 一般情况下，event的序列化以及消息传递，都是由akka完成，但有时候我们需要打印日志或者其他用途，可以使用这个库里面的方法
-
-// options protobuf提供了两个级别的options配置，为了定制化需求，一般情况下，我们也不会用，比如文件级别的 option java_package = "com.example.foo"; 指定特殊package的
-// 再比如message级别的上面OrderStatus里面的allow_alias
-
-// 最后，以上例子应该能满足我们绝大部分使用场景，比较全的参考文档有两篇：
-// https://developers.google.com/protocol-buffers/docs/proto3
-// https://developers.google.com/protocol-buffers/docs/reference/java-generated
