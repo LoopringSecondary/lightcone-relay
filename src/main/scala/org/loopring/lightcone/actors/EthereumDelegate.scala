@@ -1,4 +1,4 @@
-package com.upblockchain.lightcone.actors
+package org.loopring.lightcone.actors
 
 import akka.actor._
 

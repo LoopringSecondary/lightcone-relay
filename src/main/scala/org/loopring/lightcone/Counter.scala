@@ -1,4 +1,4 @@
-// package com.upblockchain.lightcone
+// package org.loopring.lightcone
 
 // case object Increment
 // case object Decrement

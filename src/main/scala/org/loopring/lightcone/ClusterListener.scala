@@ -1,4 +1,4 @@
-package com.upblockchain.lightcone
+package org.loopring.lightcone
 
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._

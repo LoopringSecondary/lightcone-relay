@@ -1,10 +1,10 @@
-package com.upblockchain.lightcone.core.order;
+package org.loopring.lightcone.core.order;
 
 import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import com.upblockchain.lightcone.proto.Data.OrderResult;
+import org.loopring.lightcone.proto.Data.OrderResult;
 
 public class TxActor extends AbstractActor {
 

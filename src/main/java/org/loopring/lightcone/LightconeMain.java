@@ -1,10 +1,10 @@
-package com.upblockchain.lightcone;
+package org.loopring.lightcone;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import com.upblockchain.lightcone.core.order.OrderActor;
-import com.upblockchain.lightcone.core.order.TxActor;
-import com.upblockchain.lightcone.proto.Data;
+import org.loopring.lightcone.core.order.OrderActor;
+import org.loopring.lightcone.core.order.TxActor;
+import org.loopring.lightcone.proto.Data;
 
 public class LightconeMain {
   public static void main(String[] args) {

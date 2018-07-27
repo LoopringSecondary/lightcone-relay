@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.upblockchain.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 message ProtoDemo {
     string query = 1;

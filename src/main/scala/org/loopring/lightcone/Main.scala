@@ -1,4 +1,4 @@
-package com.upblockchain.lightcone
+package org.loopring.lightcone
 
 import com.typesafe.config.ConfigFactory
 import akka.actor._

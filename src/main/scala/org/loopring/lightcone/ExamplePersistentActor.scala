@@ -1,4 +1,4 @@
-package com.upblockchain.lightcone
+package org.loopring.lightcone
 
 import akka.actor._
 import akka.persistence._
