@@ -9,9 +9,9 @@
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="org.loopring.lightcone.core.utils.LogFilter" />
-        <File>log/coinex.log</File>
+        <File>log/lightcone.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>log/coinex_%i.log.bak</fileNamePattern>
+            <fileNamePattern>log/lightcone_%i.log.bak</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>100</maxIndex>
         </rollingPolicy>
@@ -25,10 +25,10 @@
 
     <appender name="ERROR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="org.loopring.lightcone.core.utils.LogFilter" />
-        <File>log/coinex-error.log</File>
+        <File>log/lightcone_error.log</File>
         <level>error</level>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>log/coinex-error_%i.log.bak</fileNamePattern>
+            <fileNamePattern>log/lightcone_error_%i.log.bak</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>100</maxIndex>
         </rollingPolicy>
