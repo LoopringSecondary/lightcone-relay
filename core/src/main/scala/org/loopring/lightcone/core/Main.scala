@@ -27,7 +27,6 @@ object Main {
       startup(Seq("29090", "29091", "0"))
     else
       startup(args)
-
   }
 
   def startup(ports: Seq[String]): Unit = {
@@ -37,17 +36,15 @@ object Main {
         .parseString(s"""
         akka.remote.netty.tcp.port=$port
         """)
-        // .withFallback(ConfigFactory.parseString("akka.cluster.roles = [compute]"))
         .withFallback(ConfigFactory.load())
 
-      // Create an Akka Cluster
       implicit val system = ActorSystem("Lightcone", config)
       implicit val cluster = Cluster(system)
 
       system.actorOf(Props(new ActorDeployer(config, "")), name = "deployer")
 
       new http.InternalWebServer().start()
+      new http.ExternalWebServer().start()
     }
   }
-
 }
