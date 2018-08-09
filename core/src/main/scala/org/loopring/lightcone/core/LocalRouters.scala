@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core
 
 import akka.actor._
 import akka.cluster._

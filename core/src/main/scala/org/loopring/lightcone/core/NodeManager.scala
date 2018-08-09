@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.http
+package org.loopring.lightcone.core
 
-import akka.actor.ActorSystem
+import akka.actor._
+import akka.cluster._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
@@ -27,26 +28,50 @@ import scala.concurrent.Future
 import org.json4s.{ DefaultFormats, jackson }
 import org.loopring.lightcone.proto.data._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
+import com.typesafe.config.Config
 
-class ExternalWebServer()(implicit val system: ActorSystem)
-  extends Directives
+class NodeManager(val config: Config)(implicit val cluster: Cluster)
+  extends Actor
+  with ActorLogging
+  with DeployCapability
+  with Directives
   with Json4sSupport {
 
+  implicit val system = cluster.system
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
 
-  def start() {
-    val route =
-      path("hello") {
-        get {
-          complete {
-            DeployActorReq("a", Seq("b"))
-          }
+  val r = new LocalRouters()
+  var deployed: Set[String] = Set.empty[String]
+
+  val route =
+    path("actors") {
+      get {
+        self ! DeployLocalActors()
+        complete {
+          DeployedLocalActors(deployed.toSeq)
         }
       }
+    }
 
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8081)
+  Http().bindAndHandle(route, "localhost", 8080)
+
+  val defaults = Seq(
+    "global_configuration_manager",
+    "order_writer",
+    "global_monitor",
+    "cache_obsoleter",
+    "blockchain_event_extractor")
+
+  def receive: Receive = {
+    case req: DeployLocalActors =>
+      val deployments = if (req.deployments.isEmpty) {
+        defaults.map(name => ActorDeployment(name))
+      } else {
+        req.deployments
+      }
+      deployments.foreach(deploy)
   }
 }

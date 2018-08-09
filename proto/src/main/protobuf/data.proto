@@ -42,7 +42,18 @@ message OrderResult {
 }
 
 // Messages
-message DeployActorReq {
+
+message ActorDeployment {
     string name = 1;
-    repeated string roles = 2;
+    repeated string roles = 3;
+    int32 nr_instances = 2;
 }
+
+message DeployLocalActors {
+   repeated ActorDeployment deployments = 1;
+}
+
+message DeployedLocalActors {
+   repeated string paths = 1;
+}
+

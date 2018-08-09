@@ -19,7 +19,7 @@ package org.loopring.lightcone.core
 import com.typesafe.config.ConfigFactory
 import akka.actor._
 import akka.cluster._
-import org.loopring.lightcone.core.utils._
+import org.loopring.lightcone.core._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -41,10 +41,7 @@ object Main {
       implicit val system = ActorSystem("Lightcone", config)
       implicit val cluster = Cluster(system)
 
-      system.actorOf(Props(new ActorDeployer(config, "")), name = "deployer")
-
-      new http.InternalWebServer().start()
-      new http.ExternalWebServer().start()
+      system.actorOf(Props(new NodeManager(config)))
     }
   }
 }

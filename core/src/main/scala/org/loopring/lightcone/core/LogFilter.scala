@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core
 
 import ch.qos.logback.core.filter.Filter
 import ch.qos.logback.core.spi.FilterReply

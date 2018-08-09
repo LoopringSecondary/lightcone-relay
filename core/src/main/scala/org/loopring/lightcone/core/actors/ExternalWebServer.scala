@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.http
+package org.loopring.lightcone.core
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -28,7 +28,7 @@ import org.json4s.{ DefaultFormats, jackson }
 import org.loopring.lightcone.proto.data._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 
-class InternalWebServer()(implicit val system: ActorSystem)
+class ExternalWebServer()(implicit val system: ActorSystem)
   extends Directives
   with Json4sSupport {
 
@@ -42,11 +42,11 @@ class InternalWebServer()(implicit val system: ActorSystem)
       path("hello") {
         get {
           complete {
-            DeployActorReq("a", Seq("b"))
+            ActorDeployment("a", Seq("b"), 1)
           }
         }
       }
 
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
+    val bindingFuture = Http().bindAndHandle(route, "localhost", 8081)
   }
 }
