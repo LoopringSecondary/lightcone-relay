@@ -19,7 +19,7 @@ package org.loopring.lightcone.core
 import com.typesafe.config.ConfigFactory
 import akka.actor._
 import akka.cluster._
-import org.loopring.lightcone.core.utils._
+import org.loopring.lightcone.core._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -36,15 +36,12 @@ object Main {
         .parseString(s"""
         akka.remote.netty.tcp.port=$port
         """)
-        // .withFallback(ConfigFactory.parseString("akka.cluster.roles = [compute]"))
         .withFallback(ConfigFactory.load())
 
-      // Create an Akka Cluster
       implicit val system = ActorSystem("Lightcone", config)
       implicit val cluster = Cluster(system)
 
-      system.actorOf(Props(new ActorDeployer(config, "")), name = "deployer")
+      system.actorOf(Props(new NodeManager(config)))
     }
   }
-
 }

@@ -4,7 +4,7 @@
         <filter class="org.loopring.lightcone.core.utils.LogFilter" />
         <target>System.out</target>
         <encoder>
-            <pattern>%date{yyyy-MM-dd} %X{akkaTimestamp} %-5level %X{akkaSource}[%logger{0}] >>>> %msg%n</pattern>
+            <pattern>%X{akkaTimestamp} %-5level %X{akkaSource}[%logger{0}] >>>> %msg%n</pattern>
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -43,7 +43,7 @@
 
     <logger name="akka" level="INFO"/>
     <root level="INFO">
-        <!-- <appender-ref ref="CONSOLE"/> -->
+        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR-FILE"/>
         <!-- <appender-ref ref="FILE-BACKUP"/> -->

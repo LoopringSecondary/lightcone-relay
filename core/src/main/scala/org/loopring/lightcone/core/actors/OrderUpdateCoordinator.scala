@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.core.utils.LocalRouters
+import org.loopring.lightcone.core.LocalRouters
 
 class OrderUpdateCoordinator(r: LocalRouters) extends Actor {
   def receive: Receive = {
