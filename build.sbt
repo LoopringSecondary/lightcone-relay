@@ -16,7 +16,9 @@ lazy val proto = (project in file("proto"))
 
 lazy val core = (project in file("core"))
   .dependsOn(proto)
+  .enablePlugins(AutomateHeaderPlugin)
   .settings(
+    basicSettings,
     libraryDependencies ++= akkaDenepdencies)
 
 lazy val lightcone = (project in file("."))
