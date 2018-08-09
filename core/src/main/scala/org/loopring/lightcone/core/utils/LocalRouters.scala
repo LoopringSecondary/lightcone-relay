@@ -37,7 +37,7 @@ class LocalRouters()(implicit cluster: Cluster) {
   lazy val orderUpdateCoordinator = routerFor("order_update_coordinator")
   lazy val orderUpdator = routerFor("order_updator")
 
-  lazy val balanceReader = routerFor("balance_writer")
+  lazy val balanceReader = routerFor("balance_reader")
   lazy val orderReader = routerFor("order_reader")
   lazy val orderWriter = routerFor("order_writer")
 
@@ -45,9 +45,9 @@ class LocalRouters()(implicit cluster: Cluster) {
   lazy val orderDBAccessor = routerFor("order_db_accessor")
 
   lazy val orderBookManager = routerForSingleton("order_book_manager")
-  lazy val orderBookReader = routerForSingleton("order_book_reader")
   lazy val ringFinder = routerForSingleton("ring_finder")
-  lazy val ringMatcher = routerForSingleton("ring_matcher")
+  lazy val ringMiner = routerForSingleton("ring_miner")
+  lazy val orderBookReader = routerFor("order_book_reader")
 
   private def routerForSingleton(name: String) = {
     system.actorOf(

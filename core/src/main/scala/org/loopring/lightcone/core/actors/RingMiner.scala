@@ -17,8 +17,9 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import org.loopring.lightcone.core.utils.LocalRouters
 
-class RingMiner extends Actor {
+class RingMiner(r: LocalRouters) extends Actor {
   def receive: Receive = {
     case _ =>
   }

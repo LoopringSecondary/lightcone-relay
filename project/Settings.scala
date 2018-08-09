@@ -9,9 +9,7 @@ object Settings {
     scalaVersion := Globals.scalaVersion,
     autoScalaLibrary := false,
     resolvers += Resolver.bintrayRepo("hseeberger", "maven"),
-    // resolvers ++= Resolvers.repositories,
     javacOptions := Seq( //"-source", Globals.jvmVersion,
-    //"-target", Globals.jvmVersion
     ),
     scalacOptions := Seq(
       "-encoding", "utf8",

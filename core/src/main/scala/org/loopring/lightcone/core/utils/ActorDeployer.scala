@@ -24,6 +24,7 @@ import akka.event.Logging
 import akka.cluster._
 import com.typesafe.config.Config
 import scala.concurrent.duration._
+import org.loopring.lightcone.core.actors._
 
 class ActorDeployer(
   config: Config,
@@ -40,11 +41,88 @@ class ActorDeployer(
   }
 
   def deploy() {
-    println("---------")
+
+    val r = new LocalRouters()
+    deploySingleton(
+      Props(new GlobalConfigurationManager(r)),
+      "global_configuration_manager")
+
+    deploySingleton(
+      Props(new GlobalMonitor(r)),
+      "global_monitor")
+
+    deploySingleton(
+      Props(new CacheObsoleter(r)),
+      "cache_obsoleter")
+
+    deploySingleton(
+      Props(new BlockchainEventExtractor(r)),
+      "blockchain_event_extractor")
+
+    deploy(
+      Props(new BalanceCacher(r)),
+      "balance_cacher", 5)
+
+    deploy(
+      Props(new BalanceManager(r)),
+      "balance_manager", 5)
+
+    deploy(
+      Props(new OrderCacher(r)),
+      "order_cacher", 5)
+
+    deploy(
+      Props(new OrderReadCoordinator(r)),
+      "order_read_coordinator", 5)
+
+    deploy(
+      Props(new OrderUpdateCoordinator(r)),
+      "order_update_coordinator", 5)
+
+    deploy(
+      Props(new OrderUpdater(r)),
+      "order_updator", 5)
+
+    deploy(
+      Props(new BalanceReader(r)),
+      "balance_reader", 5)
+
+    deploy(
+      Props(new OrderReader(r)),
+      "order_reader", 5)
+
+    deploy(
+      Props(new OrderWriter(r)),
+      "order_writer", 5)
+
+    deploy(
+      Props(new OrderAccessor(r)),
+      "order_accessor", 5)
+
+    deploy(
+      Props(new OrderDBAccessor(r)),
+      "order_db_accessor", 5)
+
+    deploySingleton(
+      Props(new OrderBookManager(r)),
+      "order_book_manager")
+
+    deploySingleton(
+      Props(new RingFinder(r)),
+      "ring_finder")
+
+    deploySingleton(
+      Props(new RingMiner(r)),
+      "ring_miner")
+
+    deploy(
+      Props(new OrderBookReader(r)),
+      "order_book_manager", 1)
   }
 
   private def deploySingleton(props: => Props, name: String) = {
-    if (cluster.selfRoles.contains(name)) {
+    if (cluster.selfRoles.contains("*") ||
+      cluster.selfRoles.contains(name)) {
       val actor = system.actorOf(
         ClusterSingletonManager.props(
           singletonProps = props,
@@ -56,7 +134,8 @@ class ActorDeployer(
   }
 
   private def deploy(props: => Props, name: String, numGroup: Int = 1) = {
-    if (cluster.selfRoles.contains(name)) {
+    if (cluster.selfRoles.contains("*") ||
+      cluster.selfRoles.contains(name)) {
       (0 until numGroup) foreach { i =>
         val actor = system.actorOf(props, s"${name}_$i")
         paths += actor.path.toStringWithoutAddress
