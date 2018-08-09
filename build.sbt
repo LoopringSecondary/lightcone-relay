@@ -19,6 +19,7 @@ lazy val core = (project in file("core"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
+    libraryDependencies ++= commonDependency,
     libraryDependencies ++= akkaDenepdencies)
 
 lazy val lightcone = (project in file("."))

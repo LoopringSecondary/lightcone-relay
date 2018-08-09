@@ -57,13 +57,18 @@ class LocalRouters()(implicit cluster: Cluster) {
       name = s"{$name}_router")
   }
 
-  private def routerFor(name: String) = {
+  private def routerFor(name: String, numGroup: Int = 1) = {
+    require(numGroup >= 1)
+
+    val routeesPaths = (0 until numGroup)
+      .toList.map(i => s"/user/{$name}_$i")
+
     system.actorOf(
       ClusterRouterGroup(
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/$name"),
+          routeesPaths = routeesPaths,
           allowLocalRoutees = true)).props,
       name = s"{$name}_router")
   }
