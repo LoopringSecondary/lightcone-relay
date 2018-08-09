@@ -2,4 +2,6 @@ target/
 project/project/
 **/target/
 
+**/.DS_Store
+
 .history
