@@ -19,6 +19,7 @@ package org.loopring.lightcone.core
 import com.typesafe.config.ConfigFactory
 import akka.actor._
 import akka.cluster._
+import org.loopring.lightcone.core.utils._
 
 object Main {
   def main(args: Array[String]): Unit = {

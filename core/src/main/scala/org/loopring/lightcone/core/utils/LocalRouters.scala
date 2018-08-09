@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.coinport.coinex
+package org.loopring.lightcone.core.utils
 
 import akka.actor._
 import akka.cluster._
