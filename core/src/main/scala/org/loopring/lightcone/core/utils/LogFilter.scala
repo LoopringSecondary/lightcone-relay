@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core.utils
 
-import akka.actor._
-import org.loopring.lightcone.core.utils.LocalRouters
+import ch.qos.logback.core.filter.Filter
+import ch.qos.logback.core.spi.FilterReply
+import ch.qos.logback.classic.spi.ILoggingEvent
 
-class BalanceManager(r: LocalRouters) extends Actor {
-  def receive: Receive = {
-    case _ =>
+class LogFilter extends Filter[ILoggingEvent] {
+  def decide(event: ILoggingEvent) = {
+    event.getLoggerName() match {
+      case "akka.cluster.ClusterHeartbeatSender" => FilterReply.DENY
+      case "org.hbase.async.RegionClient" => FilterReply.DENY
+      case _ => FilterReply.ACCEPT
+    }
   }
 }

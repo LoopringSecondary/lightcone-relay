@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core.utils
 
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._

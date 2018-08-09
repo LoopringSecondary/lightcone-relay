@@ -3,5 +3,6 @@ project/project/
 **/target/
 
 **/.DS_Store
+**/log/
 
 .history

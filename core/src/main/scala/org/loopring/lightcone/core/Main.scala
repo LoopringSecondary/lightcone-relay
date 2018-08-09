@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core
 
 import com.typesafe.config.ConfigFactory
 import akka.actor._
+import akka.cluster._
+import org.loopring.lightcone.core.utils._
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -37,10 +39,11 @@ object Main {
         // .withFallback(ConfigFactory.parseString("akka.cluster.roles = [compute]"))
         .withFallback(ConfigFactory.load())
 
-      // Create an Akka system
-      val system = ActorSystem("Lightcone", config)
-      // Create an actor that handles cluster domain events
-      system.actorOf(Props[ClusterListener], name = "clusterListener")
+      // Create an Akka Cluster
+      implicit val system = ActorSystem("Lightcone", config)
+      implicit val cluster = Cluster(system)
+
+      system.actorOf(Props(new ActorDeployer(config, "")), name = "deployer")
     }
   }
 
