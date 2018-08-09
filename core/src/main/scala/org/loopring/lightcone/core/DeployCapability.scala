@@ -18,7 +18,6 @@ package org.loopring.lightcone.core
 
 import scala.collection.mutable.ListBuffer
 
-import org.loopring.lightcone.proto.data._
 import akka.actor._
 import akka.cluster.singleton._
 import akka.event.Logging
@@ -26,6 +25,7 @@ import akka.cluster._
 import com.typesafe.config.Config
 import scala.concurrent.duration._
 import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.proto.data._
 
 trait DeployCapability {
   me: Actor with ActorLogging =>
@@ -37,90 +37,126 @@ trait DeployCapability {
   implicit val cluster: Cluster
   implicit val system: ActorSystem
 
-  def deploy(deployment: ActorDeployment) {
-    val name = deployment.name.toLowerCase
-    val size = Integer.max(1, deployment.nrInstances)
+  def deployAllBasedOnRoles() {
+    Set(
+      "global_configuration_manager",
+      "global_monitor",
+      "cache_obsoleter",
+      "blockchain_event_extractor",
+      "balance_cacher",
+      "balance_manager",
+      "order_cacher",
+      "order_read_coordinator",
+      "order_update_coordinator",
+      "order_updator",
+      "balance_reader",
+      "order_reader",
+      "order_writer",
+      "order_accessor",
+      "order_db_accessor",
+      "order_book_manager",
+      "ring_finder",
+      "ring_miner",
+      "order_book_reader").map {
+        name => ActorDeployment(name, 5, false)
+      }.foreach(deploy)
+  }
 
-    name match {
+  def deploy(ad: ActorDeployment) {
+    implicit val _ad = ad;
+
+    ad.name match {
       case "global_configuration_manager" =>
-        deploySingleton(Props(new GlobalConfigurationManager(r)), name)
+        deploy(true, Props(new GlobalConfigurationManager(r)))
 
       case "global_monitor" =>
-        deploySingleton(Props(new GlobalMonitor(r)), name)
+        deploy(true, Props(new GlobalMonitor(r)))
 
       case "cache_obsoleter" =>
-        deploySingleton(Props(new CacheObsoleter(r)), name)
+        deploy(true, Props(new CacheObsoleter(r)))
 
       case "blockchain_event_extractor" =>
-        deploySingleton(Props(new BlockchainEventExtractor(r)), name)
+        deploy(true, Props(new BlockchainEventExtractor(r)))
 
       case "balance_cacher" =>
-        deploy(Props(new BalanceCacher(r)), name, size)
+        deploy(false, Props(new BalanceCacher(r)))
 
       case "balance_manager" =>
-        deploy(Props(new BalanceManager(r)), name, size)
+        deploy(false, Props(new BalanceManager(r)))
 
       case "order_cacher" =>
-        deploy(Props(new OrderCacher(r)), name, size)
+        deploy(false, Props(new OrderCacher(r)))
 
       case "order_read_coordinator" =>
-        deploy(Props(new OrderReadCoordinator(r)), name, size)
+        deploy(false, Props(new OrderReadCoordinator(r)))
 
       case "order_update_coordinator" =>
-        deploy(Props(new OrderUpdateCoordinator(r)), name, size)
+        deploy(false, Props(new OrderUpdateCoordinator(r)))
 
       case "order_updator" =>
-        deploy(Props(new OrderUpdater(r)), name, size)
+        deploy(false, Props(new OrderUpdater(r)))
 
       case "balance_reader" =>
-        deploy(Props(new BalanceReader(r)), name, size)
+        deploy(false, Props(new BalanceReader(r)))
 
       case "order_reader" =>
-        deploy(Props(new OrderReader(r)), name, size)
+        deploy(false, Props(new OrderReader(r)))
 
       case "order_writer" =>
-        deploy(Props(new OrderWriter(r)), name, size)
+        deploy(false, Props(new OrderWriter(r)))
 
       case "order_accessor" =>
-        deploy(Props(new OrderAccessor(r)), name, size)
+        deploy(false, Props(new OrderAccessor(r)))
 
       case "order_db_accessor" =>
-        deploy(Props(new OrderDBAccessor(r)), name, size)
+        deploy(false, Props(new OrderDBAccessor(r)))
 
       case "order_book_manager" =>
-        deploySingleton(Props(new OrderBookManager(r)), name)
+        deploy(true, Props(new OrderBookManager(r)))
 
       case "ring_finder" =>
-        deploySingleton(Props(new RingFinder(r)), name)
+        deploy(true, Props(new RingFinder(r)))
 
       case "ring_miner" =>
-        deploySingleton(Props(new RingMiner(r)), name)
+        deploy(true, Props(new RingMiner(r)))
 
       case "order_book_reader" =>
-        deploy(Props(new OrderBookReader(r)), name, size)
+        deploy(false, Props(new OrderBookReader(r)))
 
       case name =>
-      //log.error(s"Unknown actor $name")
+        log.error(s"Unknown actor $ad")
     }
   }
 
-  private def deploySingleton(props: => Props, name: String) = {
-    log.info(s"deploying $name as singleton")
-    val actor = system.actorOf(
-      ClusterSingletonManager.props(
-        singletonProps = props,
-        terminationMessage = PoisonPill,
-        settings = ClusterSingletonManagerSettings(system)),
-      name = name)
-    deployed += actor.path.toString
-  }
+  private def deploy(
+    isSingleton: Boolean,
+    props: => Props)(implicit ad: ActorDeployment) = {
 
-  private def deploy(props: => Props, name: String, numGroup: Int = 1) = {
-    (0 until numGroup) foreach { i =>
-      val id = s"${name}_$i";
-      log.info(s"deploying $id as singleton")
-      val actor = system.actorOf(props, id)
-      deployed += actor.path.toString
+    if (ad.forceDeployment ||
+      cluster.selfRoles.contains("all") ||
+      cluster.selfRoles.contains(ad.name)) {
+
+      if (isSingleton) {
+        val actor = system.actorOf(
+          ClusterSingletonManager.props(
+            singletonProps = props,
+            terminationMessage = PoisonPill,
+            settings = ClusterSingletonManagerSettings(system)),
+          name = ad.name)
+
+        deployed += actor.path.toString
+        log.info(s"deployed actor ${ad.name} as singleton")
+      } else {
+        (0 until ad.nrInstances) foreach { i =>
+          val id = s"${ad.name}_$i";
+          val actor = system.actorOf(props, id)
+
+          deployed += actor.path.toString
+          log.info(s"deployed actor $id")
+        }
+      }
+    } else {
+      log.info(s"rejected actor ${ad.name}")
     }
   }
 }

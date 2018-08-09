@@ -29,10 +29,13 @@ import org.json4s.{ DefaultFormats, jackson }
 import org.loopring.lightcone.proto.data._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import com.typesafe.config.Config
+import scala.concurrent.duration._
+import akka.http.scaladsl.model.StatusCodes
 
 class NodeManager(val config: Config)(implicit val cluster: Cluster)
   extends Actor
   with ActorLogging
+  with Timers
   with DeployCapability
   with Directives
   with Json4sSupport {
@@ -45,33 +48,39 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
 
   val r = new LocalRouters()
   var deployed: Set[String] = Set.empty[String]
+  timers.startSingleTimer("deploy-default", DeployLocalActors(), 5.seconds)
 
   val route =
     path("actors") {
       get {
-        self ! DeployLocalActors()
         complete {
-          DeployedLocalActors(deployed.toSeq)
+          DeployedLocalActors(
+            deployed.toSeq,
+            cluster.selfRoles.toSeq)
         }
       }
     }
+  // ~
+  // path("deploy") {
+  //   pathEndOrSingleSlash {
+  //     post {
+  //       entity(as[DeployLocalActors]) { req =>
+  //         complete(StatusCodes.Created ->
+  //           DeployedLocalActors(deployed.toSeq))
+  //       }
+  //     }
+  //   }
+  // }
 
   Http().bindAndHandle(route, "localhost", 8080)
 
-  val defaults = Seq(
-    "global_configuration_manager",
-    "order_writer",
-    "global_monitor",
-    "cache_obsoleter",
-    "blockchain_event_extractor")
-
   def receive: Receive = {
-    case req: DeployLocalActors =>
-      val deployments = if (req.deployments.isEmpty) {
-        defaults.map(name => ActorDeployment(name))
-      } else {
-        req.deployments
-      }
-      deployments.foreach(deploy)
+    case DeployLocalActors(deployments) =>
+      if (deployments.isEmpty) deployAllBasedOnRoles()
+      else deployments.foreach(deploy)
+
+      sender ! DeployedLocalActors(
+        deployed.toSeq,
+        cluster.selfRoles.toSeq)
   }
 }

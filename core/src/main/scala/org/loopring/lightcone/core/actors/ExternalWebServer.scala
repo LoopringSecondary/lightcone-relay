@@ -42,7 +42,7 @@ class ExternalWebServer()(implicit val system: ActorSystem)
       path("hello") {
         get {
           complete {
-            ActorDeployment("a", Seq("b"), 1)
+            ActorDeployment("a", 1, false)
           }
         }
       }

@@ -45,8 +45,8 @@ message OrderResult {
 
 message ActorDeployment {
     string name = 1;
-    repeated string roles = 3;
     int32 nr_instances = 2;
+    bool force_deployment = 3;
 }
 
 message DeployLocalActors {
@@ -54,6 +54,7 @@ message DeployLocalActors {
 }
 
 message DeployedLocalActors {
-   repeated string paths = 1;
+   repeated string actors = 1;
+   repeated string roles = 2;
 }
 
