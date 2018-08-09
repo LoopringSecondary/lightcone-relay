@@ -42,7 +42,6 @@ message OrderResult {
 }
 
 // MESSAGES
-
 message MSaveOrders {
     string orderHash = 1;
 }
