@@ -40,9 +40,9 @@ class ActorDeployer(
     case _ =>
   }
 
-  def deploy() {
-
+  def deploy(): LocalRouters = {
     val r = new LocalRouters()
+
     deploySingleton(
       Props(new GlobalConfigurationManager(r)),
       "global_configuration_manager")
@@ -118,6 +118,8 @@ class ActorDeployer(
     deploy(
       Props(new OrderBookReader(r)),
       "order_book_manager", 1)
+
+    r
   }
 
   private def deploySingleton(props: => Props, name: String) = {

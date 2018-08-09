@@ -6,9 +6,11 @@ object Dependencies {
   lazy val logbackVersion = "1.2.3"
   lazy val json4sVersion = "3.5.4"
   lazy val akkaVersion = "2.5.14"
+  lazy val akkaHttpVersion = "10.1.3"
 
   lazy val commonDependency = Seq(
     "com.google.inject" % "guice" % "4.2.0",
+    "com.thesamet.scalapb" %% "scalapb-json4s" % "0.7.0",
     "de.heikoseeberger" %% "akka-http-json4s" % "1.21.0",
     "org.web3j" % "core" % "3.4.0",
     "org.slf4j" % "slf4j-api" % slf4jVersion,
@@ -30,5 +32,5 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http" % "10.1.3")
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 }

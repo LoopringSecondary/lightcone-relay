@@ -13,36 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-syntax = "proto3";
 
-option java_multiple_files = true;
-option java_package = "org.loopring.lightcone.proto";
+package org.loopring.lightcone.core.utils
 
-import "google/protobuf/any.proto";
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent._
+import akka.actor._
 
-// DATA STRUCTURES
-message ProtoDemo {
-    string query = 1;
-    int64 demoId = 2;
-}
+class NewDeployer extends Actor with ActorLogging {
 
-message Pagination {
-    int32 index = 1;
-    int32 size = 2;
-}
+  val cluster = Cluster(context.system)
 
-message OrderQuery {
-    string orderHash = 1;
-    string owner = 2;
-}
-
-message OrderResult {
-    string orderHash = 1;
-    int64 validUntil = 2;
-}
-
-// Messages
-message DeployActorReq {
-    string name = 1;
-    repeated string roles = 2;
+  def receive: Receive = {
+    case _ =>
+  }
 }

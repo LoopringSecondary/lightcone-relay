@@ -27,6 +27,7 @@ object Main {
       startup(Seq("29090", "29091", "0"))
     else
       startup(args)
+
   }
 
   def startup(ports: Seq[String]): Unit = {
@@ -44,6 +45,8 @@ object Main {
       implicit val cluster = Cluster(system)
 
       system.actorOf(Props(new ActorDeployer(config, "")), name = "deployer")
+
+      new http.InternalWebServer().start()
     }
   }
 
