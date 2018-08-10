@@ -66,7 +66,6 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
 
   def receive: Receive = {
     case Msg("get_actors") =>
-      println("=====get actors from node manager")
       val f = for {
         f1 <- (system.actorOf(
           Props(new LocalActorsDetector("/user/router_*"))) ? Msg("detect"))
