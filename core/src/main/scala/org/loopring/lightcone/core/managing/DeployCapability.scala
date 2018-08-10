@@ -67,9 +67,6 @@ trait DeployCapability {
     implicit val _ad = ad;
 
     ad.name match {
-      case "global_monitor" =>
-        deploy(true, Props(new GlobalMonitor(routers)))
-
       case "cache_obsoleter" =>
         deploy(true, Props(new CacheObsoleter(routers)))
 
@@ -135,7 +132,7 @@ trait DeployCapability {
           singletonProps = props,
           terminationMessage = PoisonPill,
           settings = ClusterSingletonManagerSettings(system)),
-        name = ad.name)
+        name = "singleton_" + ad.name)
       log.info(s"----> deployed actor ${actor.path} as singleton")
     } else {
       (0 until ad.nrInstances) foreach { i =>

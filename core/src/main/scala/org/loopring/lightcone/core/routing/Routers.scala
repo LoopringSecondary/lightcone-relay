@@ -27,8 +27,7 @@ import org.loopring.lightcone.data.deployment._
 class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
-  val globalConfigurationManager = routerForSingleton("global_configuration_manager")
-  val globalMonitor = routerForSingleton("global_monitor")
+  val clusterManager = routerForSingleton("cluster_manager")
   val cacheObsoleter = routerForSingleton("cache_obsoleter")
   val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
@@ -54,9 +53,9 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   private def routerForSingleton(name: String) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/role_$name/*",
+        singletonManagerPath = s"/user/singleton_$name/*",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"router_${name}")
+      name = s"router_singleton_${name}")
 
   }
 

@@ -24,14 +24,16 @@ import scala.concurrent.duration._
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
-class GlobalConfigurationManager(config: Config)
+class ClusterManager(config: Config)
   extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
 
   def receive: Receive = {
+
+    case Msg("get_config") =>
+      sender ! ClusterConfig(123)
     case Msg("hi") =>
-      println("---------> notify")
-      mediator ! Publish("configurations", Msg("HI"))
+      mediator ! Publish("cluster_manager", Msg("HI"))
   }
 }

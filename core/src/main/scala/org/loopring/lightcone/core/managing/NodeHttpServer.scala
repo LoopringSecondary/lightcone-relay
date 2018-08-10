@@ -38,6 +38,7 @@ import org.loopring.lightcone.data.deployment._
 
 class NodeHttpServer(
   config: Config,
+  routers: Routers,
   nodeManager: ActorRef)(implicit val cluster: Cluster)
   extends Directives
   with Json4sSupport {
@@ -50,7 +51,17 @@ class NodeHttpServer(
   implicit val timeout = Timeout(2 seconds)
 
   lazy val route =
-    pathPrefix("actors") {
+    pathPrefix("config") {
+      concat(
+        pathEnd {
+          concat(
+            get {
+              val f = (routers.clusterManager ? Msg("get_config"))
+                .mapTo[ClusterConfig]
+              complete(f)
+            })
+        })
+    } ~ pathPrefix("actors") {
       concat(
         pathEnd {
           concat(
@@ -72,20 +83,20 @@ class NodeHttpServer(
                   "singletons" -> f3))
               }
               complete(f)
-            } // ,
-          // post {
-          //   entity(as[User]) { user =>
-          //     val userCreated: Future[ActionPerformed] =
-          //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
-          //     onSuccess(userCreated) { performed =>
-          //       log.info("Created user [{}]: {}", user.name, performed.description)
-          //       complete((StatusCodes.Created, performed))
-          //     }
-          //   }
-          // }
-          )
+            })
         })
     }
+
+  // post {
+  //   entity(as[User]) { user =>
+  //     val userCreated: Future[ActionPerformed] =
+  //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
+  //     onSuccess(userCreated) { performed =>
+  //       log.info("Created user [{}]: {}", user.name, performed.description)
+  //       complete((StatusCodes.Created, performed))
+  //     }
+  //   }
+  // }
 
   Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
 }

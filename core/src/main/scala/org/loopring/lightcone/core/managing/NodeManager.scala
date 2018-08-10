@@ -48,18 +48,19 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
 
   val routers = new Routers(config)
 
-  val gcm = system.actorOf(
+  val clusterManager = system.actorOf(
     ClusterSingletonManager.props(
-      singletonProps = Props(classOf[GlobalConfigurationManager], config),
+      singletonProps = Props(classOf[ClusterManager], config),
       terminationMessage = PoisonPill,
       settings = ClusterSingletonManagerSettings(system)),
-    name = "singleton_global_configuration_manager")
+    name = "singleton_cluster_manager")
 
   val mediator = DistributedPubSub(system).mediator
-  mediator ! Subscribe("configurations", self)
+  mediator ! Subscribe("cluster_manager", self)
 
-  val http = new NodeHttpServer(config, self)
+  val http = new NodeHttpServer(config, routers, self)
 
   def receive: Receive = {
+    case _ =>
   }
 }

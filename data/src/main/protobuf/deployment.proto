@@ -9,21 +9,6 @@ message Msg {
     string name = 1;
 }
 
-message ActorInfo {
-    string path = 1;
-    int64 deployed_at = 2;
-}
-
-message ActorInfoGroup {
-    string name = 1;
-    repeated ActorInfo actors = 2;
-    bool cluster_singleton = 3;
-}
-
-message LocalActorDeploymentSummary {
-    repeated ActorInfoGroup groups = 1;
-}
-
 message LocalActors {
     repeated string paths = 1;
 }
@@ -33,3 +18,6 @@ message LocalNodeSummary {
     map<string, LocalActors> actors = 2;
 }
 
+message ClusterConfig {
+    int32 version = 1;
+}
