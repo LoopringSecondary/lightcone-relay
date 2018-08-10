@@ -9,6 +9,7 @@ object Dependencies {
   lazy val akkaHttpVersion = "10.1.3"
 
   lazy val commonDependency = Seq(
+    "com.github.scopt" %% "scopt" % "3.7.0",
     "com.google.inject" % "guice" % "4.2.0",
     "com.thesamet.scalapb" %% "scalapb-json4s" % "0.7.0",
     "de.heikoseeberger" %% "akka-http-json4s" % "1.21.0",

@@ -19,7 +19,11 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import org.loopring.lightcone.core.LocalRouters
 
-class BalanceManager(r: LocalRouters) extends Actor {
+class BalanceManager(r: LocalRouters)
+  extends Actor with Timers {
+
+  // timers.startPeriodicTimer("deploy-t", "say", 5.seconds)
+
   def receive: Receive = {
     case _ =>
   }
