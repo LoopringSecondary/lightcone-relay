@@ -81,12 +81,7 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           "routers" -> f1,
           "roles" -> f2,
           "singletons" -> f3))
-
-      } yield {
-        println("******")
-        println("localActors" + localActors)
-        localActors
-      }
-      f.pipeTo(sender)
+      } yield localActors
+      f pipeTo sender
   }
 }
