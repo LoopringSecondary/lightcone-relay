@@ -20,7 +20,8 @@ lazy val core = (project in file("core"))
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
-    libraryDependencies ++= akkaDenepdencies)
+    libraryDependencies ++= akkaDenepdencies,
+    libraryDependencies ++= ethereumDependency)
 
 lazy val lightcone = (project in file("."))
   .aggregate(proto, core)
