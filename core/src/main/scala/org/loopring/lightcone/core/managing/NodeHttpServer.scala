@@ -60,6 +60,15 @@ class NodeHttpServer(
               complete(f.mapTo[LocalActors])
             })
         })
+    } ~ pathPrefix("config") {
+      concat(
+        pathEnd {
+          concat(
+            get {
+              val f = routers.clusterManager ? Msg("get_config")
+              complete(f.mapTo[ClusterConfig])
+            })
+        })
     }
 
   // post {

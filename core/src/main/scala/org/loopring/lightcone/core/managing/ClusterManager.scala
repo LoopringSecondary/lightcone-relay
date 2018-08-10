@@ -33,6 +33,7 @@ class ClusterManager(config: Config)
 
   def receive: Receive = {
     case Msg("get_config") =>
+      println("++++++++ get config")
       sender ! clusterConfig
 
     case Msg("hi") =>
