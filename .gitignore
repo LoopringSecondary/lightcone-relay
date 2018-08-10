@@ -6,3 +6,5 @@ project/project/
 **/log/
 
 .history
+.gradle/
+.idea/
