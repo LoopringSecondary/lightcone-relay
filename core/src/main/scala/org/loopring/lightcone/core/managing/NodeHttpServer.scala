@@ -38,8 +38,7 @@ import org.loopring.lightcone.data.deployment._
 
 class NodeHttpServer(
   config: Config,
-  nodeManager: ActorRef,
-  routers: Routers)(implicit val cluster: Cluster)
+  nodeManager: ActorRef)(implicit val cluster: Cluster)
   extends Directives
   with Json4sSupport {
 
@@ -63,22 +62,28 @@ class NodeHttpServer(
                 f2 <- (system.actorOf(
                   Props(new LocalActorsDetector("/user/role_*"))) ? "detect")
                   .mapTo[LocalActors]
+                f3 <- (system.actorOf(
+                  Props(new LocalActorsDetector("/user/singleton_*"))) ? "detect")
+                  .mapTo[LocalActors]
               } yield {
-                LocalNodeSummary(cluster.selfRoles.toSeq, Some(f1), Some(f2))
+                LocalNodeSummary(cluster.selfRoles.toSeq, Map(
+                  "routers" -> f1,
+                  "roles" -> f2,
+                  "singletons" -> f3))
               }
               complete(f)
             } // ,
-            // post {
-            //   entity(as[User]) { user =>
-            //     val userCreated: Future[ActionPerformed] =
-            //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
-            //     onSuccess(userCreated) { performed =>
-            //       log.info("Created user [{}]: {}", user.name, performed.description)
-            //       complete((StatusCodes.Created, performed))
-            //     }
-            //   }
-            // }
-            )
+          // post {
+          //   entity(as[User]) { user =>
+          //     val userCreated: Future[ActionPerformed] =
+          //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
+          //     onSuccess(userCreated) { performed =>
+          //       log.info("Created user [{}]: {}", user.name, performed.description)
+          //       complete((StatusCodes.Created, performed))
+          //     }
+          //   }
+          // }
+          )
         })
     }
 

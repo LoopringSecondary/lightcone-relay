@@ -27,49 +27,46 @@ import scala.concurrent.duration._
 import org.loopring.lightcone.proto.data._
 import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.core.managing._
 
 trait DeployCapability {
   me: Actor with ActorLogging =>
 
   val config: Config
   val routers: Routers
-  var deployed: List[String]
 
   implicit val cluster: Cluster
   implicit val system: ActorSystem
 
-  def deployAllBasedOnRoles() {
-    Set(
-      "global_configuration_manager",
-      "global_monitor",
-      "cache_obsoleter",
-      "blockchain_event_extractor",
-      "balance_cacher",
-      "balance_manager",
-      "order_cacher",
-      "order_read_coordinator",
-      "order_update_coordinator",
-      "order_updator",
-      "balance_reader",
-      "order_reader",
-      "order_writer",
-      "order_accessor",
-      "order_db_accessor",
-      "order_book_manager",
-      "ring_finder",
-      "ring_miner",
-      "order_book_reader").map {
-        name => ActorDeployment(name, 2, false)
-      }.foreach(deploy)
-  }
+  // def deployAllBasedOnRoles() {
+  //   Set(
+  //     "global_configuration_manager",
+  //     "global_monitor",
+  //     "cache_obsoleter",
+  //     "blockchain_event_extractor",
+  //     "balance_cacher",
+  //     "balance_manager",
+  //     "order_cacher",
+  //     "order_read_coordinator",
+  //     "order_update_coordinator",
+  //     "order_updator",
+  //     "balance_reader",
+  //     "order_reader",
+  //     "order_writer",
+  //     "order_accessor",
+  //     "order_db_accessor",
+  //     "order_book_manager",
+  //     "ring_finder",
+  //     "ring_miner",
+  //     "order_book_reader").map {
+  //       name => ActorDeployment(name, 2, false)
+  //     }.foreach(deploy)
+  // }
 
   def deploy(ad: ActorDeployment) {
     implicit val _ad = ad;
 
     ad.name match {
-      case "global_configuration_manager" =>
-        deploy(true, Props(new GlobalConfigurationManager(routers)))
-
       case "global_monitor" =>
         deploy(true, Props(new GlobalMonitor(routers)))
 
@@ -130,34 +127,22 @@ trait DeployCapability {
   }
 
   private def deploy(
-    isSingleton: Boolean,
+    asSingleton: Boolean,
     props: => Props)(implicit ad: ActorDeployment) = {
-
-    if (ad.forceDeployment ||
-      cluster.selfRoles.contains("all") ||
-      cluster.selfRoles.contains(ad.name)) {
-
-      if (isSingleton) {
-        val actor = system.actorOf(
-          ClusterSingletonManager.props(
-            singletonProps = props,
-            terminationMessage = PoisonPill,
-            settings = ClusterSingletonManagerSettings(system)),
-          name = ad.name)
-
-        deployed +:= actor.path.toString
-        log.info(s"deployed actor ${actor.path} as singleton")
-      } else {
-        (0 until ad.nrInstances) foreach { i =>
-          val name = "role_" + ad.name + "_" + scala.util.Random.nextInt(100000)
-          val actor = system.actorOf(props, name)
-
-          deployed +:= actor.path.toString
-          log.info(s"deployed actor ${actor.path}")
-        }
-      }
+    if (asSingleton) {
+      val actor = system.actorOf(
+        ClusterSingletonManager.props(
+          singletonProps = props,
+          terminationMessage = PoisonPill,
+          settings = ClusterSingletonManagerSettings(system)),
+        name = ad.name)
+      log.info(s"----> deployed actor ${actor.path} as singleton")
     } else {
-      log.info(s"actor deployment rejected ${ad.name}")
+      (0 until ad.nrInstances) foreach { i =>
+        val name = "role_" + ad.name + "_" + scala.util.Random.nextInt(100000)
+        val actor = system.actorOf(props, name)
+        log.info(s"----> deployed actor ${actor.path}")
+      }
     }
   }
 }

@@ -5,6 +5,9 @@ option java_package = "org.loopring.lightcone.data";
 
 import "google/protobuf/any.proto";
 
+message Msg {
+    string name = 1;
+}
 
 message ActorInfo {
     string path = 1;
@@ -27,7 +30,6 @@ message LocalActors {
 
 message LocalNodeSummary {
     repeated string roles = 1;
-    LocalActors routing_actors = 2;
-    LocalActors role_actors = 3;
+    map<string, LocalActors> actors = 2;
 }
 

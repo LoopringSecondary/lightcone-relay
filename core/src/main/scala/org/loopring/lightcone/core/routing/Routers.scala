@@ -57,6 +57,7 @@ class Routers(config: Config)(implicit cluster: Cluster) {
         singletonManagerPath = s"/user/role_$name/*",
         settings = ClusterSingletonProxySettings(system)),
       name = s"router_${name}")
+
   }
 
   private def routerFor(name: String) = {

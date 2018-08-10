@@ -35,13 +35,14 @@ class LocalActorsDetector(pattern: String) extends Actor {
       context.setReceiveTimeout(deadline.timeLeft)
       selection ! Identify(None)
 
-    case ActorIdentity(_, refOption) ⇒
+    case ActorIdentity(_, refOption) =>
       count += 1
       refOption foreach { result += _.toString }
       context.setReceiveTimeout(deadline.timeLeft)
       if (count == max || deadline.isOverdue)
         completeResult()
-    case ReceiveTimeout ⇒
+
+    case ReceiveTimeout =>
       completeResult()
   }
 

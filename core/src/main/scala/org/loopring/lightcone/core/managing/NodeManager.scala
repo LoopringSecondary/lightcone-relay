@@ -32,25 +32,34 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
+import akka.cluster.pubsub._
+import akka.cluster.pubsub.DistributedPubSubMediator._
+import org.loopring.lightcone.data.deployment._
+import akka.cluster.singleton._
+import org.loopring.lightcone.core.routing._
 
-class NodeManager(
-  val config: Config,
-  val routers: Routers)(implicit val cluster: Cluster)
+class NodeManager(val config: Config)(implicit val cluster: Cluster)
   extends Actor
   with ActorLogging
   with Timers
   with DeployCapability {
+
   implicit val system = cluster.system
 
-  var deployed: List[String] = List.empty[String]
+  val routers = new Routers(config)
 
-  timers.startSingleTimer("deploy-default", DeployLocalActors(), 5.seconds)
+  val gcm = system.actorOf(
+    ClusterSingletonManager.props(
+      singletonProps = Props(classOf[GlobalConfigurationManager], config),
+      terminationMessage = PoisonPill,
+      settings = ClusterSingletonManagerSettings(system)),
+    name = "singleton_global_configuration_manager")
+
+  val mediator = DistributedPubSub(system).mediator
+  mediator ! Subscribe("configurations", self)
+
+  val http = new NodeHttpServer(config, self)
 
   def receive: Receive = {
-    case DeployLocalActors(deployments) =>
-      if (deployments.isEmpty) deployAllBasedOnRoles()
-      else deployments.foreach(deploy)
-
-      sender ! DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
   }
 }

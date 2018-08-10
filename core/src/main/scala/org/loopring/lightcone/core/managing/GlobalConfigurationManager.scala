@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core.managing
 
 import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
+import akka.cluster.pubsub._
+import akka.cluster.pubsub.DistributedPubSubMediator._
+import scala.concurrent.duration._
+import com.typesafe.config.Config
+import org.loopring.lightcone.data.deployment._
 
-class GlobalConfigurationManager(r: Routers) extends Actor {
+class GlobalConfigurationManager(config: Config)
+  extends Actor {
+
+  val mediator = DistributedPubSub(context.system).mediator
+
   def receive: Receive = {
-    case _ =>
+    case Msg("hi") =>
+      println("---------> notify")
+      mediator ! Publish("configurations", Msg("HI"))
   }
 }
