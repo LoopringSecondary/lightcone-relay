@@ -58,7 +58,7 @@ trait DeployCapability {
       "ring_finder",
       "ring_miner",
       "order_book_reader").map {
-        name => ActorDeployment(name, 1, false)
+        name => ActorDeployment(name, 2, false)
       }.foreach(deploy)
   }
 

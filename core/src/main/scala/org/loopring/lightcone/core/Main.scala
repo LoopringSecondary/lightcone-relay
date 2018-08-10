@@ -16,32 +16,104 @@
 
 package org.loopring.lightcone.core
 
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import java.net.InetAddress
 import akka.actor._
 import akka.cluster._
 import org.loopring.lightcone.core._
 
 object Main {
+
+  case class CmdOptions(
+    port: Int = 0,
+    seeds: Seq[String] = Seq.empty[String],
+    roles: Seq[String] = Seq.empty[String],
+    configFile: String = "")
+
   def main(args: Array[String]): Unit = {
-    if (args.isEmpty)
-      startup(Seq("29090", "29091", "0"))
-    else
-      startup(args)
-  }
 
-  def startup(ports: Seq[String]): Unit = {
-    ports foreach { port =>
-      // Override the configuration of the port
-      val config = ConfigFactory
-        .parseString(s"""
-        akka.remote.netty.tcp.port=$port
-        """)
-        .withFallback(ConfigFactory.load())
+    new scopt.OptionParser[CmdOptions]("lightcone") {
+      head("Lightcone", "0.1")
 
-      implicit val system = ActorSystem("Lightcone", config)
-      implicit val cluster = Cluster(system)
+      opt[Int]('p', "port")
+        .action { (v, options) =>
+          options.copy(port = v)
+        }
+        .text("port of this acter system")
 
-      system.actorOf(Props(new NodeManager(config)))
+      arg[String]("<seeds>...").unbounded().optional()
+        .action { (v, options) =>
+          options.copy(seeds = options.seeds :+ v.trim)
+        }
+        .text("cluster seed nodes")
+
+      arg[String]("<roles>...").unbounded().optional()
+        .action { (v, options) =>
+          options.copy(roles = options.roles :+ v.trim)
+        }
+        .validate { role =>
+          if (role.isEmpty) failure("arg <roles> must be provided")
+          else success
+        }
+        .text("node roles")
+
+      opt[String]('c', "config")
+        .action { (v, options) =>
+          options.copy(configFile = v.trim)
+        }
+        .text("path to configuration file")
+
+    }.parse(args, CmdOptions()) match {
+      case None =>
+
+      case Some(options) =>
+        val seedNodes = options.seeds
+          .filter(_.nonEmpty)
+          .map(s => s""""akka.tcp://Lightcone@$s"""")
+          .mkString("[", ",", "]")
+
+        val roles =
+          if (options.roles.isEmpty) "[all]"
+          else options.roles
+            .filter(_.nonEmpty)
+            .mkString("[", ",", "]")
+
+        val hostname = InetAddress.getLocalHost.getHostAddress
+
+        val fallback = if (options.configFile.trim.nonEmpty) {
+          ConfigFactory.load(options.configFile.trim)
+        } else {
+          ConfigFactory.load()
+        }
+
+        val config = ConfigFactory
+          .parseString(
+            s"""
+            akka.remote.netty.tcp.port=${options.port}
+            akka.remote.netty.tcp.hostname=$hostname
+            akka.cluster.roles=$roles
+            akka.cluster.seed-nodes=$seedNodes
+            """)
+          .withFallback(fallback)
+
+        implicit val system = ActorSystem("Lightcone", config)
+        implicit val cluster = Cluster(system)
+
+        system.actorOf(Props(new NodeManager(config)))
+
+        println(
+          """
+___                __      __
+/\_ \    __        /\ \    /\ \__
+\//\ \  /\_\     __\ \ \___\ \ ,_\   ___    ___     ___      __
+  \ \ \ \/\ \  /'_ `\ \  _ `\ \ \/  /'___\ / __`\ /' _ `\  /'__`\
+   \_\ \_\ \ \/\ \L\ \ \ \ \ \ \ \_/\ \__//\ \L\ \/\ \/\ \/\  __/
+   /\____\\ \_\ \____ \ \_\ \_\ \__\ \____\ \____/\ \_\ \_\ \____\
+   \/____/ \/_/\/___L\ \/_/\/_/\/__/\/____/\/___/  \/_/\/_/\/____/
+                 /\____/
+                 \_/__/
+""")
     }
   }
 }
