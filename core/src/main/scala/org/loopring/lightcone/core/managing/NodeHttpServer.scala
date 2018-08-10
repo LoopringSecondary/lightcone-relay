@@ -50,24 +50,22 @@ class NodeHttpServer(
   implicit val formats = DefaultFormats
   implicit val timeout = Timeout(2 seconds)
 
-  // object LocalActorsDetector {
-  //   def props(
-  //     selection: ActorSelection,
-  //     max: Int,
-  //     deadline: Deadline,
-  //     sendResultTo: ActorRef): Props =
-  //     Props(classOf[LocalActorsDetector], max, deadline, sendResultTo: ActorRef)
-  //       .withDeploy(Deploy(scope = LocalScope))
-  // }
-
   lazy val route =
     pathPrefix("actors") {
       concat(
         pathEnd {
           concat(
             get {
-
-              val f = (system.actorOf(Props[LocalActorsDetector]) ? "detect").mapTo[LocalActors]
+              val f = for {
+                f1 <- (system.actorOf(
+                  Props(new LocalActorsDetector("/user/router_*"))) ? "detect")
+                  .mapTo[LocalActors]
+                f2 <- (system.actorOf(
+                  Props(new LocalActorsDetector("/user/role_*"))) ? "detect")
+                  .mapTo[LocalActors]
+              } yield {
+                LocalNodeSummary(cluster.selfRoles.toSeq, Some(f1), Some(f2))
+              }
               complete(f)
             } // ,
             // post {

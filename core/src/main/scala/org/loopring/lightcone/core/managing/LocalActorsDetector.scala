@@ -20,11 +20,11 @@ import akka.actor._
 import scala.concurrent.duration._
 import org.loopring.lightcone.data.deployment._
 
-class LocalActorsDetector extends Actor {
+class LocalActorsDetector(pattern: String) extends Actor {
 
   val deadline = Deadline.now + 1.second
   val max = 1000
-  val selection = context.actorSelection("/user/*")
+  val selection = context.actorSelection(pattern)
   var count = 0
   var result = Set.empty[String]
   var sendResultTo: ActorRef = null

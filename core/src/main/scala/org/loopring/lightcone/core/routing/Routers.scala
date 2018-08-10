@@ -54,9 +54,9 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   private def routerForSingleton(name: String) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/$name/*",
+        singletonManagerPath = s"/user/role_$name/*",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"${name}_router")
+      name = s"router_${name}")
   }
 
   private def routerFor(name: String) = {
@@ -65,8 +65,8 @@ class Routers(config: Config)(implicit cluster: Cluster) {
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/${name}__*"),
+          routeesPaths = List(s"/user/role_${name}_*"),
           allowLocalRoutees = true)).props,
-      name = s"${name}_router")
+      name = s"router_${name}")
   }
 }

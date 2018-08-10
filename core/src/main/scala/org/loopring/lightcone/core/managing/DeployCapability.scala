@@ -149,7 +149,7 @@ trait DeployCapability {
         log.info(s"deployed actor ${actor.path} as singleton")
       } else {
         (0 until ad.nrInstances) foreach { i =>
-          val name = ad.name + "__" + scala.util.Random.nextInt(100000)
+          val name = "role_" + ad.name + "_" + scala.util.Random.nextInt(100000)
           val actor = system.actorOf(props, name)
 
           deployed +:= actor.path.toString

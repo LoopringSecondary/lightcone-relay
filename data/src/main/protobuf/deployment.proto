@@ -22,11 +22,12 @@ message LocalActorDeploymentSummary {
 }
 
 message LocalActors {
-    repeated string actors = 1;
+    repeated string paths = 1;
 }
 
 message LocalNodeSummary {
     repeated string roles = 1;
-    LocalActorDeploymentSummary deployment_summary = 2;
+    LocalActors routing_actors = 2;
+    LocalActors role_actors = 3;
 }
 
