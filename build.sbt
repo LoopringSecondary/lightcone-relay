@@ -14,17 +14,24 @@ lazy val proto = (project in file("proto"))
         flatPackage = false,
         javaConversions = true) -> (sourceManaged in Compile).value))
 
+lazy val lib = (project in file("lib"))
+  .dependsOn(proto)
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+    basicSettings,
+    libraryDependencies ++= commonDependency,
+    libraryDependencies ++= ethereumDependency)
+
 lazy val core = (project in file("core"))
   .dependsOn(proto)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
-    libraryDependencies ++= akkaDenepdencies,
-    libraryDependencies ++= ethereumDependency)
+    libraryDependencies ++= akkaDenepdencies)
 
 lazy val lightcone = (project in file("."))
-  .aggregate(proto, core)
+  .aggregate(proto, lib, core)
   .settings(
     basicSettings,
     update / aggregate := false)
