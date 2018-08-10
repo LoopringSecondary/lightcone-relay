@@ -14,13 +14,29 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core.managing
 
 import akka.actor._
-import org.loopring.lightcone.core.LocalRouters
+import org.loopring.lightcone.core.routing.Routers
+import akka.cluster.pubsub._
+import akka.cluster.pubsub.DistributedPubSubMediator._
+import scala.concurrent.duration._
+import com.typesafe.config.Config
+import org.loopring.lightcone.data.deployment._
 
-class GlobalConfigurationManager(r: LocalRouters) extends Actor {
+class ClusterManager(config: Config)
+  extends Actor {
+
+  val mediator = DistributedPubSub(context.system).mediator
+
+  var clusterConfig = ClusterConfig()
+
   def receive: Receive = {
-    case _ =>
+    case Msg("get_config") =>
+      println("++++++++ get config")
+      sender ! clusterConfig
+
+    case Msg("hi") =>
+      mediator ! Publish("cluster_manager", Msg("HI"))
   }
 }

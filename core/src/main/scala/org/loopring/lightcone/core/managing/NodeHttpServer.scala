@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.managing
 
+import akka.pattern.{ ask, pipe }
+import akka.util.Timeout
 import akka.actor._
 import akka.cluster._
 import akka.http.scaladsl.Http
@@ -31,13 +33,14 @@ import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
+import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.data.deployment._
 
-class NodeManager(val config: Config)(implicit val cluster: Cluster)
-  extends Actor
-  with ActorLogging
-  with Timers
-  with DeployCapability
-  with Directives
+class NodeHttpServer(
+  config: Config,
+  routers: Routers,
+  nodeManager: ActorRef)(implicit val cluster: Cluster)
+  extends Directives
   with Json4sSupport {
 
   implicit val system = cluster.system
@@ -45,38 +48,39 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val executionContext = system.dispatcher
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
+  implicit val timeout = Timeout(1 seconds)
 
-  val r = new LocalRouters()
-  var deployed: List[String] = List.empty[String]
-  timers.startSingleTimer("deploy-default", DeployLocalActors(), 5.seconds)
-
-  val route =
-    path("actors") {
-      get {
-        complete {
-          DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
-        }
-      }
+  lazy val route =
+    pathPrefix("actors") {
+      concat(
+        pathEnd {
+          concat(
+            get {
+              val f = nodeManager ? Msg("get_actors")
+              complete(f.mapTo[LocalActors])
+            })
+        })
+    } ~ pathPrefix("config") {
+      concat(
+        pathEnd {
+          concat(
+            get {
+              val f = routers.clusterManager ? Msg("get_config")
+              complete(f.mapTo[ClusterConfig])
+            })
+        })
     }
-  // ~
-  // path("deploy") {
-  //   pathEndOrSingleSlash {
-  //     post {
-  //       entity(as[DeployLocalActors]) { req =>
-  //         complete(StatusCodes.Created ->
-  //           DeployedLocalActors(deployed.toSeq))
-  //       }
+
+  // post {
+  //   entity(as[User]) { user =>
+  //     val userCreated: Future[ActionPerformed] =
+  //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
+  //     onSuccess(userCreated) { performed =>
+  //       log.info("Created user [{}]: {}", user.name, performed.description)
+  //       complete((StatusCodes.Created, performed))
   //     }
   //   }
   // }
 
-  Http().bindAndHandle(route, "localhost", 8080)
-
-  def receive: Receive = {
-    case DeployLocalActors(deployments) =>
-      if (deployments.isEmpty) deployAllBasedOnRoles()
-      else deployments.foreach(deploy)
-
-      sender ! DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
-  }
+  Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
 }

@@ -26,8 +26,7 @@ object Dependencies {
     "org.json4s" %% "json4s-ext" % json4sVersion)
 
   lazy val ethereumDependency = Seq(
-    "org.ethereum" % "ethereumj-core" % "1.8.0-RELEASE"
-  )
+    "org.ethereum" % "ethereumj-core" % "1.8.0-RELEASE")
 
   lazy val akkaDenepdencies = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -36,6 +35,8 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 }

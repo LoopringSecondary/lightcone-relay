@@ -17,9 +17,9 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.core.LocalRouters
+import org.loopring.lightcone.core.routing.Routers
 
-class BalanceManager(r: LocalRouters)
+class BalanceManager(r: Routers)
   extends Actor with Timers {
 
   // timers.startPeriodicTimer("deploy-t", "say", 5.seconds)
