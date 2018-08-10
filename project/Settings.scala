@@ -8,6 +8,8 @@ object Settings {
     version := Globals.version,
     scalaVersion := Globals.scalaVersion,
     autoScalaLibrary := false,
+    resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
+    resolvers += "JFrog" at "https://oss.jfrog.org/libs-release/",
     resolvers += Resolver.bintrayRepo("hseeberger", "maven"),
     javacOptions := Seq( //"-source", Globals.jvmVersion,
     ),
