@@ -27,36 +27,35 @@ import org.loopring.lightcone.data.deployment._
 class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
-  lazy val clusterManager = routerForSingleton("cluster_manager")
-  lazy val cacheObsoleter = routerForSingleton("cache_obsoleter")
-  lazy val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
+  val clusterManager = routerForSingleton("cluster_manager")
+  val cacheObsoleter = routerForSingleton("cache_obsoleter")
+  val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
-  lazy val balanceCacher = routerFor("balance_cacher")
-  lazy val balanceManager = routerFor("balance_manager")
-  lazy val orderCacher = routerFor("order_cacher")
-  lazy val orderReadCoordinator = routerFor("order_read_coordinator")
-  lazy val orderUpdateCoordinator = routerFor("order_update_coordinator")
-  lazy val orderUpdator = routerFor("order_updator")
+  val balanceCacher = routerFor("balance_cacher")
+  val balanceManager = routerFor("balance_manager")
+  val orderCacher = routerFor("order_cacher")
+  val orderReadCoordinator = routerFor("order_read_coordinator")
+  val orderUpdateCoordinator = routerFor("order_update_coordinator")
+  val orderUpdator = routerFor("order_updator")
 
-  lazy val balanceReader = routerFor("balance_reader")
-  lazy val orderReader = routerFor("order_reader")
-  lazy val orderWriter = routerFor("order_writer")
+  val balanceReader = routerFor("balance_reader")
+  val orderReader = routerFor("order_reader")
+  val orderWriter = routerFor("order_writer")
 
-  lazy val orderAccessor = routerFor("order_accessor")
-  lazy val orderDBAccessor = routerFor("order_db_accessor")
+  val orderAccessor = routerFor("order_accessor")
+  val orderDBAccessor = routerFor("order_db_accessor")
 
-  lazy val orderBookManager = routerForSingleton("order_book_manager")
-  lazy val ringFinder = routerForSingleton("ring_finder")
-  lazy val ringMiner = routerForSingleton("ring_miner")
-  lazy val orderBookReader = routerFor("order_book_reader")
+  val orderBookManager = routerForSingleton("order_book_manager")
+  val ringFinder = routerForSingleton("ring_finder")
+  val ringMiner = routerForSingleton("ring_miner")
+  val orderBookReader = routerFor("order_book_reader")
 
   private def routerForSingleton(name: String) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/singleton_$name/*",
+        singletonManagerPath = s"/user/singleton_$name",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"router_singleton_${name}")
-
+      name = s"router_${name}")
   }
 
   private def routerFor(name: String) = {

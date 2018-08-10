@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.managing
 
+import akka.pattern._
+import akka.util.Timeout
 import akka.actor._
 import akka.cluster._
 import akka.http.scaladsl.Http
@@ -45,6 +47,8 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   with DeployCapability {
 
   implicit val system = cluster.system
+  implicit val executionContext = system.dispatcher
+  implicit val timeout = Timeout(1 seconds)
 
   val routers = new Routers(config)
 
@@ -61,6 +65,28 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   val http = new NodeHttpServer(config, routers, self)
 
   def receive: Receive = {
-    case _ =>
+    case Msg("get_actors") =>
+      println("=====get actors from node manager")
+      val f = for {
+        f1 <- (system.actorOf(
+          Props(new LocalActorsDetector("/user/router_*"))) ? Msg("detect"))
+          .mapTo[LocalActors.Actors]
+        f2 <- (system.actorOf(
+          Props(new LocalActorsDetector("/user/role_*"))) ? Msg("detect"))
+          .mapTo[LocalActors.Actors]
+        f3 <- (system.actorOf(
+          Props(new LocalActorsDetector("/user/singleton_*"))) ? Msg("detect"))
+          .mapTo[LocalActors.Actors]
+        localActors = LocalActors(cluster.selfRoles.toSeq, Map(
+          "routers" -> f1,
+          "roles" -> f2,
+          "singletons" -> f3))
+
+      } yield {
+        println("******")
+        println("localActors" + localActors)
+        localActors
+      }
+      f.pipeTo(sender)
   }
 }

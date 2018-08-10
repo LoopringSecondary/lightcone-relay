@@ -107,7 +107,7 @@ object Main {
         // Deploying NodeManager
         system.actorOf(
           Props(new managing.NodeManager(config)),
-          "node_manager")
+          "node")
 
         Thread.sleep(2000)
         val summary = "============= Akka Node Ready =============\n" +

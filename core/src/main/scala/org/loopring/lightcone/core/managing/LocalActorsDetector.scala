@@ -22,7 +22,7 @@ import org.loopring.lightcone.data.deployment._
 
 class LocalActorsDetector(pattern: String) extends Actor {
 
-  val deadline = Deadline.now + 1.second
+  val deadline = Deadline.now + 200.millis
   val max = 1000
   val selection = context.actorSelection(pattern)
   var count = 0
@@ -30,7 +30,7 @@ class LocalActorsDetector(pattern: String) extends Actor {
   var sendResultTo: ActorRef = null
 
   def receive = {
-    case "detect" =>
+    case Msg("detect") =>
       sendResultTo = sender
       context.setReceiveTimeout(deadline.timeLeft)
       selection ! Identify(None)
@@ -47,7 +47,7 @@ class LocalActorsDetector(pattern: String) extends Actor {
   }
 
   def completeResult(): Unit = {
-    sendResultTo ! LocalNodeSummary.Actors(result.toSeq)
+    sendResultTo ! LocalActors.Actors(result.toSeq)
     context.stop(self)
   }
 }

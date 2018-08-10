@@ -48,41 +48,16 @@ class NodeHttpServer(
   implicit val executionContext = system.dispatcher
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
-  implicit val timeout = Timeout(2 seconds)
+  implicit val timeout = Timeout(1 seconds)
 
   lazy val route =
-    pathPrefix("config") {
+    pathPrefix("actors") {
       concat(
         pathEnd {
           concat(
             get {
-              val f = (routers.clusterManager ? Msg("get_config"))
-                .mapTo[ClusterConfig]
-              complete(f)
-            })
-        })
-    } ~ pathPrefix("actors") {
-      concat(
-        pathEnd {
-          concat(
-            get {
-              val f = for {
-                f1 <- (system.actorOf(
-                  Props(new LocalActorsDetector("/user/router_*"))) ? "detect")
-                  .mapTo[LocalNodeSummary.Actors]
-                f2 <- (system.actorOf(
-                  Props(new LocalActorsDetector("/user/role_*"))) ? "detect")
-                  .mapTo[LocalNodeSummary.Actors]
-                f3 <- (system.actorOf(
-                  Props(new LocalActorsDetector("/user/singleton_*"))) ? "detect")
-                  .mapTo[LocalNodeSummary.Actors]
-              } yield {
-                LocalNodeSummary(cluster.selfRoles.toSeq, Map(
-                  "routers" -> f1,
-                  "roles" -> f2,
-                  "singletons" -> f3))
-              }
-              complete(f)
+              val f = nodeManager ? Msg("get_actors")
+              complete(f.mapTo[LocalActors])
             })
         })
     }

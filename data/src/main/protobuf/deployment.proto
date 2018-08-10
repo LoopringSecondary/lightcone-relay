@@ -9,7 +9,7 @@ message Msg {
     string name = 1;
 }
 
-message LocalNodeSummary {
+message LocalActors {
     message Actors {
         repeated string paths = 1;
     }
