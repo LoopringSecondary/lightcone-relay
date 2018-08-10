@@ -52,24 +52,19 @@ class LocalRouters()(implicit cluster: Cluster) {
   private def routerForSingleton(name: String) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/$name",
+        singletonManagerPath = s"/user/$name/*",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"{$name}_router")
+      name = s"${name}_router")
   }
 
-  private def routerFor(name: String, numGroup: Int = 1) = {
-    require(numGroup >= 1)
-
-    val routeesPaths = (0 until numGroup)
-      .toList.map(i => s"/user/{$name}_$i")
-
+  private def routerFor(name: String) = {
     system.actorOf(
       ClusterRouterGroup(
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = routeesPaths,
+          routeesPaths = List(s"/user/${name}__*"),
           allowLocalRoutees = true)).props,
-      name = s"{$name}_router")
+      name = s"${name}_router")
   }
 }

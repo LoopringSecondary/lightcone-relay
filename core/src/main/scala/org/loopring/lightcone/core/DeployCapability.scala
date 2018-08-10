@@ -32,7 +32,7 @@ trait DeployCapability {
 
   val config: Config
   val r: LocalRouters
-  var deployed: Set[String]
+  var deployed: List[String]
 
   implicit val cluster: Cluster
   implicit val system: ActorSystem
@@ -58,7 +58,7 @@ trait DeployCapability {
       "ring_finder",
       "ring_miner",
       "order_book_reader").map {
-        name => ActorDeployment(name, 5, false)
+        name => ActorDeployment(name, 1, false)
       }.foreach(deploy)
   }
 
@@ -144,19 +144,19 @@ trait DeployCapability {
             settings = ClusterSingletonManagerSettings(system)),
           name = ad.name)
 
-        deployed += actor.path.toString
-        log.info(s"deployed actor ${ad.name} as singleton")
+        deployed +:= actor.path.toString
+        log.info(s"deployed actor ${actor.path} as singleton")
       } else {
         (0 until ad.nrInstances) foreach { i =>
-          val id = s"${ad.name}_$i";
-          val actor = system.actorOf(props, id)
+          val name = ad.name + "__" + scala.util.Random.nextInt(100000)
+          val actor = system.actorOf(props, name)
 
-          deployed += actor.path.toString
-          log.info(s"deployed actor $id")
+          deployed +:= actor.path.toString
+          log.info(s"deployed actor ${actor.path}")
         }
       }
     } else {
-      log.info(s"rejected actor ${ad.name}")
+      log.info(s"actor deployment rejected ${ad.name}")
     }
   }
 }

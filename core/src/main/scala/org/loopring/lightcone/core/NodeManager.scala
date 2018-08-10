@@ -47,16 +47,14 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val formats = DefaultFormats
 
   val r = new LocalRouters()
-  var deployed: Set[String] = Set.empty[String]
+  var deployed: List[String] = List.empty[String]
   timers.startSingleTimer("deploy-default", DeployLocalActors(), 5.seconds)
 
   val route =
     path("actors") {
       get {
         complete {
-          DeployedLocalActors(
-            deployed.toSeq,
-            cluster.selfRoles.toSeq)
+          DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
         }
       }
     }
@@ -79,8 +77,6 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
       if (deployments.isEmpty) deployAllBasedOnRoles()
       else deployments.foreach(deploy)
 
-      sender ! DeployedLocalActors(
-        deployed.toSeq,
-        cluster.selfRoles.toSeq)
+      sender ! DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
   }
 }
