@@ -9,15 +9,38 @@ message Msg {
     string name = 1;
 }
 
-message LocalActors {
-    repeated string paths = 1;
-}
-
 message LocalNodeSummary {
+    message Actors {
+        repeated string paths = 1;
+    }
     repeated string roles = 1;
-    map<string, LocalActors> actors = 2;
+    map<string, Actors> actors = 2;
 }
 
 message ClusterConfig {
+    message MarketConfig {
+        string market_id = 1;
+        string display_name = 2;
+        string token_major = 3;
+        string token_minor = 4;
+        bool enabled = 5;
+    }
+
+    message RoleActorDeployment {
+        string actor = 1;
+        repeated string roles = 2;
+        int32 num_instances_per_node = 3;
+    }
+
+    message MarketActorDeployment {
+        string market_id = 1;
+        string actor = 2;
+        repeated string roles = 5;
+    }
+
     int32 version = 1;
+    map<string, MarketConfig> market_configs = 2;
+    repeated RoleActorDeployment role_actors = 3;
+    repeated MarketActorDeployment market_actors = 4;
 }
+

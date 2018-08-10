@@ -69,13 +69,13 @@ class NodeHttpServer(
               val f = for {
                 f1 <- (system.actorOf(
                   Props(new LocalActorsDetector("/user/router_*"))) ? "detect")
-                  .mapTo[LocalActors]
+                  .mapTo[LocalNodeSummary.Actors]
                 f2 <- (system.actorOf(
                   Props(new LocalActorsDetector("/user/role_*"))) ? "detect")
-                  .mapTo[LocalActors]
+                  .mapTo[LocalNodeSummary.Actors]
                 f3 <- (system.actorOf(
                   Props(new LocalActorsDetector("/user/singleton_*"))) ? "detect")
-                  .mapTo[LocalActors]
+                  .mapTo[LocalNodeSummary.Actors]
               } yield {
                 LocalNodeSummary(cluster.selfRoles.toSeq, Map(
                   "routers" -> f1,

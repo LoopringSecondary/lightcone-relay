@@ -38,90 +38,24 @@ trait DeployCapability {
   implicit val cluster: Cluster
   implicit val system: ActorSystem
 
-  // def deployAllBasedOnRoles() {
-  //   Set(
-  //     "global_configuration_manager",
-  //     "global_monitor",
-  //     "cache_obsoleter",
-  //     "blockchain_event_extractor",
-  //     "balance_cacher",
-  //     "balance_manager",
-  //     "order_cacher",
-  //     "order_read_coordinator",
-  //     "order_update_coordinator",
-  //     "order_updator",
-  //     "balance_reader",
-  //     "order_reader",
-  //     "order_writer",
-  //     "order_accessor",
-  //     "order_db_accessor",
-  //     "order_book_manager",
-  //     "ring_finder",
-  //     "ring_miner",
-  //     "order_book_reader").map {
-  //       name => ActorDeployment(name, 2, false)
-  //     }.foreach(deploy)
-  // }
-
-  def deploy(ad: ActorDeployment) {
-    implicit val _ad = ad;
-
-    ad.name match {
-      case "cache_obsoleter" =>
-        deploy(true, Props(new CacheObsoleter(routers)))
-
-      case "blockchain_event_extractor" =>
-        deploy(true, Props(new BlockchainEventExtractor(routers)))
-
-      case "balance_cacher" =>
-        deploy(false, Props(new BalanceCacher(routers)))
-
-      case "balance_manager" =>
-        deploy(false, Props(new BalanceManager(routers)))
-
-      case "order_cacher" =>
-        deploy(false, Props(new OrderCacher(routers)))
-
-      case "order_read_coordinator" =>
-        deploy(false, Props(new OrderReadCoordinator(routers)))
-
-      case "order_update_coordinator" =>
-        deploy(false, Props(new OrderUpdateCoordinator(routers)))
-
-      case "order_updator" =>
-        deploy(false, Props(new OrderUpdater(routers)))
-
-      case "balance_reader" =>
-        deploy(false, Props(new BalanceReader(routers)))
-
-      case "order_reader" =>
-        deploy(false, Props(new OrderReader(routers)))
-
-      case "order_writer" =>
-        deploy(false, Props(new OrderWriter(routers)))
-
-      case "order_accessor" =>
-        deploy(false, Props(new OrderAccessor(routers)))
-
-      case "order_db_accessor" =>
-        deploy(false, Props(new OrderDBAccessor(routers)))
-
-      case "order_book_manager" =>
-        deploy(true, Props(new OrderBookManager(routers)))
-
-      case "ring_finder" =>
-        deploy(true, Props(new RingFinder(routers)))
-
-      case "ring_miner" =>
-        deploy(true, Props(new RingMiner(routers)))
-
-      case "order_book_reader" =>
-        deploy(false, Props(new OrderBookReader(routers)))
-
-      case name =>
-        log.error(s"Unknown actor $ad")
-    }
-  }
+  lazy val mapping: Map[String, (Boolean, Props)] = Map(
+    "cache_obsoleter" -> (true, Props(classOf[CacheObsoleter], routers)),
+    "blockchain_event_extractor" -> (true, Props(classOf[BlockchainEventExtractor], routers)),
+    "balance_cacher" -> (false, Props(classOf[BalanceCacher], routers)),
+    "balance_manager" -> (false, Props(classOf[BalanceManager], routers)),
+    "order_cacher" -> (false, Props(classOf[OrderCacher], routers)),
+    "order_read_coordinator" -> (false, Props(classOf[OrderReadCoordinator], routers)),
+    "order_update_coordinator" -> (false, Props(classOf[OrderUpdateCoordinator], routers)),
+    "order_updator" -> (false, Props(classOf[OrderUpdater], routers)),
+    "balance_reader" -> (false, Props(classOf[BalanceReader], routers)),
+    "order_reader" -> (false, Props(classOf[OrderReader], routers)),
+    "order_writer" -> (false, Props(classOf[OrderWriter], routers)),
+    "order_accessor" -> (false, Props(classOf[OrderAccessor], routers)),
+    "order_db_accessor" -> (false, Props(classOf[OrderDBAccessor], routers)),
+    "order_book_manager" -> (true, Props(classOf[OrderBookManager], routers)),
+    "ring_finder" -> (true, Props(classOf[RingFinder], routers)),
+    "ring_miner" -> (true, Props(classOf[RingMiner], routers)),
+    "order_book_reader" -> (false, Props(classOf[OrderBookReader], routers)))
 
   private def deploy(
     asSingleton: Boolean,

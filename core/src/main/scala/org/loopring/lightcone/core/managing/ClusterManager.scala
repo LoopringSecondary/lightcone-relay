@@ -29,10 +29,12 @@ class ClusterManager(config: Config)
 
   val mediator = DistributedPubSub(context.system).mediator
 
-  def receive: Receive = {
+  var clusterConfig = ClusterConfig()
 
+  def receive: Receive = {
     case Msg("get_config") =>
-      sender ! ClusterConfig(123)
+      sender ! clusterConfig
+
     case Msg("hi") =>
       mediator ! Publish("cluster_manager", Msg("HI"))
   }

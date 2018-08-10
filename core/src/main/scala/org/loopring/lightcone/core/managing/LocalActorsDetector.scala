@@ -47,7 +47,7 @@ class LocalActorsDetector(pattern: String) extends Actor {
   }
 
   def completeResult(): Unit = {
-    sendResultTo ! LocalActors(result.toSeq)
+    sendResultTo ! LocalNodeSummary.Actors(result.toSeq)
     context.stop(self)
   }
 }
