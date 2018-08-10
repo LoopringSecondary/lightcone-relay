@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.managing
 
+import akka.pattern.{ ask, pipe }
+import akka.util.Timeout
 import akka.actor._
 import akka.cluster._
 import akka.http.scaladsl.Http
@@ -32,6 +34,7 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.data.deployment._
 
 class NodeHttpServer(
   config: Config,
@@ -45,14 +48,40 @@ class NodeHttpServer(
   implicit val executionContext = system.dispatcher
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
+  implicit val timeout = Timeout(2 seconds)
 
-  val route =
-    path("actors") {
-      get {
-        complete {
-          DeployedLocalActors(Nil, /*deployed.reverse,*/ cluster.selfRoles.toSeq)
-        }
-      }
+  // object LocalActorsDetector {
+  //   def props(
+  //     selection: ActorSelection,
+  //     max: Int,
+  //     deadline: Deadline,
+  //     sendResultTo: ActorRef): Props =
+  //     Props(classOf[LocalActorsDetector], max, deadline, sendResultTo: ActorRef)
+  //       .withDeploy(Deploy(scope = LocalScope))
+  // }
+
+  lazy val route =
+    pathPrefix("actors") {
+      concat(
+        pathEnd {
+          concat(
+            get {
+
+              val f = (system.actorOf(Props[LocalActorsDetector]) ? "detect").mapTo[LocalActors]
+              complete(f)
+            } // ,
+            // post {
+            //   entity(as[User]) { user =>
+            //     val userCreated: Future[ActionPerformed] =
+            //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
+            //     onSuccess(userCreated) { performed =>
+            //       log.info("Created user [{}]: {}", user.name, performed.description)
+            //       complete((StatusCodes.Created, performed))
+            //     }
+            //   }
+            // }
+            )
+        })
     }
 
   Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))

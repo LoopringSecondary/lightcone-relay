@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.data";
+
+import "google/protobuf/any.proto";
+
+
+message ActorInfo {
+    string path = 1;
+    int64 deployed_at = 2;
+}
+
+message ActorInfoGroup {
+    string name = 1;
+    repeated ActorInfo actors = 2;
+    bool cluster_singleton = 3;
+}
+
+message LocalActorDeploymentSummary {
+    repeated ActorInfoGroup groups = 1;
+}
+
+message LocalActors {
+    repeated string actors = 1;
+}
+
+message LocalNodeSummary {
+    repeated string roles = 1;
+    LocalActorDeploymentSummary deployment_summary = 2;
+}
+

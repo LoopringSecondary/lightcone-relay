@@ -22,33 +22,34 @@ import akka.cluster.routing._
 import akka.routing._
 import akka.cluster.singleton._
 import com.typesafe.config.Config
+import org.loopring.lightcone.data.deployment._
 
 class Routers(config: Config)(implicit cluster: Cluster) {
-  implicit lazy val system = cluster.system
+  implicit val system = cluster.system
 
-  lazy val globalConfigurationManager = routerForSingleton("global_configuration_manager")
-  lazy val globalMonitor = routerForSingleton("global_monitor")
-  lazy val cacheObsoleter = routerForSingleton("cache_obsoleter")
-  lazy val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
+  val globalConfigurationManager = routerForSingleton("global_configuration_manager")
+  val globalMonitor = routerForSingleton("global_monitor")
+  val cacheObsoleter = routerForSingleton("cache_obsoleter")
+  val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
-  lazy val balanceCacher = routerFor("balance_cacher")
-  lazy val balanceManager = routerFor("balance_manager")
-  lazy val orderCacher = routerFor("order_cacher")
-  lazy val orderReadCoordinator = routerFor("order_read_coordinator")
-  lazy val orderUpdateCoordinator = routerFor("order_update_coordinator")
-  lazy val orderUpdator = routerFor("order_updator")
+  val balanceCacher = routerFor("balance_cacher")
+  val balanceManager = routerFor("balance_manager")
+  val orderCacher = routerFor("order_cacher")
+  val orderReadCoordinator = routerFor("order_read_coordinator")
+  val orderUpdateCoordinator = routerFor("order_update_coordinator")
+  val orderUpdator = routerFor("order_updator")
 
-  lazy val balanceReader = routerFor("balance_reader")
-  lazy val orderReader = routerFor("order_reader")
-  lazy val orderWriter = routerFor("order_writer")
+  val balanceReader = routerFor("balance_reader")
+  val orderReader = routerFor("order_reader")
+  val orderWriter = routerFor("order_writer")
 
-  lazy val orderAccessor = routerFor("order_accessor")
-  lazy val orderDBAccessor = routerFor("order_db_accessor")
+  val orderAccessor = routerFor("order_accessor")
+  val orderDBAccessor = routerFor("order_db_accessor")
 
-  lazy val orderBookManager = routerForSingleton("order_book_manager")
-  lazy val ringFinder = routerForSingleton("ring_finder")
-  lazy val ringMiner = routerForSingleton("ring_miner")
-  lazy val orderBookReader = routerFor("order_book_reader")
+  val orderBookManager = routerForSingleton("order_book_manager")
+  val ringFinder = routerForSingleton("ring_finder")
+  val ringMiner = routerForSingleton("ring_miner")
+  val orderBookReader = routerFor("order_book_reader")
 
   private def routerForSingleton(name: String) = {
     system.actorOf(
