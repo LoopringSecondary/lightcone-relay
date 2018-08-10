@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.managing
 
 import akka.actor._
 import akka.cluster._
@@ -31,13 +31,13 @@ import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
+import org.loopring.lightcone.core.routing._
 
-class NodeManager(val config: Config)(implicit val cluster: Cluster)
-  extends Actor
-  with ActorLogging
-  with Timers
-  with DeployCapability
-  with Directives
+class NodeHttpServer(
+  config: Config,
+  nodeManager: ActorRef,
+  routers: Routers)(implicit val cluster: Cluster)
+  extends Directives
   with Json4sSupport {
 
   implicit val system = cluster.system
@@ -46,37 +46,14 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
 
-  val r = new LocalRouters()
-  var deployed: List[String] = List.empty[String]
-  timers.startSingleTimer("deploy-default", DeployLocalActors(), 5.seconds)
-
   val route =
     path("actors") {
       get {
         complete {
-          DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
+          DeployedLocalActors(Nil, /*deployed.reverse,*/ cluster.selfRoles.toSeq)
         }
       }
     }
-  // ~
-  // path("deploy") {
-  //   pathEndOrSingleSlash {
-  //     post {
-  //       entity(as[DeployLocalActors]) { req =>
-  //         complete(StatusCodes.Created ->
-  //           DeployedLocalActors(deployed.toSeq))
-  //       }
-  //     }
-  //   }
-  // }
 
-  Http().bindAndHandle(route, "localhost", 8080)
-
-  def receive: Receive = {
-    case DeployLocalActors(deployments) =>
-      if (deployments.isEmpty) deployAllBasedOnRoles()
-      else deployments.foreach(deploy)
-
-      sender ! DeployedLocalActors(deployed.reverse, cluster.selfRoles.toSeq)
-  }
+  Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
 }

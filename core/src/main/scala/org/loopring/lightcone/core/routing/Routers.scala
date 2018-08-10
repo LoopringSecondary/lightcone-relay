@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.routing
 
 import akka.actor._
 import akka.cluster._
 import akka.cluster.routing._
 import akka.routing._
 import akka.cluster.singleton._
+import com.typesafe.config.Config
 
-class LocalRouters()(implicit cluster: Cluster) {
+class Routers(config: Config)(implicit cluster: Cluster) {
   implicit lazy val system = cluster.system
 
   lazy val globalConfigurationManager = routerForSingleton("global_configuration_manager")

@@ -27,6 +27,7 @@ object Main {
 
   case class CmdOptions(
     port: Int = 0,
+    managerPort: Int = 8081,
     seeds: Seq[String] = Seq.empty[String],
     roles: Seq[String] = Seq.empty[String],
     configFile: String = "")
@@ -41,6 +42,12 @@ object Main {
           options.copy(port = v)
         }
         .text("port of this acter system")
+
+      opt[Int]('m', "manager port")
+        .action { (v, options) =>
+          options.copy(managerPort = v)
+        }
+        .text("port of internal rest server [default 8081]")
 
       arg[String]("<seeds>...").unbounded().optional()
         .action { (v, options) =>
@@ -90,6 +97,7 @@ object Main {
         val config = ConfigFactory
           .parseString(
             s"""
+            node-manager.http.port=${options.managerPort}
             akka.remote.netty.tcp.port=${options.port}
             akka.remote.netty.tcp.hostname=$hostname
             akka.cluster.roles=$roles
@@ -100,10 +108,17 @@ object Main {
         implicit val system = ActorSystem("Lightcone", config)
         implicit val cluster = Cluster(system)
 
-        system.actorOf(Props(new NodeManager(config)))
+        val routers = new routing.Routers(config)
+        val manager = system.actorOf(
+          Props(new managing.NodeManager(config, routers)),
+          "node_manager")
+
+        new managing.NodeHttpServer(config, manager, routers)
 
         Thread.sleep(2000)
         val summary = "============= Akka Node Ready =============\n" +
+          "with port: " + options.port + "\n" +
+          "with manager-port: " + options.managerPort + "\n" +
           "with hostname: " + hostname + "\n" +
           "with seeds: " + seedNodes + "\n" +
           "with roles: " + roles + "\n"

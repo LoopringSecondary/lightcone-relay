@@ -17,9 +17,9 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.core.LocalRouters
+import org.loopring.lightcone.core.routing.Routers
 
-class OrderCacher(r: LocalRouters) extends Actor {
+class OrderCacher(r: Routers) extends Actor {
   def receive: Receive = {
     case _ =>
   }

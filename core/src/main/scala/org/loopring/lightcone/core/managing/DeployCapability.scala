@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.managing
 
 import scala.collection.mutable.ListBuffer
 
@@ -24,14 +24,15 @@ import akka.event.Logging
 import akka.cluster._
 import com.typesafe.config.Config
 import scala.concurrent.duration._
-import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.proto.data._
+import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.routing._
 
 trait DeployCapability {
   me: Actor with ActorLogging =>
 
   val config: Config
-  val r: LocalRouters
+  val routers: Routers
   var deployed: List[String]
 
   implicit val cluster: Cluster
@@ -67,61 +68,61 @@ trait DeployCapability {
 
     ad.name match {
       case "global_configuration_manager" =>
-        deploy(true, Props(new GlobalConfigurationManager(r)))
+        deploy(true, Props(new GlobalConfigurationManager(routers)))
 
       case "global_monitor" =>
-        deploy(true, Props(new GlobalMonitor(r)))
+        deploy(true, Props(new GlobalMonitor(routers)))
 
       case "cache_obsoleter" =>
-        deploy(true, Props(new CacheObsoleter(r)))
+        deploy(true, Props(new CacheObsoleter(routers)))
 
       case "blockchain_event_extractor" =>
-        deploy(true, Props(new BlockchainEventExtractor(r)))
+        deploy(true, Props(new BlockchainEventExtractor(routers)))
 
       case "balance_cacher" =>
-        deploy(false, Props(new BalanceCacher(r)))
+        deploy(false, Props(new BalanceCacher(routers)))
 
       case "balance_manager" =>
-        deploy(false, Props(new BalanceManager(r)))
+        deploy(false, Props(new BalanceManager(routers)))
 
       case "order_cacher" =>
-        deploy(false, Props(new OrderCacher(r)))
+        deploy(false, Props(new OrderCacher(routers)))
 
       case "order_read_coordinator" =>
-        deploy(false, Props(new OrderReadCoordinator(r)))
+        deploy(false, Props(new OrderReadCoordinator(routers)))
 
       case "order_update_coordinator" =>
-        deploy(false, Props(new OrderUpdateCoordinator(r)))
+        deploy(false, Props(new OrderUpdateCoordinator(routers)))
 
       case "order_updator" =>
-        deploy(false, Props(new OrderUpdater(r)))
+        deploy(false, Props(new OrderUpdater(routers)))
 
       case "balance_reader" =>
-        deploy(false, Props(new BalanceReader(r)))
+        deploy(false, Props(new BalanceReader(routers)))
 
       case "order_reader" =>
-        deploy(false, Props(new OrderReader(r)))
+        deploy(false, Props(new OrderReader(routers)))
 
       case "order_writer" =>
-        deploy(false, Props(new OrderWriter(r)))
+        deploy(false, Props(new OrderWriter(routers)))
 
       case "order_accessor" =>
-        deploy(false, Props(new OrderAccessor(r)))
+        deploy(false, Props(new OrderAccessor(routers)))
 
       case "order_db_accessor" =>
-        deploy(false, Props(new OrderDBAccessor(r)))
+        deploy(false, Props(new OrderDBAccessor(routers)))
 
       case "order_book_manager" =>
-        deploy(true, Props(new OrderBookManager(r)))
+        deploy(true, Props(new OrderBookManager(routers)))
 
       case "ring_finder" =>
-        deploy(true, Props(new RingFinder(r)))
+        deploy(true, Props(new RingFinder(routers)))
 
       case "ring_miner" =>
-        deploy(true, Props(new RingMiner(r)))
+        deploy(true, Props(new RingMiner(routers)))
 
       case "order_book_reader" =>
-        deploy(false, Props(new OrderBookReader(r)))
+        deploy(false, Props(new OrderBookReader(routers)))
 
       case name =>
         log.error(s"Unknown actor $ad")
