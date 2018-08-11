@@ -73,5 +73,7 @@ Tp see the  global dynamic settings, visit:
 - [http://192.168.1.152:8082/settings](http://192.168.1.152:8082/settings)
 
 
+Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
-> Note that all '/user/router_*' actors and '/user/management_*' actors are deployed automatically and cannot be removed; and only '/user/service_*' actors can be dynamically deployed.
+> Note that all `/user/router_*` actors and `/user/management_*` actors are deployed automatically and cannot be removed; and only `/user/service_*` actors can be dynamically deployed.
+>>>>>>> c4219645b8123b0e90ca2452f44d15c01391d104

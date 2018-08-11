@@ -21,7 +21,6 @@ import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
 class BalanceReader() extends Actor {
-
   def receive: Receive = {
     case _ =>
   }
