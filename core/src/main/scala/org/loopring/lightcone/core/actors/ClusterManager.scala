@@ -28,11 +28,7 @@ import org.loopring.lightcone.data.deployment._
 class ClusterManager() extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
-  var currentConfig = DynamicSettings()
-
   def receive: Receive = {
-    case Msg("get_config") =>
-      sender ! currentConfig
 
     case UploadDynamicSettings(c) =>
       mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))

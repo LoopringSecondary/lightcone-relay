@@ -43,7 +43,7 @@ message DynamicSettings {
         string market_id = 4;
     }
 
-    string version = 1;
+    string label = 1;
     map<string, MarketSettings> market_settings = 2;
     repeated ActorDeployment actor_deployments = 3;
 }
