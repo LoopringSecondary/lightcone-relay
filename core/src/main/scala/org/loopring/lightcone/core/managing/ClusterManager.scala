@@ -22,9 +22,10 @@ import akka.cluster.pubsub._
 import akka.cluster.pubsub.DistributedPubSubMediator._
 import scala.concurrent.duration._
 import com.typesafe.config.Config
+import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 
-class ClusterManager(config: Config)
+class ClusterManager(routers: Routers, config: Config)
   extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator

@@ -50,12 +50,7 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
 
-  system.actorOf(
-    ClusterSingletonManager.props(
-      singletonProps = Props(classOf[ClusterManager], config),
-      terminationMessage = PoisonPill,
-      settings = ClusterSingletonManagerSettings(system)),
-    name = "singleton_cluster_manager")
+  deployActorByName("cluster_manager")
 
   val routers = new Routers(config)
 
@@ -65,19 +60,12 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   val http = new NodeHttpServer(config, routers, self)
 
   def receive: Receive = {
-    case Msg("get_actors") =>
-      val f = for {
-        f1 <- (system.actorOf(
-          Props(new LocalActorsDetector("router"))) ? Msg("detect"))
-          .mapTo[LocalStats.ActorGroup]
-        f2 <- (system.actorOf(
-          Props(new LocalActorsDetector("role"))) ? Msg("detect"))
-          .mapTo[LocalStats.ActorGroup]
-        f3 <- (system.actorOf(
-          Props(new LocalActorsDetector("singleton"))) ? Msg("detect"))
-          .mapTo[LocalStats.ActorGroup]
-        localActors = LocalStats(cluster.selfRoles.toSeq, Seq(f1, f2, f3))
-      } yield localActors
-      f pipeTo sender
+    case Msg("get_stats") =>
+      val f = system.actorOf(Props(classOf[LocalActorsDetector])) ? Msg("detect")
+
+      f.mapTo[LocalStats.ActorGroup].map {
+        actors =>
+          LocalStats(cluster.selfRoles.toSeq, Seq(actors))
+      }.pipeTo(sender)
   }
 }
