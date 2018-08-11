@@ -18,8 +18,10 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
+import com.typesafe.config.Config
 
-class OrderDBAccessor(r: Routers) extends Actor {
+class OrderDBAccessor(routers: Routers, config: Config) extends Actor {
+  import routers._
   def receive: Receive = {
     case _ =>
   }

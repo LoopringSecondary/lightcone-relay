@@ -39,6 +39,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator._
 import org.loopring.lightcone.data.deployment._
 import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
+import com.google.protobuf.any.Any
 
 class NodeManager(val config: Config)(implicit val cluster: Cluster)
   extends Actor
@@ -49,38 +50,90 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val system = cluster.system
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
+  var oldClusterConfig = ClusterConfig(version = -1)
+
+  deployActorByName("cluster_manager")
 
   val routers = new Routers(config)
-
-  val clusterManager = system.actorOf(
-    ClusterSingletonManager.props(
-      singletonProps = Props(classOf[ClusterManager], config),
-      terminationMessage = PoisonPill,
-      settings = ClusterSingletonManagerSettings(system)),
-    name = "singleton_cluster_manager")
+  val http = new NodeHttpServer(config, routers, self)
 
   val mediator = DistributedPubSub(system).mediator
   mediator ! Subscribe("cluster_manager", self)
 
-  val http = new NodeHttpServer(config, routers, self)
-
   def receive: Receive = {
-    case Msg("get_actors") =>
-      val f = for {
-        f1 <- (system.actorOf(
-          Props(new LocalActorsDetector("/user/router_*"))) ? Msg("detect"))
-          .mapTo[LocalActors.Actors]
-        f2 <- (system.actorOf(
-          Props(new LocalActorsDetector("/user/role_*"))) ? Msg("detect"))
-          .mapTo[LocalActors.Actors]
-        f3 <- (system.actorOf(
-          Props(new LocalActorsDetector("/user/singleton_*"))) ? Msg("detect"))
-          .mapTo[LocalActors.Actors]
-        localActors = LocalActors(cluster.selfRoles.toSeq, Map(
-          "routers" -> f1,
-          "roles" -> f2,
-          "singletons" -> f3))
-      } yield localActors
-      f pipeTo sender
+
+    case Msg("get_config") =>
+      println("========+" + oldClusterConfig)
+      sender ! oldClusterConfig
+
+    case Msg("get_stats") =>
+      val f = system.actorOf(Props(classOf[LocalActorsDetector])) ? Msg("detect")
+
+      f.mapTo[LocalStats.ActorGroup].map {
+        actors =>
+          LocalStats(cluster.selfRoles.toSeq, Seq(actors))
+      }.pipeTo(sender)
+
+    case req: UploadClusterConfig =>
+      routers.clusterManager forward req
+
+    case ProcessClusterConfig(Some(newClusterConfig)) if newClusterConfig != null =>
+      redeployActors(newClusterConfig, oldClusterConfig)
+      println("========+2" + oldClusterConfig)
+      oldClusterConfig = newClusterConfig
+  }
+
+  private def redeployActors(
+    newClusterConfig: ClusterConfig,
+    oldClusterConfig: ClusterConfig) = {
+    if (newClusterConfig != oldClusterConfig) {
+
+      val clusterRoleSet = cluster.selfRoles.toSet;
+
+      val oldDeployMap = oldClusterConfig.actorDeployments
+        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+        .map(d => (d.actorName, d)).toMap
+
+      val newDeployMap = newClusterConfig.actorDeployments
+        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+        .map(d => (d.actorName, d)).toMap
+
+      // // stop all actors that are in the old map but not in the new map
+      oldDeployMap
+        .filter(kv => !newDeployMap.contains(kv._1))
+        .foreach { kv =>
+          system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+        }
+
+      newDeployMap
+        .filter(kv => !oldDeployMap.contains(kv._1))
+        .foreach { kv =>
+
+          (0 until kv._2.numInstancesPerNode) foreach { i =>
+            deployActorByName(kv._1)
+          }
+        }
+
+      newDeployMap
+        .filter(kv => oldDeployMap.contains(kv._1))
+        .foreach { kv =>
+          val oldDeploy = oldDeployMap(kv._1)
+          val newDeploy = kv._2
+
+          if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
+            oldDeploy.marketId != newDeploy.marketId) {
+            system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+
+            (0 until newDeploy.numInstancesPerNode) foreach { i =>
+              deployActorByName(kv._1)
+            }
+          } else {
+            val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
+            (0 until extra) foreach { i =>
+              deployActorByName(kv._1)
+            }
+          }
+        }
+    }
   }
 }

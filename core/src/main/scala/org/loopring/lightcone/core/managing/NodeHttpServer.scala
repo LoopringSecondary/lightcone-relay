@@ -35,6 +35,7 @@ import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
+import com.google.protobuf.any.Any
 
 class NodeHttpServer(
   config: Config,
@@ -51,36 +52,30 @@ class NodeHttpServer(
   implicit val timeout = Timeout(1 seconds)
 
   lazy val route =
-    pathPrefix("actors") {
+    pathPrefix("stats") {
       concat(
         pathEnd {
           concat(
             get {
-              val f = nodeManager ? Msg("get_actors")
-              complete(f.mapTo[LocalActors])
+              val f = nodeManager ? Msg("get_stats")
+              complete(f.mapTo[LocalStats])
             })
         })
     } ~ pathPrefix("config") {
       concat(
         pathEnd {
           concat(
-            get {
-              val f = routers.clusterManager ? Msg("get_config")
+            post {
+              entity(as[ClusterConfig]) { c =>
+                nodeManager ! UploadClusterConfig(Some(c))
+                complete(c)
+              }
+            } ~ get {
+              val f = nodeManager ? Msg("get_config")
               complete(f.mapTo[ClusterConfig])
             })
         })
     }
-
-  // post {
-  //   entity(as[User]) { user =>
-  //     val userCreated: Future[ActionPerformed] =
-  //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
-  //     onSuccess(userCreated) { performed =>
-  //       log.info("Created user [{}]: {}", user.name, performed.description)
-  //       complete((StatusCodes.Created, performed))
-  //     }
-  //   }
-  // }
 
   Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
 }

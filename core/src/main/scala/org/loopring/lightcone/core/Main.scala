@@ -107,28 +107,17 @@ object Main {
         // Deploying NodeManager
         system.actorOf(
           Props(new managing.NodeManager(config)),
-          "node")
+          "node_manager")
 
         Thread.sleep(2000)
-        val summary = "============= Akka Node Ready =============\n" +
+        println("\n\n\n\n============= Akka Node Ready =============\n" +
           "with port: " + options.port + "\n" +
           "with manager-port: " + options.managerPort + "\n" +
           "with hostname: " + hostname + "\n" +
           "with seeds: " + seedNodes + "\n" +
-          "with roles: " + roles + "\n"
+          "with roles: " + roles + "\n" +
+          "============================================\n\n\n\n")
 
-        println(summary +
-          """
-          ___                __      __
-          /\_ \    __        /\ \    /\ \__
-          \//\ \  /\_\     __\ \ \___\ \ ,_\   ___    ___     ___      __
-            \ \ \ \/\ \  /'_ `\ \  _ `\ \ \/  /'___\ / __`\ /' _ `\  /'__`\
-             \_\ \_\ \ \/\ \L\ \ \ \ \ \ \ \_/\ \__//\ \L\ \/\ \/\ \/\  __/
-             /\____\\ \_\ \____ \ \_\ \_\ \__\ \____\ \____/\ \_\ \_\ \____\
-             \/____/ \/_/\/___L\ \/_/\/_/\/__/\/____/\/___/  \/_/\/_/\/____/
-                           /\____/
-                           \_/__/
-          """)
     }
   }
 }

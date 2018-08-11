@@ -27,7 +27,10 @@ import org.loopring.lightcone.data.deployment._
 class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
-  val clusterManager = routerForSingleton("cluster_manager")
+  // Router for management actors
+  val clusterManager = routerForSingleton("cluster_manager", "management")
+
+  // Router for service actors
   val cacheObsoleter = routerForSingleton("cache_obsoleter")
   val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
@@ -50,22 +53,22 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   val ringMiner = routerForSingleton("ring_miner")
   val orderBookReader = routerFor("order_book_reader")
 
-  private def routerForSingleton(name: String) = {
+  private def routerForSingleton(name: String, group: String = "service") = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/singleton_$name",
+        singletonManagerPath = s"/user/${group}_${name}_0",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"router_singleton_${name}")
+      name = s"router_${group}_${name}")
   }
 
-  private def routerFor(name: String) = {
+  private def routerFor(name: String, group: String = "service") = {
     system.actorOf(
       ClusterRouterGroup(
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/role_${name}_*"),
+          routeesPaths = List(s"/user/${group}_${name}_*"),
           allowLocalRoutees = true)).props,
-      name = s"router_${name}")
+      name = s"router_${group}_${name}")
   }
 }
