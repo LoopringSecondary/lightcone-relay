@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core.managing
 
 import akka.actor._
+import scala.concurrent.duration._
+import com.typesafe.config.Config
+import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.core.routing._
 
-class EthereumAccessor extends Actor {
-  def receive: Receive = {
-    case _ =>
-  }
+object NodeData {
+  var config: Config = null
+  var dynamicSettings: DynamicSettings = null
+  var routers: Routers = null;
 }

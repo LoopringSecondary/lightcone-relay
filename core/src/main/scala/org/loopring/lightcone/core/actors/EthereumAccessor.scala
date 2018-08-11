@@ -17,11 +17,8 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 
-class OrderUpdater() extends Actor {
-
+class EthereumAccessor() extends Actor {
   def receive: Receive = {
     case _ =>
   }

@@ -101,12 +101,14 @@ object Main {
             """)
           .withFallback(fallback)
 
+        managing.NodeData.config = config
+
         implicit val system = ActorSystem("Lightcone", config)
         implicit val cluster = Cluster(system)
 
         // Deploying NodeManager
         system.actorOf(
-          Props(new managing.NodeManager(config)),
+          Props(new managing.NodeManager),
           "node_manager")
 
         Thread.sleep(2000)

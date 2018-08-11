@@ -20,8 +20,8 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class BalanceCacher(routers: Routers, config: Config) extends Actor {
-  import routers._
+class BalanceCacher() extends Actor {
+
   def receive: Receive = {
     case _ =>
   }

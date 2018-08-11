@@ -25,17 +25,16 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 
-class ClusterManager(routers: Routers, config: Config)
-  extends Actor {
+class ClusterManager() extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
-  var currentConfig = ClusterConfig()
+  var currentConfig = DynamicSettings()
 
   def receive: Receive = {
     case Msg("get_config") =>
       sender ! currentConfig
 
-    case UploadClusterConfig(c) =>
-      mediator ! Publish("cluster_manager", ProcessClusterConfig(c))
+    case UploadDynamicSettings(c) =>
+      mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
   }
 }

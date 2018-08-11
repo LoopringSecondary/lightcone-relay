@@ -41,7 +41,7 @@ import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
 import com.google.protobuf.any.Any
 
-class NodeManager(val config: Config)(implicit val cluster: Cluster)
+class NodeManager()(implicit val cluster: Cluster)
   extends Actor
   with ActorLogging
   with Timers
@@ -50,22 +50,16 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val system = cluster.system
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
-  var oldClusterConfig = ClusterConfig(version = -1)
 
   deployActorByName("cluster_manager")
 
-  val routers = new Routers(config)
-  val http = new NodeHttpServer(config, routers, self)
+  NodeData.routers = new Routers(NodeData.config)
+  val http = new NodeHttpServer(self)
 
   val mediator = DistributedPubSub(system).mediator
   mediator ! Subscribe("cluster_manager", self)
 
   def receive: Receive = {
-
-    case Msg("get_config") =>
-      println("========+" + oldClusterConfig)
-      sender ! oldClusterConfig
-
     case Msg("get_stats") =>
       val f = system.actorOf(Props(classOf[LocalActorsDetector])) ? Msg("detect")
 
@@ -74,37 +68,43 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           LocalStats(cluster.selfRoles.toSeq, Seq(actors))
       }.pipeTo(sender)
 
-    case req: UploadClusterConfig =>
-      routers.clusterManager forward req
+    case req: UploadDynamicSettings =>
+      NodeData.routers.clusterManager forward req
 
-    case ProcessClusterConfig(Some(newClusterConfig)) if newClusterConfig != null =>
-      redeployActors(newClusterConfig, oldClusterConfig)
-      println("========+2" + oldClusterConfig)
-      oldClusterConfig = newClusterConfig
+    case ProcessDynamicSettings(Some(newSettings)) if newSettings != null =>
+      val oldSettings = if (NodeData.dynamicSettings != null) {
+        NodeData.dynamicSettings
+      } else {
+        DynamicSettings()
+      }
+      NodeData.dynamicSettings = newSettings
+      log.info("new dynamic settings: " + newSettings)
+      redeployActors(newSettings, oldSettings)
   }
 
   private def redeployActors(
-    newClusterConfig: ClusterConfig,
-    oldClusterConfig: ClusterConfig) = {
-    if (newClusterConfig != oldClusterConfig) {
+    newSettings: DynamicSettings,
+    oldSettings: DynamicSettings) = {
+    if (newSettings != oldSettings) {
 
       val clusterRoleSet = cluster.selfRoles.toSet;
 
-      val oldDeployMap = oldClusterConfig.actorDeployments
+      val oldDeployMap = oldSettings.actorDeployments
         .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
         .map(d => (d.actorName, d)).toMap
 
-      val newDeployMap = newClusterConfig.actorDeployments
+      val newDeployMap = newSettings.actorDeployments
         .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
         .map(d => (d.actorName, d)).toMap
 
-      // // stop all actors that are in the old map but not in the new map
+      // stop all actors that are in the old map but not in the new map
       oldDeployMap
         .filter(kv => !newDeployMap.contains(kv._1))
         .foreach { kv =>
           system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
         }
 
+      // Start all new actors
       newDeployMap
         .filter(kv => !oldDeployMap.contains(kv._1))
         .foreach { kv =>
@@ -114,6 +114,7 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           }
         }
 
+      // Restart old actors with new parameters
       newDeployMap
         .filter(kv => oldDeployMap.contains(kv._1))
         .foreach { kv =>
