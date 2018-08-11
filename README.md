@@ -30,3 +30,33 @@ You can see all top-level actors deployed on each of these nodes by visiting:
 
 - [http://192.168.1.152:8081](http://192.168.1.152:8081)
 - [http://192.168.1.152:8082](http://192.168.1.152:8082)
+
+### Deploy actors dynamically
+
+post the following as JSON to `http://192.168.1.152:8081/config` to triger actor (re)depolyments.
+
+```
+{
+    "version": 1,
+    "marketConfigs": {},
+    "actorDeployments": [
+        {
+            "actorName": "balance_cacher",
+            "roles": ["all"],
+            "numInstancesPerNode":10,
+            "marketId": ""
+        },
+         {
+            "actorName": "cache_obsoleter",
+            "roles": ["all"],
+            "numInstancesPerNode": 0,
+            "marketId": ""
+        }
+    ]
+}
+
+```
+
+Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
+
+> Note that all '/user/router_*' actors and '/user/management_*' actors are deployed automatically and cannot be removed; and only '/user/service_*' actors can be dynamically deployed.

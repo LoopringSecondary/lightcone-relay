@@ -79,7 +79,8 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
     case newc: ClusterConfig =>
       val oldc = currentClusterConfig.getOrElse(ClusterConfig(version = -1))
 
-      if (oldc.version < newc.version) {
+      // if (oldc.version < newc.version) {
+      if (true) {
         val clusterRoleSet = cluster.selfRoles.toSet;
 
         val oldDeployMap = oldc.actorDeployments
