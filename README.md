@@ -33,11 +33,11 @@ You can see all top-level actors deployed on each of these nodes by visiting:
 
 ### Deploy actors dynamically
 
-post the following as JSON to `http://192.168.1.152:8081/config` to triger actor (re)depolyments.
+post the following as JSON to `http://192.168.1.152:8081/settings` to triger actor (re)depolyments.
 
 ```
 {
-    "version": 1,
+    "label": "simple",
     "marketConfigs": {},
     "actorDeployments": [
         {
@@ -61,9 +61,9 @@ There is a default configuration file at the root of the project, you can load i
 
 ```
 curl \
--d "@default_cluster_config.json"  \
+-d "@default_dynamic_settings.json"  \
 -H "Content-Type: application/json" \
--X POST http://localhost:8081/config
+-X POST http://localhost:8081/settings
 
 ```
 

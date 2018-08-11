@@ -20,20 +20,4 @@ option java_package = "org.loopring.lightcone.data";
 
 import "google/protobuf/any.proto";
 
-// Messages
-
-message ActorDeployment {
-    string name = 1;
-    int32 nr_instances = 2;
-    bool force_deployment = 3;
-}
-
-message DeployLocalActors {
-   repeated ActorDeployment deployments = 1;
-}
-
-message DeployedLocalActors {
-   repeated string actors = 1;
-   repeated string roles = 2;
-}
 

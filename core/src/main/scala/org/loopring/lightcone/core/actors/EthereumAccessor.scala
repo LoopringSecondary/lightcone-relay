@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 
-class EthereumAccessor extends Actor {
+class EthereumAccessor() extends Actor {
   def receive: Receive = {
     case _ =>
   }

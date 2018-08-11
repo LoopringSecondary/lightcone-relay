@@ -1,0 +1,111 @@
+{
+    "label": "default",
+    "marketConfigs":
+    {},
+    "actorDeployments": [
+
+        {
+            "actorName": "cache_obsoleter",
+            "roles": ["all"],
+            "numInstancesPerNode": 1,
+            "marketId": ""
+        },
+        {
+            "actorName": "blockchain_event_extractor",
+            "roles": ["all"],
+            "numInstancesPerNode": 1,
+            "marketId": ""
+        },
+        {
+            "actorName": "balance_cacher",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "balance_manager",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_cacher",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_read_coordinator",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_update_coordinator",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_updator",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "balance_reader",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_reader",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_writer",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_accessor",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_db_accessor",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_book_manager",
+            "roles": ["all"],
+            "numInstancesPerNode": 1,
+            "marketId": ""
+        },
+        {
+            "actorName": "ring_finder",
+            "roles": ["all"],
+            "numInstancesPerNode": 1,
+            "marketId": ""
+        },
+        {
+            "actorName": "ring_miner",
+            "roles": ["all"],
+            "numInstancesPerNode": 1,
+            "marketId": ""
+        },
+        {
+            "actorName": "order_book_reader",
+            "roles": ["all"],
+            "numInstancesPerNode": 5,
+            "marketId": ""
+        }
+
+    ]
+}

@@ -20,8 +20,8 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class OrderUpdateCoordinator(routers: Routers, config: Config) extends Actor {
-  import routers._
+class OrderUpdateCoordinator() extends Actor {
+
   def receive: Receive = {
     case _ =>
   }

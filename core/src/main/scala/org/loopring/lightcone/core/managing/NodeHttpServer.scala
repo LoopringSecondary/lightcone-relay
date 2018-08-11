@@ -37,10 +37,7 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 import com.google.protobuf.any.Any
 
-class NodeHttpServer(
-  config: Config,
-  routers: Routers,
-  nodeManager: ActorRef)(implicit val cluster: Cluster)
+class NodeHttpServer(nodeManager: ActorRef)(implicit val cluster: Cluster)
   extends Directives
   with Json4sSupport {
 
@@ -61,21 +58,21 @@ class NodeHttpServer(
               complete(f.mapTo[LocalStats])
             })
         })
-    } ~ pathPrefix("config") {
+    } ~ pathPrefix("settings") {
       concat(
         pathEnd {
           concat(
             post {
-              entity(as[ClusterConfig]) { c =>
-                nodeManager ! UploadClusterConfig(Some(c))
+              entity(as[DynamicSettings]) { c =>
+                nodeManager ! UploadDynamicSettings(Some(c))
                 complete(c)
               }
             } ~ get {
-              val f = nodeManager ? Msg("get_config")
-              complete(f.mapTo[ClusterConfig])
+              complete(NodeData.dynamicSettings)
             })
         })
     }
 
-  Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
+  Http().bindAndHandle(route, "localhost",
+    NodeData.config.getInt("node-manager.http.port"))
 }

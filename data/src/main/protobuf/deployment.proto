@@ -19,16 +19,16 @@ message LocalStats {
     repeated ActorGroup groups = 2;
 }
 
-message UploadClusterConfig {
-    ClusterConfig config = 1;
+message UploadDynamicSettings {
+    DynamicSettings settings = 1;
 }
 
-message ProcessClusterConfig {
-    ClusterConfig config = 1;
+message ProcessDynamicSettings {
+    DynamicSettings settings = 1;
 }
 
-message ClusterConfig {
-    message MarketConfig {
+message DynamicSettings {
+    message MarketSettings {
         string market_id = 1;
         string display_name = 2;
         string token_major = 3;
@@ -43,8 +43,8 @@ message ClusterConfig {
         string market_id = 4;
     }
 
-    int32 version = 1;
-    map<string, MarketConfig> market_configs = 2;
+    string label = 1;
+    map<string, MarketSettings> market_settings = 2;
     repeated ActorDeployment actor_deployments = 3;
 }
 
