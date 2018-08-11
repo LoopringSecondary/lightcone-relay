@@ -51,13 +51,13 @@ class NodeHttpServer(
   implicit val timeout = Timeout(1 seconds)
 
   lazy val route =
-    pathPrefix("actors") {
+    pathPrefix("stats") {
       concat(
         pathEnd {
           concat(
             get {
-              val f = nodeManager ? Msg("get_actors")
-              complete(f.mapTo[LocalActors])
+              val f = nodeManager ? Msg("get_stats")
+              complete(f.mapTo[LocalStats])
             })
         })
     } ~ pathPrefix("config") {

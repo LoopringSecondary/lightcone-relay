@@ -28,15 +28,13 @@ class ClusterManager(config: Config)
   extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
-
-  var clusterConfig = ClusterConfig()
+  var currentConfig = ClusterConfig()
 
   def receive: Receive = {
     case Msg("get_config") =>
-      println("++++++++ get config")
-      sender ! clusterConfig
+      sender ! currentConfig
 
-    case Msg("hi") =>
-      mediator ! Publish("cluster_manager", Msg("HI"))
+    case newConfig: ClusterConfig =>
+      mediator ! Publish("cluster_manager", newConfig)
   }
 }

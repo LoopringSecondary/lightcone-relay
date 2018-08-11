@@ -9,12 +9,14 @@ message Msg {
     string name = 1;
 }
 
-message LocalActors {
-    message Actors {
-        repeated string paths = 1;
+message LocalStats {
+    message ActorGroup {
+        string group = 1;
+        repeated string actors = 2;
     }
+
     repeated string roles = 1;
-    map<string, Actors> actors = 2;
+    repeated ActorGroup groups = 2;
 }
 
 message ClusterConfig {

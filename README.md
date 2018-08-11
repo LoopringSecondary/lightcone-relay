@@ -24,6 +24,8 @@ sbt "core/run \
 -r all"
 ```
 
+Note: You must start the first node in the cluster first, otherwise singleton instances will not be deployed correctly.
+
 You can see all top-level actors deployed on each of these nodes by visiting:
 
 - [http://192.168.1.152:8081](http://192.168.1.152:8081)
