@@ -69,4 +69,4 @@ curl \
 
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
-> Note that all '/user/router_*' actors and '/user/management_*' actors are deployed automatically and cannot be removed; and only '/user/service_*' actors can be dynamically deployed.
+> Note that all `/user/router_*` actors and `/user/management_*` actors are deployed automatically and cannot be removed; and only `/user/service_*` actors can be dynamically deployed.
