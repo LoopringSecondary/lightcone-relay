@@ -110,13 +110,14 @@ object Main {
           "node_manager")
 
         Thread.sleep(2000)
-        val summary = "\n\n\n\n============= Akka Node Ready =============\n" +
+        println("\n\n\n\n============= Akka Node Ready =============\n" +
           "with port: " + options.port + "\n" +
           "with manager-port: " + options.managerPort + "\n" +
           "with hostname: " + hostname + "\n" +
           "with seeds: " + seedNodes + "\n" +
           "with roles: " + roles + "\n" +
-          "============================================\n\n\n\n"
+          "============================================\n\n\n\n")
+
     }
   }
 }

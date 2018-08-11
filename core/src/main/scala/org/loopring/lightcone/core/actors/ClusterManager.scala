@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import org.loopring.lightcone.core.routing.Routers

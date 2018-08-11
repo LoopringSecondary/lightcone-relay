@@ -27,7 +27,6 @@ import scala.concurrent.duration._
 import org.loopring.lightcone.proto.data._
 import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.routing._
-import org.loopring.lightcone.core.managing._
 
 trait DeployCapability {
   me: Actor with ActorLogging =>
