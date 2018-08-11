@@ -27,9 +27,12 @@ import org.loopring.lightcone.data.deployment._
 class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
-  val clusterManager = routerForSingleton("cluster_manager")
-  val cacheObsoleter = routerForSingleton("cache_obsoleter")
-  val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
+  // Router for management actors
+  val clusterManager = routerForSingleton("singleton_cluster_manager", "management")
+
+  // Router for service actors
+  val cacheObsoleter = routerForSingleton("singleton_cache_obsoleter")
+  val blockchainEventExtractor = routerForSingleton("singleton_blockchain_event_extractor")
 
   val balanceCacher = routerFor("balance_cacher")
   val balanceManager = routerFor("balance_manager")
@@ -45,27 +48,27 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   val orderAccessor = routerFor("order_accessor")
   val orderDBAccessor = routerFor("order_db_accessor")
 
-  val orderBookManager = routerForSingleton("order_book_manager")
-  val ringFinder = routerForSingleton("ring_finder")
-  val ringMiner = routerForSingleton("ring_miner")
+  val orderBookManager = routerForSingleton("singleton_order_book_manager")
+  val ringFinder = routerForSingleton("singleton_ring_finder")
+  val ringMiner = routerForSingleton("singleton_ring_miner")
   val orderBookReader = routerFor("order_book_reader")
 
-  private def routerForSingleton(name: String) = {
+  private def routerForSingleton(name: String, group: String = "service") = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/singleton_$name",
+        singletonManagerPath = s"/user/${group}_${name}_0",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"router_singleton_${name}")
+      name = s"router_${group}_${name}")
   }
 
-  private def routerFor(name: String) = {
+  private def routerFor(name: String, group: String = "service") = {
     system.actorOf(
       ClusterRouterGroup(
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/role_${name}_*"),
+          routeesPaths = List(s"/user/${group}_${name}_*"),
           allowLocalRoutees = true)).props,
-      name = s"router_${name}")
+      name = s"router_${group}_${name}")
   }
 }

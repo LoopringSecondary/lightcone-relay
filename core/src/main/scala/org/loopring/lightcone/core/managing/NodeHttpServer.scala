@@ -64,12 +64,24 @@ class NodeHttpServer(
       concat(
         pathEnd {
           concat(
-            get {
-              val f = routers.clusterManager ? Msg("get_config")
-              complete(f.mapTo[ClusterConfig])
+            post {
+              entity(as[ClusterConfig]) { gc =>
+                complete(gc)
+              }
             })
         })
     }
+
+  // pathPrefix("config") {
+  //   concat(
+  //     pathEnd {
+  //       concat(
+  //         get {
+  //           val f = routers.clusterManager ? Msg("get_config")
+  //           complete(f.mapTo[ClusterConfig])
+  //         })
+  //     })
+  // }
 
   // post {
   //   entity(as[User]) { user =>

@@ -38,35 +38,38 @@ trait DeployCapability {
   implicit val system: ActorSystem
   var nextActorId = 0;
 
-  lazy val names: Map[String, (Boolean, Props)] = Map(
-    "cluster_manager" -> (true, Props(classOf[ClusterManager], routers, config)),
-    "cache_obsoleter" -> (true, Props(classOf[CacheObsoleter], routers, config)),
-    "blockchain_event_extractor" -> (true, Props(classOf[BlockchainEventExtractor], routers, config)),
-    "balance_cacher" -> (false, Props(classOf[BalanceCacher], routers, config)),
-    "balance_manager" -> (false, Props(classOf[BalanceManager], routers, config)),
-    "order_cacher" -> (false, Props(classOf[OrderCacher], routers, config)),
-    "order_read_coordinator" -> (false, Props(classOf[OrderReadCoordinator], routers, config)),
-    "order_update_coordinator" -> (false, Props(classOf[OrderUpdateCoordinator], routers, config)),
-    "order_updator" -> (false, Props(classOf[OrderUpdater], routers, config)),
-    "balance_reader" -> (false, Props(classOf[BalanceReader], routers, config)),
-    "order_reader" -> (false, Props(classOf[OrderReader], routers, config)),
-    "order_writer" -> (false, Props(classOf[OrderWriter], routers, config)),
-    "order_accessor" -> (false, Props(classOf[OrderAccessor], routers, config)),
-    "order_db_accessor" -> (false, Props(classOf[OrderDBAccessor], routers, config)),
-    "order_book_manager" -> (true, Props(classOf[OrderBookManager], routers, config)),
-    "ring_finder" -> (true, Props(classOf[RingFinder], routers, config)),
-    "ring_miner" -> (true, Props(classOf[RingMiner], routers, config)),
-    "order_book_reader" -> (false, Props(classOf[OrderBookReader], routers, config)))
+  lazy val nameMap: Map[String, (Boolean, String, Props)] = Map(
+    // Management Actors
+    "cluster_manager" -> (true, "management", Props(classOf[ClusterManager], routers, config)),
+    // Service Actors
+    "cache_obsoleter" -> (true, "service", Props(classOf[CacheObsoleter], routers, config)),
+    "blockchain_event_extractor" -> (true, "service", Props(classOf[BlockchainEventExtractor], routers, config)),
+    "balance_cacher" -> (false, "service", Props(classOf[BalanceCacher], routers, config)),
+    "balance_manager" -> (false, "service", Props(classOf[BalanceManager], routers, config)),
+    "order_cacher" -> (false, "service", Props(classOf[OrderCacher], routers, config)),
+    "order_read_coordinator" -> (false, "service", Props(classOf[OrderReadCoordinator], routers, config)),
+    "order_update_coordinator" -> (false, "service", Props(classOf[OrderUpdateCoordinator], routers, config)),
+    "order_updator" -> (false, "service", Props(classOf[OrderUpdater], routers, config)),
+    "balance_reader" -> (false, "service", Props(classOf[BalanceReader], routers, config)),
+    "order_reader" -> (false, "service", Props(classOf[OrderReader], routers, config)),
+    "order_writer" -> (false, "service", Props(classOf[OrderWriter], routers, config)),
+    "order_accessor" -> (false, "service", Props(classOf[OrderAccessor], routers, config)),
+    "order_db_accessor" -> (false, "service", Props(classOf[OrderDBAccessor], routers, config)),
+    "order_book_manager" -> (true, "service", Props(classOf[OrderBookManager], routers, config)),
+    "ring_finder" -> (true, "service", Props(classOf[RingFinder], routers, config)),
+    "ring_miner" -> (true, "service", Props(classOf[RingMiner], routers, config)),
+    "order_book_reader" -> (false, "service", Props(classOf[OrderBookReader], routers, config)))
 
   def deployActorByName(name: String) = {
-    names.get(name) match {
-      case Some((asSingleton, props)) => deploy(name, asSingleton, props)
+    nameMap.get(name) match {
+      case Some((asSingleton, group, props)) => deploy(name, asSingleton, group, props)
       case _ => log.error(s"$name is not a valid actor name")
     }
   }
   private def deploy(
     name: String,
     asSingleton: Boolean,
+    group: String,
     props: Props) {
     if (asSingleton) {
       val actor = system.actorOf(
@@ -74,12 +77,11 @@ trait DeployCapability {
           singletonProps = props,
           terminationMessage = PoisonPill,
           settings = ClusterSingletonManagerSettings(system)),
-        name = "singleton_" + name)
+        name = s"${group}_${name}_0")
       log.info(s"----> deployed actor ${actor.path} as singleton")
     } else {
       nextActorId += 1
-      val name_ = "role_" + name + "_" + nextActorId
-      val actor = system.actorOf(props, name_)
+      val actor = system.actorOf(props, s"${group}_${name}_${nextActorId}")
       log.info(s"----> deployed actor ${actor.path}")
     }
   }

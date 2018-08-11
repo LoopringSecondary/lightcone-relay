@@ -49,15 +49,23 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val system = cluster.system
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
+  var currentClusterConfig: Option[ClusterConfig] = None
 
   deployActorByName("cluster_manager")
 
   val routers = new Routers(config)
 
   val mediator = DistributedPubSub(system).mediator
-  mediator ! Subscribe("singleton_cluster_manager", self)
+  mediator ! Subscribe("cluster_manager", self)
 
   val http = new NodeHttpServer(config, routers, self)
+
+  //   message ActorDeployment {
+  //     string actor_name = 1;
+  //     repeated string roles = 2;
+  //     int32 num_instances_per_node = 3;
+  //     string market_id = 4;
+  // }
 
   def receive: Receive = {
     case Msg("get_stats") =>
@@ -67,5 +75,59 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
         actors =>
           LocalStats(cluster.selfRoles.toSeq, Seq(actors))
       }.pipeTo(sender)
+
+    case c: ClusterConfig =>
+      if (currentClusterConfig.isEmpty ||
+        currentClusterConfig.get.version < c.version) {
+        val clusterRoleSet = cluster.selfRoles.toSet;
+
+        val oldDeployMap = currentClusterConfig.get.actorDeployments
+          .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+          .map(d => (d.actorName, d)).toMap
+
+        val newDeployMap = c.actorDeployments
+          .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+          .map(d => (d.actorName, d)).toMap
+
+        // // stop all actors that are in the old map but not in the new map
+
+        oldDeployMap
+          .filter(kv => !newDeployMap.contains(kv._1))
+          .foreach { kv =>
+            println(s"============ kill service_${kv._1}_*")
+            system.actorSelection(s"service_${kv._1}_*") ! PoisonPill
+          }
+
+        newDeployMap
+          .filter(kv => !oldDeployMap.contains(kv._1))
+          .foreach { kv =>
+
+            (0 until kv._2.numInstancesPerNode) foreach { i =>
+              println(s"============ deploy service_${kv._1}_*")
+              deployActorByName(kv._1)
+            }
+          }
+
+        newDeployMap
+          .filter(kv => oldDeployMap.contains(kv._1))
+          .foreach { kv =>
+            val oldDeploy = oldDeployMap(kv._1)
+            val newDeploy = kv._2
+
+            if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
+              oldDeploy.marketId != newDeploy.marketId) {
+              println(s"============ kill service_${kv._1}_*")
+              system.actorSelection(s"service_${kv._1}_*") ! PoisonPill
+              deployActorByName(kv._1)
+            } else {
+              val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
+              (0 until extra) foreach { i =>
+                println(s"============ deploy service_${kv._1}_*")
+                deployActorByName(kv._1)
+              }
+            }
+          }
+
+      }
   }
 }
