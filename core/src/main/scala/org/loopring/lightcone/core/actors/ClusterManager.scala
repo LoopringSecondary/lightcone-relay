@@ -36,7 +36,6 @@ class ClusterManager(routers: Routers, config: Config)
       sender ! currentConfig
 
     case UploadClusterConfig(c) =>
-      println("~~~~~~~~~~")
       mediator ! Publish("cluster_manager", ProcessClusterConfig(c))
   }
 }

@@ -61,6 +61,11 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   mediator ! Subscribe("cluster_manager", self)
 
   def receive: Receive = {
+
+    case Msg("get_config") =>
+      println("========+" + oldClusterConfig)
+      sender ! oldClusterConfig
+
     case Msg("get_stats") =>
       val f = system.actorOf(Props(classOf[LocalActorsDetector])) ? Msg("detect")
 
@@ -73,17 +78,15 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
       routers.clusterManager forward req
 
     case ProcessClusterConfig(Some(newClusterConfig)) if newClusterConfig != null =>
-      if (redeployActors(newClusterConfig, oldClusterConfig)) {
-        oldClusterConfig = newClusterConfig
-      }
+      redeployActors(newClusterConfig, oldClusterConfig)
+      println("========+2" + oldClusterConfig)
+      oldClusterConfig = newClusterConfig
   }
 
   private def redeployActors(
     newClusterConfig: ClusterConfig,
-    oldClusterConfig: ClusterConfig): Boolean = {
-    if (newClusterConfig == oldClusterConfig) {
-      false
-    } else {
+    oldClusterConfig: ClusterConfig) = {
+    if (newClusterConfig != oldClusterConfig) {
 
       val clusterRoleSet = cluster.selfRoles.toSet;
 
@@ -132,6 +135,5 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           }
         }
     }
-    true
   }
 }

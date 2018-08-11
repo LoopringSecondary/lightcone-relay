@@ -70,31 +70,12 @@ class NodeHttpServer(
                 nodeManager ! UploadClusterConfig(Some(c))
                 complete(c)
               }
+            } ~ get {
+              val f = nodeManager ? Msg("get_config")
+              complete(f.mapTo[ClusterConfig])
             })
         })
     }
-
-  // pathPrefix("config") {
-  //   concat(
-  //     pathEnd {
-  //       concat(
-  //         get {
-  //           val f = routers.clusterManager ? Msg("get_config")
-  //           complete(f.mapTo[ClusterConfig])
-  //         })
-  //     })
-  // }
-
-  // post {
-  //   entity(as[User]) { user =>
-  //     val userCreated: Future[ActionPerformed] =
-  //       (userRegistryActor ? CreateUser(user)).mapTo[ActionPerformed]
-  //     onSuccess(userCreated) { performed =>
-  //       log.info("Created user [{}]: {}", user.name, performed.description)
-  //       complete((StatusCodes.Created, performed))
-  //     }
-  //   }
-  // }
 
   Http().bindAndHandle(route, "localhost", config.getInt("node-manager.http.port"))
 }

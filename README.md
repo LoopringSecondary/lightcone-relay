@@ -57,6 +57,16 @@ post the following as JSON to `http://192.168.1.152:8081/config` to triger actor
 
 ```
 
+There is a default configuration file at the root of the project, you can load it using `curl`:
+
+```
+curl \
+-d "@default_cluster_config.json"  \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8081/config
+
+```
+
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
 > Note that all '/user/router_*' actors and '/user/management_*' actors are deployed automatically and cannot be removed; and only '/user/service_*' actors can be dynamically deployed.
