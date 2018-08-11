@@ -19,6 +19,14 @@ message LocalStats {
     repeated ActorGroup groups = 2;
 }
 
+message UploadClusterConfig {
+    ClusterConfig config = 1;
+}
+
+message ProcessClusterConfig {
+    ClusterConfig config = 1;
+}
+
 message ClusterConfig {
     message MarketConfig {
         string market_id = 1;

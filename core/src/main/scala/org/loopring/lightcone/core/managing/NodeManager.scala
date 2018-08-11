@@ -39,6 +39,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator._
 import org.loopring.lightcone.data.deployment._
 import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
+import com.google.protobuf.any.Any
 
 class NodeManager(val config: Config)(implicit val cluster: Cluster)
   extends Actor
@@ -49,23 +50,15 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
   implicit val system = cluster.system
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
-  var currentClusterConfig: Option[ClusterConfig] = None
+  var oldClusterConfig = ClusterConfig(version = -1)
 
   deployActorByName("cluster_manager")
 
   val routers = new Routers(config)
+  val http = new NodeHttpServer(config, routers, self)
 
   val mediator = DistributedPubSub(system).mediator
   mediator ! Subscribe("cluster_manager", self)
-
-  val http = new NodeHttpServer(config, routers, self)
-
-  //   message ActorDeployment {
-  //     string actor_name = 1;
-  //     repeated string roles = 2;
-  //     int32 num_instances_per_node = 3;
-  //     string market_id = 4;
-  // }
 
   def receive: Receive = {
     case Msg("get_stats") =>
@@ -76,60 +69,69 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           LocalStats(cluster.selfRoles.toSeq, Seq(actors))
       }.pipeTo(sender)
 
-    case newc: ClusterConfig =>
-      val oldc = currentClusterConfig.getOrElse(ClusterConfig(version = -1))
+    case req: UploadClusterConfig =>
+      routers.clusterManager forward req
 
-      // if (oldc.version < newc.version) {
-      if (true) {
-        val clusterRoleSet = cluster.selfRoles.toSet;
+    case ProcessClusterConfig(Some(newClusterConfig)) if newClusterConfig != null =>
+      if (redeployActors(newClusterConfig, oldClusterConfig)) {
+        oldClusterConfig = newClusterConfig
+      }
+  }
 
-        val oldDeployMap = oldc.actorDeployments
-          .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
-          .map(d => (d.actorName, d)).toMap
+  private def redeployActors(
+    newClusterConfig: ClusterConfig,
+    oldClusterConfig: ClusterConfig): Boolean = {
+    if (newClusterConfig == oldClusterConfig) {
+      false
+    } else {
 
-        val newDeployMap = newc.actorDeployments
-          .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
-          .map(d => (d.actorName, d)).toMap
+      val clusterRoleSet = cluster.selfRoles.toSet;
 
-        // // stop all actors that are in the old map but not in the new map
-        oldDeployMap
-          .filter(kv => !newDeployMap.contains(kv._1))
-          .foreach { kv =>
-            system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+      val oldDeployMap = oldClusterConfig.actorDeployments
+        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+        .map(d => (d.actorName, d)).toMap
+
+      val newDeployMap = newClusterConfig.actorDeployments
+        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
+        .map(d => (d.actorName, d)).toMap
+
+      // // stop all actors that are in the old map but not in the new map
+      oldDeployMap
+        .filter(kv => !newDeployMap.contains(kv._1))
+        .foreach { kv =>
+          system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+        }
+
+      newDeployMap
+        .filter(kv => !oldDeployMap.contains(kv._1))
+        .foreach { kv =>
+
+          (0 until kv._2.numInstancesPerNode) foreach { i =>
+            deployActorByName(kv._1)
           }
+        }
 
-        newDeployMap
-          .filter(kv => !oldDeployMap.contains(kv._1))
-          .foreach { kv =>
+      newDeployMap
+        .filter(kv => oldDeployMap.contains(kv._1))
+        .foreach { kv =>
+          val oldDeploy = oldDeployMap(kv._1)
+          val newDeploy = kv._2
 
-            (0 until kv._2.numInstancesPerNode) foreach { i =>
+          if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
+            oldDeploy.marketId != newDeploy.marketId) {
+            system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+
+            (0 until newDeploy.numInstancesPerNode) foreach { i =>
+              deployActorByName(kv._1)
+            }
+          } else {
+            val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
+            (0 until extra) foreach { i =>
               deployActorByName(kv._1)
             }
           }
-
-        newDeployMap
-          .filter(kv => oldDeployMap.contains(kv._1))
-          .foreach { kv =>
-            val oldDeploy = oldDeployMap(kv._1)
-            val newDeploy = kv._2
-
-            if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
-              oldDeploy.marketId != newDeploy.marketId) {
-              system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
-
-              (0 until newDeploy.numInstancesPerNode) foreach { i =>
-                deployActorByName(kv._1)
-              }
-            } else {
-              val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
-              (0 until extra) foreach { i =>
-                deployActorByName(kv._1)
-              }
-            }
-          }
-
-      }
-
-      currentClusterConfig = Some(newc)
+        }
+    }
+    true
   }
 }

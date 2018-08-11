@@ -35,6 +35,7 @@ import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
+import com.google.protobuf.any.Any
 
 class NodeHttpServer(
   config: Config,
@@ -65,13 +66,9 @@ class NodeHttpServer(
         pathEnd {
           concat(
             post {
-              entity(as[ClusterConfig]) { gc =>
-                println("----")
-                println(gc)
-
-                nodeManager ! gc
-                println("----")
-                complete(gc)
+              entity(as[ClusterConfig]) { c =>
+                nodeManager ! UploadClusterConfig(Some(c))
+                complete(c)
               }
             })
         })
