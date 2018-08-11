@@ -28,11 +28,11 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
   // Router for management actors
-  val clusterManager = routerForSingleton("singleton_cluster_manager", "management")
+  val clusterManager = routerForSingleton("cluster_manager", "management")
 
   // Router for service actors
-  val cacheObsoleter = routerForSingleton("singleton_cache_obsoleter")
-  val blockchainEventExtractor = routerForSingleton("singleton_blockchain_event_extractor")
+  val cacheObsoleter = routerForSingleton("cache_obsoleter")
+  val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
   val balanceCacher = routerFor("balance_cacher")
   val balanceManager = routerFor("balance_manager")
@@ -48,9 +48,9 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   val orderAccessor = routerFor("order_accessor")
   val orderDBAccessor = routerFor("order_db_accessor")
 
-  val orderBookManager = routerForSingleton("singleton_order_book_manager")
-  val ringFinder = routerForSingleton("singleton_ring_finder")
-  val ringMiner = routerForSingleton("singleton_ring_miner")
+  val orderBookManager = routerForSingleton("order_book_manager")
+  val ringFinder = routerForSingleton("ring_finder")
+  val ringMiner = routerForSingleton("ring_miner")
   val orderBookReader = routerFor("order_book_reader")
 
   private def routerForSingleton(name: String, group: String = "service") = {

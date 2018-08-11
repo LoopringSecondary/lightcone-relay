@@ -72,13 +72,17 @@ trait DeployCapability {
     group: String,
     props: Props) {
     if (asSingleton) {
-      val actor = system.actorOf(
-        ClusterSingletonManager.props(
-          singletonProps = props,
-          terminationMessage = PoisonPill,
-          settings = ClusterSingletonManagerSettings(system)),
-        name = s"${group}_${name}_0")
-      log.info(s"----> deployed actor ${actor.path} as singleton")
+      try {
+        val actor = system.actorOf(
+          ClusterSingletonManager.props(
+            singletonProps = props,
+            terminationMessage = PoisonPill,
+            settings = ClusterSingletonManagerSettings(system)),
+          name = s"${group}_${name}_0")
+        log.info(s"----> deployed actor ${actor.path} as singleton")
+      } catch {
+        case e: InvalidActorNameException =>
+      }
     } else {
       nextActorId += 1
       val actor = system.actorOf(props, s"${group}_${name}_${nextActorId}")

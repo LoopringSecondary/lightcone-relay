@@ -66,6 +66,11 @@ class NodeHttpServer(
           concat(
             post {
               entity(as[ClusterConfig]) { gc =>
+                println("----")
+                println(gc)
+
+                nodeManager ! gc
+                println("----")
                 complete(gc)
               }
             })

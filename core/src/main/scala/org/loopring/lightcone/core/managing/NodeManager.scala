@@ -76,26 +76,25 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           LocalStats(cluster.selfRoles.toSeq, Seq(actors))
       }.pipeTo(sender)
 
-    case c: ClusterConfig =>
-      if (currentClusterConfig.isEmpty ||
-        currentClusterConfig.get.version < c.version) {
+    case newc: ClusterConfig =>
+      val oldc = currentClusterConfig.getOrElse(ClusterConfig(version = -1))
+
+      if (oldc.version < newc.version) {
         val clusterRoleSet = cluster.selfRoles.toSet;
 
-        val oldDeployMap = currentClusterConfig.get.actorDeployments
+        val oldDeployMap = oldc.actorDeployments
           .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
           .map(d => (d.actorName, d)).toMap
 
-        val newDeployMap = c.actorDeployments
+        val newDeployMap = newc.actorDeployments
           .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
           .map(d => (d.actorName, d)).toMap
 
         // // stop all actors that are in the old map but not in the new map
-
         oldDeployMap
           .filter(kv => !newDeployMap.contains(kv._1))
           .foreach { kv =>
-            println(s"============ kill service_${kv._1}_*")
-            system.actorSelection(s"service_${kv._1}_*") ! PoisonPill
+            system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
           }
 
         newDeployMap
@@ -103,7 +102,6 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
           .foreach { kv =>
 
             (0 until kv._2.numInstancesPerNode) foreach { i =>
-              println(s"============ deploy service_${kv._1}_*")
               deployActorByName(kv._1)
             }
           }
@@ -116,18 +114,21 @@ class NodeManager(val config: Config)(implicit val cluster: Cluster)
 
             if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
               oldDeploy.marketId != newDeploy.marketId) {
-              println(s"============ kill service_${kv._1}_*")
-              system.actorSelection(s"service_${kv._1}_*") ! PoisonPill
-              deployActorByName(kv._1)
+              system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+
+              (0 until newDeploy.numInstancesPerNode) foreach { i =>
+                deployActorByName(kv._1)
+              }
             } else {
               val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
               (0 until extra) foreach { i =>
-                println(s"============ deploy service_${kv._1}_*")
                 deployActorByName(kv._1)
               }
             }
           }
 
       }
+
+      currentClusterConfig = Some(newc)
   }
 }
