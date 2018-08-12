@@ -28,23 +28,16 @@ message ProcessDynamicSettings {
 }
 
 message DynamicSettings {
-    message MarketSettings {
-        string market_id = 1;
-        string display_name = 2;
-        string token_major = 3;
-        string token_minor = 4;
-        bool enabled = 5;
-    }
 
     message ActorDeployment {
+        string settings_id = 4;
         string actor_name = 1;
         repeated string roles = 2;
         int32 num_instances_per_node = 3;
-        string market_id = 4;
     }
 
     string label = 1;
-    map<string, MarketSettings> market_settings = 2;
+    map<string, google.protobuf.Any> actor_setting_map = 2;
     repeated ActorDeployment actor_deployments = 3;
 }
 

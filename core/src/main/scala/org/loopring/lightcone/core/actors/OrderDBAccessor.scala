@@ -20,7 +20,11 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class OrderDBAccessor() extends Actor {
+object OrderDBAccessor {
+  def props(settingsId: Option[String]) = Props(new OrderDBAccessor(settingsId))
+}
+
+class OrderDBAccessor(settingsId: Option[String]) extends Actor {
 
   def receive: Receive = {
     case _ =>

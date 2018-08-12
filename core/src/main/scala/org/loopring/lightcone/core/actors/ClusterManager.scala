@@ -25,6 +25,10 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 
+object ClusterManager {
+  def props(settingsId: Option[String]) = Props(classOf[ClusterManager])
+}
+
 class ClusterManager() extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator

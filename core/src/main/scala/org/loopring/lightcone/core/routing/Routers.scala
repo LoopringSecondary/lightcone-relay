@@ -28,7 +28,7 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   implicit val system = cluster.system
 
   // Router for management actors
-  val clusterManager = routerForSingleton("cluster_manager", "management")
+  val clusterManager = routerForSingleton("cluster_manager", "m")
 
   // Router for service actors
   val cacheObsoleter = routerForSingleton("cache_obsoleter")
@@ -53,22 +53,28 @@ class Routers(config: Config)(implicit cluster: Cluster) {
   val ringMiner = routerForSingleton("ring_miner")
   val orderBookReader = routerFor("order_book_reader")
 
-  private def routerForSingleton(name: String, group: String = "service") = {
+  private def routerForSingleton(
+    name: String,
+    namePrefix: String = "s",
+    settingsId: Option[String] = None) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/${group}_${name}_0",
+        singletonManagerPath = s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}",
         settings = ClusterSingletonProxySettings(system)),
-      name = s"router_${group}_${name}")
+      name = s"r_${name}_${settingsId.getOrElse("")}")
   }
 
-  private def routerFor(name: String, group: String = "service") = {
+  private def routerFor(
+    name: String,
+    namePrefix: String = "s",
+    settingsId: Option[String] = None) = {
     system.actorOf(
       ClusterRouterGroup(
         RoundRobinGroup(Nil),
         ClusterRouterGroupSettings(
           totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/${group}_${name}_*"),
+          routeesPaths = List(s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}_*"),
           allowLocalRoutees = true)).props,
-      name = s"router_${group}_${name}")
+      name = s"r_${name}_${settingsId.getOrElse("")}")
   }
 }

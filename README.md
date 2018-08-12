@@ -75,5 +75,5 @@ Tp see the  global dynamic settings, visit:
 
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
-> Note that all `/user/router_*` actors and `/user/management_*` actors are deployed automatically and cannot be removed; and only `/user/service_*` actors can be dynamically deployed.
+> Note that all `/user/r_*` actors and `/user/m_*` actors are deployed automatically and cannot be removed; and only `/user/s_*` actors can be dynamically deployed.
 >>>>>>> c4219645b8123b0e90ca2452f44d15c01391d104

@@ -20,7 +20,11 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class OrderBookManager() extends Actor {
+object OrderBookManager {
+  def props(settingsId: Option[String]) = Props(new OrderBookManager(settingsId))
+}
+
+class OrderBookManager(settingsId: Option[String]) extends Actor {
 
   def receive: Receive = {
     case _ =>
