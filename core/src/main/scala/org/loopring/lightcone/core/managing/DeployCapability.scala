@@ -38,34 +38,29 @@ trait DeployCapability {
   case class ActorProps(
     isSingleton: Boolean,
     namePrefix: String,
-    klass: Class[_]) {
-
-    def props(settingsId: Option[String]) = settingsId match {
-      case Some(id) => Props(klass, id)
-      case None => Props(klass)
-    }
-  }
+    props: Option[String] => Props)
 
   val actorAttributes: Map[String, ActorProps] = Map(
-    "cluster_manager" -> ActorProps(true, "m", classOf[ClusterManager]),
+    // Management Actors
+    "cluster_manager" -> ActorProps(true, "m", ClusterManager.props),
     // Service Actors
-    "cache_obsoleter" -> ActorProps(true, "s", classOf[CacheObsoleter]),
-    "blockchain_event_extractor" -> ActorProps(true, "s", classOf[BlockchainEventExtractor]),
-    "balance_cacher" -> ActorProps(false, "s", classOf[BalanceCacher]),
-    "balance_manager" -> ActorProps(false, "s", classOf[BalanceManager]),
-    "order_cacher" -> ActorProps(false, "s", classOf[OrderCacher]),
-    "order_read_coordinator" -> ActorProps(false, "s", classOf[OrderReadCoordinator]),
-    "order_update_coordinator" -> ActorProps(false, "s", classOf[OrderUpdateCoordinator]),
-    "order_updator" -> ActorProps(false, "s", classOf[OrderUpdater]),
-    "balance_reader" -> ActorProps(false, "s", classOf[BalanceReader]),
-    "order_reader" -> ActorProps(false, "s", classOf[OrderReader]),
-    "order_writer" -> ActorProps(false, "s", classOf[OrderWriter]),
-    "order_accessor" -> ActorProps(false, "s", classOf[OrderAccessor]),
-    "order_db_accessor" -> ActorProps(false, "s", classOf[OrderDBAccessor]),
-    "order_book_manager" -> ActorProps(true, "s", classOf[OrderBookManager]),
-    "ring_finder" -> ActorProps(true, "s", classOf[RingFinder]),
-    "ring_miner" -> ActorProps(true, "s", classOf[RingMiner]),
-    "order_book_reader" -> ActorProps(false, "s", classOf[OrderBookReader]))
+    "cache_obsoleter" -> ActorProps(true, "s", CacheObsoleter.props),
+    "blockchain_event_extractor" -> ActorProps(true, "s", BlockchainEventExtractor.props),
+    "balance_cacher" -> ActorProps(false, "s", BalanceCacher.props),
+    "balance_manager" -> ActorProps(false, "s", BalanceManager.props),
+    "order_cacher" -> ActorProps(false, "s", OrderCacher.props),
+    "order_read_coordinator" -> ActorProps(false, "s", OrderReadCoordinator.props),
+    "order_update_coordinator" -> ActorProps(false, "s", OrderUpdateCoordinator.props),
+    "order_updator" -> ActorProps(false, "s", OrderUpdater.props),
+    "balance_reader" -> ActorProps(false, "s", BalanceReader.props),
+    "order_reader" -> ActorProps(false, "s", OrderReader.props),
+    "order_writer" -> ActorProps(false, "s", OrderWriter.props),
+    "order_accessor" -> ActorProps(false, "s", OrderAccessor.props),
+    "order_db_accessor" -> ActorProps(false, "s", OrderDBAccessor.props),
+    "order_book_manager" -> ActorProps(true, "s", OrderBookManager.props),
+    "ring_finder" -> ActorProps(true, "s", RingFinder.props),
+    "ring_miner" -> ActorProps(true, "s", RingMiner.props),
+    "order_book_reader" -> ActorProps(false, "s", OrderBookReader.props))
 
   def deployActorByName(name: String, settingsId: Option[String] = None) = {
     actorAttributes.get(name) match {
@@ -84,7 +79,7 @@ trait DeployCapability {
             singletonProps = ap.props(settingsId),
             terminationMessage = PoisonPill,
             settings = ClusterSingletonManagerSettings(system)),
-          name = s"${ap.namePrefix}_${name}_${settingsId.getOrElse("")}_0")
+          name = s"${ap.namePrefix}_${name}_${settingsId.getOrElse("")}")
         log.info(s"----> deployed actor ${actor.path} as singleton")
       } catch {
         case e: InvalidActorNameException =>

@@ -59,7 +59,7 @@ class Routers(config: Config)(implicit cluster: Cluster) {
     settingsId: Option[String] = None) = {
     system.actorOf(
       ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}_0",
+        singletonManagerPath = s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}",
         settings = ClusterSingletonProxySettings(system)),
       name = s"r_${name}_${settingsId.getOrElse("")}")
   }

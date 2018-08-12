@@ -20,7 +20,11 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class BalanceReader() extends Actor {
+object BalanceReader {
+  def props(settingsId: Option[String]) = Props(new BalanceReader(settingsId))
+}
+
+class BalanceReader(settingsId: Option[String]) extends Actor {
   def receive: Receive = {
     case _ =>
   }

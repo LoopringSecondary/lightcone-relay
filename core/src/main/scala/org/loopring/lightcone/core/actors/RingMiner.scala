@@ -20,8 +20,13 @@ import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 
-class RingMiner() extends Actor {
+object RingMiner {
+  def props(settingsId: Option[String]) = Props(new RingMiner(settingsId))
+}
 
+class RingMiner(settingsId: Option[String]) extends Actor {
+
+  println("======: ringminer's settinsid:" + settingsId)
   def receive: Receive = {
     case _ =>
   }

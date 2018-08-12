@@ -69,7 +69,6 @@ class NodeManager()(implicit val cluster: Cluster)
       }.pipeTo(sender)
 
     case req: UploadDynamicSettings =>
-      println("~~~~~~~~~" + req)
       NodeData.routers.clusterManager ! req
 
     case ProcessDynamicSettings(Some(newSettings)) if newSettings != null =>
