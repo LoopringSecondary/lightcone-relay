@@ -31,6 +31,7 @@ class ClusterManager() extends Actor {
   def receive: Receive = {
 
     case UploadDynamicSettings(c) =>
+      println("========================>>>" + c)
       mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
   }
 }

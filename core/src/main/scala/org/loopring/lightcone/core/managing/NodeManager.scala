@@ -69,7 +69,8 @@ class NodeManager()(implicit val cluster: Cluster)
       }.pipeTo(sender)
 
     case req: UploadDynamicSettings =>
-      NodeData.routers.clusterManager forward req
+      println("~~~~~~~~~" + req)
+      NodeData.routers.clusterManager ! req
 
     case ProcessDynamicSettings(Some(newSettings)) if newSettings != null =>
       val oldSettings = if (NodeData.dynamicSettings != null) {
@@ -101,14 +102,13 @@ class NodeManager()(implicit val cluster: Cluster)
       oldDeployMap
         .filter(kv => !newDeployMap.contains(kv._1))
         .foreach { kv =>
-          system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+          system.actorSelection(s"/user/s_${kv._1}_*") ! PoisonPill
         }
 
       // Start all new actors
       newDeployMap
         .filter(kv => !oldDeployMap.contains(kv._1))
         .foreach { kv =>
-
           (0 until kv._2.numInstancesPerNode) foreach { i =>
             deployActorByName(kv._1)
           }
@@ -122,8 +122,8 @@ class NodeManager()(implicit val cluster: Cluster)
           val newDeploy = kv._2
 
           if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
-            oldDeploy.marketId != newDeploy.marketId) {
-            system.actorSelection(s"/user/service_${kv._1}_*") ! PoisonPill
+            oldDeploy.settingsId != newDeploy.settingsId) {
+            system.actorSelection(s"/user/s_${kv._1}_*") ! PoisonPill
 
             (0 until newDeploy.numInstancesPerNode) foreach { i =>
               deployActorByName(kv._1)
