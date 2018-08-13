@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package org.loopring.lightcone.proto;
+
+message SNSNotify {}
+
+message GetSystemReportsReq {}
+message GetSystemReportsResp {}
+

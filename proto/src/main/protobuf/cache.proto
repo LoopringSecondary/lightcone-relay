@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package org.loopring.lightcone.proto;
+
+message PurgeTokenBalancesForAddresses {}
+message PurgeAllOrdersAddresses {}
+message PurgeEverything {}
+
+message GetOrdersFromCache {}
+message CachedMultiOrders {}
+
+message CacheAddressBalanceInfo {}
+message CachedAddressBalanceInfo {}
+
+
+

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package org.loopring.lightcone.proto;
+
+message GetOrderBookReq {}
+message GetOrderBookResp {}
+
+message OrderBook {}
+
+message GetCrossingOrderSets {}
+message CrossingOrderSets {}
+
+
