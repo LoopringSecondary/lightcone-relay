@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package org.loopring.lightcone.proto;
+
+message GetAddressBalanceInfo {}
+message AddressBalanceInfo {}

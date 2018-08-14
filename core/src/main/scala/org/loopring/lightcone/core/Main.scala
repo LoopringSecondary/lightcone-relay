@@ -27,6 +27,7 @@ object Main {
 
   case class CmdOptions(
     port: Int = 0,
+    managerPort: Int = 8081,
     seeds: Seq[String] = Seq.empty[String],
     roles: Seq[String] = Seq.empty[String],
     configFile: String = "")
@@ -42,19 +43,21 @@ object Main {
         }
         .text("port of this acter system")
 
-      arg[String]("<seeds>...").unbounded().optional()
+      opt[Int]('m', "mport")
         .action { (v, options) =>
-          options.copy(seeds = options.seeds :+ v.trim)
+          options.copy(managerPort = v)
+        }
+        .text("port of internal rest server [default 8081]")
+
+      opt[Seq[String]]('r', "roles")
+        .action { (v, options) =>
+          options.copy(roles = v)
         }
         .text("cluster seed nodes")
 
-      arg[String]("<roles>...").unbounded().optional()
+      opt[Seq[String]]('s', "sees")
         .action { (v, options) =>
-          options.copy(roles = options.roles :+ v.trim)
-        }
-        .validate { role =>
-          if (role.isEmpty) failure("arg <roles> must be provided")
-          else success
+          options.copy(seeds = v)
         }
         .text("node roles")
 
@@ -90,6 +93,7 @@ object Main {
         val config = ConfigFactory
           .parseString(
             s"""
+            node-manager.http.port=${options.managerPort}
             akka.remote.netty.tcp.port=${options.port}
             akka.remote.netty.tcp.hostname=$hostname
             akka.cluster.roles=$roles
@@ -97,29 +101,25 @@ object Main {
             """)
           .withFallback(fallback)
 
+        managing.NodeData.config = config
+
         implicit val system = ActorSystem("Lightcone", config)
         implicit val cluster = Cluster(system)
 
-        system.actorOf(Props(new NodeManager(config)))
+        // Deploying NodeManager
+        system.actorOf(
+          Props(new managing.NodeManager),
+          "m_node_manager")
 
         Thread.sleep(2000)
-        val summary = "============= Akka Node Ready =============\n" +
+        println("\n\n\n\n============= Akka Node Ready =============\n" +
+          "with port: " + options.port + "\n" +
+          "with manager-port: " + options.managerPort + "\n" +
           "with hostname: " + hostname + "\n" +
           "with seeds: " + seedNodes + "\n" +
-          "with roles: " + roles + "\n"
+          "with roles: " + roles + "\n" +
+          "============================================\n\n\n\n")
 
-        println(summary +
-          """
-          ___                __      __
-          /\_ \    __        /\ \    /\ \__
-          \//\ \  /\_\     __\ \ \___\ \ ,_\   ___    ___     ___      __
-            \ \ \ \/\ \  /'_ `\ \  _ `\ \ \/  /'___\ / __`\ /' _ `\  /'__`\
-             \_\ \_\ \ \/\ \L\ \ \ \ \ \ \ \_/\ \__//\ \L\ \/\ \/\ \/\  __/
-             /\____\\ \_\ \____ \ \_\ \_\ \__\ \____\ \____/\ \_\ \_\ \____\
-             \/____/ \/_/\/___L\ \/_/\/_/\/__/\/____/\/___/  \/_/\/_/\/____/
-                           /\____/
-                           \_/__/
-          """)
     }
   }
 }

@@ -3,7 +3,7 @@ import Keys._
 import Settings._
 import Dependencies._
 
-lazy val proto = (project in file("proto"))
+lazy val data = (project in file("data"))
   .settings(
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion,
@@ -14,16 +14,16 @@ lazy val proto = (project in file("proto"))
         flatPackage = false,
         javaConversions = true) -> (sourceManaged in Compile).value))
 
-lazy val lib = (project in file("lib"))
-  .dependsOn(proto)
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(
-    basicSettings,
-    libraryDependencies ++= commonDependency,
-    libraryDependencies ++= ethereumDependency)
+// lazy val lib = (project in file("lib"))
+//   .dependsOn(data)
+//   .enablePlugins(AutomateHeaderPlugin)
+//   .settings(
+//     basicSettings,
+//     libraryDependencies ++= commonDependency,
+//     libraryDependencies ++= ethereumDependency)
 
 lazy val core = (project in file("core"))
-  .dependsOn(proto)
+  .dependsOn(data)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
@@ -31,7 +31,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= akkaDenepdencies)
 
 lazy val lightcone = (project in file("."))
-  .aggregate(proto, lib, core)
+  .aggregate(data, core)
   .settings(
     basicSettings,
     update / aggregate := false)

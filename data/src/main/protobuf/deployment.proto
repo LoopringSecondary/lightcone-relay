@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.data";
+
+import "google/protobuf/any.proto";
+
+message Msg {
+    string name = 1;
+}
+
+message LocalStats {
+    message ActorGroup {
+        string group = 1;
+        repeated string actors = 2;
+    }
+
+    repeated string roles = 1;
+    repeated ActorGroup groups = 2;
+}
+
+message UploadDynamicSettings {
+    DynamicSettings settings = 1;
+}
+
+message ProcessDynamicSettings {
+    DynamicSettings settings = 1;
+}
+
+message DynamicSettings {
+
+    message ActorDeployment {
+        string settings_id = 4;
+        string actor_name = 1;
+        repeated string roles = 2;
+        int32 num_instances_per_node = 3;
+    }
+
+    string label = 1;
+    map<string, google.protobuf.Any> actor_setting_map = 2;
+    repeated ActorDeployment actor_deployments = 3;
+}
+
