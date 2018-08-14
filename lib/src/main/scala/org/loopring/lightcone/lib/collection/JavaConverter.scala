@@ -29,7 +29,7 @@ trait JavaConverter {
   def toSeqRepeatedBytes(src: Any): Seq[repeatedBytes]
 }
 
-final class SimpleConverter extends JavaConverter {
+final class SimpleJavaConverter extends JavaConverter {
 
   def toSeqRepeatedBytes(src: Any): Seq[repeatedBytes] = src match {
     case arr: Object => {
