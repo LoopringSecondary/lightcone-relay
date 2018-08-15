@@ -17,9 +17,15 @@
 package org.loopring.lightcone.core.actors;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.Props;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
+import org.loopring.lightcone.proto.balance.*;
+import scala.concurrent.duration.Duration;
 
 import java.util.Optional;
 
@@ -30,9 +36,22 @@ public class BalanceReader extends AbstractActor {
         return Props.create(BalanceReader.class);
     }
 
+    private ActorRef balanceManager;
+
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(BalancesReq.class, r -> {
+                    Future f = Patterns.ask(balanceManager, GetAddressBalanceInfo.defaultInstance(), 1000);
+                    AddressBalanceInfo balanceInfo = (AddressBalanceInfo) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(convert(balanceInfo), getSender());
+                })
+                .match(AllowancesReq.class, r -> getSender().tell(new AllowancesResp(), getSender()))
+
                 .build();
+    }
+
+    private BalancesResp convert(AddressBalanceInfo balanceInfo) {
+        return BalancesResp.defaultInstance();
     }
 }

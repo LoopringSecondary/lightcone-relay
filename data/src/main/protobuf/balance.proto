@@ -2,5 +2,11 @@ syntax = "proto3";
 
 package org.loopring.lightcone.proto;
 
+message BalancesReq {}
+message BalancesResp {}
+
+message AllowancesReq {}
+message AllowancesResp {}
+
 message GetAddressBalanceInfo {}
 message AddressBalanceInfo {}

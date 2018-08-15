@@ -19,6 +19,10 @@ package org.loopring.lightcone.core.actors;
 import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import org.loopring.lightcone.proto.Balance;
+import org.loopring.lightcone.proto.Cache;
+import org.loopring.lightcone.proto.Cache.CachedAddressBalanceInfo;
+import org.loopring.lightcone.proto.Cache.CacheAddressBalanceInfo;
 
 import java.util.Optional;
 
@@ -32,6 +36,8 @@ public class BalanceCacher extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(CacheAddressBalanceInfo.class, r -> getSender().tell(CachedAddressBalanceInfo.getDefaultInstance(), getSender()))
+                .match(Cache.GetAddressBalanceFromCache.class, r -> getSender().tell(Balance.AddressBalanceInfo.getDefaultInstance(), getSender()))
                 .build();
     }
 }

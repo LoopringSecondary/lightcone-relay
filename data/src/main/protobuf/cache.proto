@@ -9,6 +9,9 @@ message PurgeEverything {}
 message GetOrdersFromCache {}
 message CachedMultiOrders {}
 
+message GetAddressBalanceFromCache {}
+message AddressBalanceFromCache {}
+
 message CacheAddressBalanceInfo {}
 message CachedAddressBalanceInfo {}
 
