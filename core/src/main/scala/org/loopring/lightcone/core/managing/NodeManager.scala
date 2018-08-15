@@ -28,7 +28,7 @@ import akka.http.scaladsl.server.Directives
 import scalapb.json4s.JsonFormat
 import scala.concurrent.Future
 import org.json4s.{ DefaultFormats, jackson }
-import org.loopring.lightcone.proto.data._
+import org.loopring.lightcone.proto._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import com.typesafe.config.Config
 import scala.concurrent.duration._

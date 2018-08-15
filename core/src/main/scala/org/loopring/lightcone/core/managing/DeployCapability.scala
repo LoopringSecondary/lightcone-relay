@@ -16,15 +16,17 @@
 
 package org.loopring.lightcone.core.managing
 
-import scala.collection.mutable.ListBuffer
+import java.util.Optional
 
+import scala.collection.mutable.ListBuffer
 import akka.actor._
 import akka.cluster.singleton._
 import akka.event.Logging
 import akka.cluster._
 import com.typesafe.config.Config
+
 import scala.concurrent.duration._
-import org.loopring.lightcone.proto.data._
+import org.loopring.lightcone.proto._
 import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.routing._
 
@@ -38,7 +40,7 @@ trait DeployCapability {
   case class ActorProps(
     isSingleton: Boolean,
     namePrefix: String,
-    props: Option[String] => Props)
+    props: Optional[String] => Props)
 
   val actorAttributes: Map[String, ActorProps] = Map(
     // Management Actors
@@ -62,7 +64,7 @@ trait DeployCapability {
     "ring_miner" -> ActorProps(true, "s", RingMiner.props),
     "order_book_reader" -> ActorProps(false, "s", OrderBookReader.props))
 
-  def deployActorByName(name: String, settingsId: Option[String] = None) = {
+  def deployActorByName(name: String, settingsId: Optional[String] = Optional.empty()) = {
     actorAttributes.get(name) match {
       case Some(attributes) => deploy(name, attributes, settingsId)
       case _ => log.error(s"$name is not a valid actor name")
@@ -71,7 +73,7 @@ trait DeployCapability {
   private def deploy(
     name: String,
     ap: ActorProps,
-    settingsId: Option[String]) {
+    settingsId: Optional[String]) {
     if (ap.isSingleton) {
       try {
         val actor = system.actorOf(
@@ -79,7 +81,7 @@ trait DeployCapability {
             singletonProps = ap.props(settingsId),
             terminationMessage = PoisonPill,
             settings = ClusterSingletonManagerSettings(system)),
-          name = s"${ap.namePrefix}_${name}_${settingsId.getOrElse("")}")
+          name = s"${ap.namePrefix}_${name}_${settingsId.orElse("")}")
         log.info(s"----> deployed actor ${actor.path} as singleton")
       } catch {
         case e: InvalidActorNameException =>
@@ -88,7 +90,7 @@ trait DeployCapability {
       nextActorId += 1
       val actor = system.actorOf(
         ap.props(settingsId),
-        name = s"${ap.namePrefix}_${name}_${settingsId.getOrElse("")}_${nextActorId}")
+        name = s"${ap.namePrefix}_${name}_${settingsId.orElse("")}_${nextActorId}")
       log.info(s"----> deployed actor ${actor.path}")
     }
   }

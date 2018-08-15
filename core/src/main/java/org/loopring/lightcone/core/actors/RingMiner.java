@@ -21,10 +21,12 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
+import java.util.Optional;
+
 public class RingMiner extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
-    public static Props props() {
+    public static Props props(Optional<String> settingsId) {
         return Props.create(RingMiner.class);
     }
 
