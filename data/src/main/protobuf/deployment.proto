@@ -41,3 +41,9 @@ message DynamicSettings {
     repeated ActorDeployment actor_deployments = 3;
 }
 
+message ExampleActorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+
