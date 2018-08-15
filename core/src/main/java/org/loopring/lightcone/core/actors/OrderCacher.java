@@ -24,6 +24,7 @@ import akka.event.LoggingAdapter;
 import java.util.Optional;
 
 public class OrderCacher extends AbstractActor {
+
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     public static Props props(Optional<String> settingsId) {
@@ -33,6 +34,5 @@ public class OrderCacher extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .build();
-    }
+                .build();    }
 }
