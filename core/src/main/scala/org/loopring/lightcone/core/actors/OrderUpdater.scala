@@ -26,7 +26,7 @@ import org.loopring.lightcone.data.deployment._
 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
-  val name = "example"
+  val name = "order_updater"
   val isSingleton = false
 
   def props = Props(classOf[OrderUpdater])

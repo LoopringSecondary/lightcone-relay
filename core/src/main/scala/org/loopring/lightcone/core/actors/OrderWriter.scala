@@ -26,7 +26,7 @@ import org.loopring.lightcone.data.deployment._
 
 object OrderWriter
   extends base.Deployable[OrderWriterSettings] {
-  val name = "example"
+  val name = "order_writer"
   val isSingleton = false
 
   def props = Props(classOf[OrderWriter])

@@ -74,10 +74,6 @@ class NodeManager()(implicit val cluster: Cluster)
       NodeData.dynamicSettings = settings
 
       Routers.setRouters(
-        ExampleActor.name,
-        ExampleActor.deploy(settings.exampleActorSettings))
-
-      Routers.setRouters(
         BalanceCacher.name,
         BalanceCacher.deploy(settings.balanceCacherSettings))
 

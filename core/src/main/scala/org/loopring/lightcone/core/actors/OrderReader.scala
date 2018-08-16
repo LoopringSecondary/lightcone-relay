@@ -26,7 +26,7 @@ import org.loopring.lightcone.data.deployment._
 
 object OrderReader
   extends base.Deployable[OrderReaderSettings] {
-  val name = "example"
+  val name = "order_reader"
   val isSingleton = false
 
   def props = Props(classOf[OrderReader])
