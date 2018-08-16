@@ -33,7 +33,7 @@ You can see all top-level actors deployed on each of these nodes by visiting:
 
 ### Deploy actors dynamically
 
-post the following as JSON to `http://192.168.1.152:8081/settings` to triger actor (re)depolyments.
+post the following as JSON to `http://localhost:8081/settings` to triger actor (re)depolyments.
 
 ```
 {
