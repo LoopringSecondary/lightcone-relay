@@ -24,69 +24,17 @@ import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
-case class RolesAndInstances(roles: Seq[String], instances: Int)
+object ExampleActor
+  extends Deployable[ExampleActorSettings] {
+  val name = "example"
+  val isSingleton = false
 
-trait Deployable[S <: AnyRef] {
-  protected var settings: Option[S] = None
-  protected def getRolesAndInstances(s: S): RolesAndInstances
-
-  protected def getNumOfInstances(
-    settings: Option[S])(implicit cluster: Cluster): Int = {
-    settings match {
-      case Some(s) =>
-        val rolesAndInstances = getRolesAndInstances(s)
-        if (rolesAndInstances.roles.toSet.intersect(cluster.selfRoles.toSet).isEmpty) {
-          0
-        } else {
-          rolesAndInstances.instances
-        }
-      case _ => 0
-    }
-  }
-
-  val actorName: String
-  def props(): Props
-
-  def getSelectionPattern() = s"/user/${actorName}_*"
-  def getActorName(id: Int) = s"${actorName}_${id}"
-
-  def actors(implicit cluster: Cluster) = cluster.system.actorSelection(getSelectionPattern)
-
-  def redeploy(settings: Option[S])(implicit cluster: Cluster): Unit = {
-    val oldInstances = getNumOfInstances(this.settings)
-    val newInstances = getNumOfInstances(settings)
-    val (base, instances) = if (newInstances < oldInstances) {
-      actors ! PoisonPill
-      (0, newInstances)
-    } else {
-      (oldInstances, newInstances - oldInstances)
-    }
-
-    (0 until instances) foreach { i =>
-      cluster.system.actorOf(props(), getActorName(base + i))
-    }
-
-    this.settings = settings;
-    settings.foreach { s => actors ! s }
-  }
-
-  def deployRouter(implicit cluster: Cluster): ActorRef = {
-    cluster.system.actorOf(
-      ClusterRouterGroup(
-        RoundRobinGroup(Nil),
-        ClusterRouterGroupSettings(
-          totalInstances = Int.MaxValue,
-          routeesPaths = List(getSelectionPattern),
-          allowLocalRoutees = true)).props,
-      name = s"r_${actorName}")
-  }
-}
-
-object ExampleActor extends Deployable[ExampleActorSettings] {
-  val actorName = "example"
-  def getRolesAndInstances(s: ExampleActorSettings) = RolesAndInstances(s.roles, s.instances)
   def props = Props(classOf[ExampleActor])
+
+  def getCommon(s: ExampleActorSettings) =
+    CommonSettings("", s.roles, s.instances)
 }
+
 class ExampleActor() extends Actor {
   def receive: Receive = {
     case settings: ExampleActorSettings =>

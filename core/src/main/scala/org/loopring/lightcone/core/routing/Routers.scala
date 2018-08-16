@@ -24,57 +24,36 @@ import akka.cluster.singleton._
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
-class Routers(config: Config)(implicit cluster: Cluster) {
-  implicit val system = cluster.system
+object Routers {
+  // // Router for management actors
+  def clusterManager = routers("cluster_manager")("")
 
-  // Router for management actors
-  val clusterManager = routerForSingleton("cluster_manager", "m")
+  // // Router for service actors
+  // val cacheObsoleter = routerForSingleton("cache_obsoleter")
+  // val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
 
-  // Router for service actors
-  val cacheObsoleter = routerForSingleton("cache_obsoleter")
-  val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
+  // val balanceCacher = routerFor("balance_cacher")
+  // val balanceManager = routerFor("balance_manager")
+  // val orderCacher = routerFor("order_cacher")
+  // val orderReadCoordinator = routerFor("order_read_coordinator")
+  // val orderUpdateCoordinator = routerFor("order_update_coordinator")
+  // val orderUpdator = routerFor("order_updator")
 
-  val balanceCacher = routerFor("balance_cacher")
-  val balanceManager = routerFor("balance_manager")
-  val orderCacher = routerFor("order_cacher")
-  val orderReadCoordinator = routerFor("order_read_coordinator")
-  val orderUpdateCoordinator = routerFor("order_update_coordinator")
-  val orderUpdator = routerFor("order_updator")
+  // val balanceReader = routerFor("balance_reader")
+  // val orderReader = routerFor("order_reader")
+  // val orderWriter = routerFor("order_writer")
 
-  val balanceReader = routerFor("balance_reader")
-  val orderReader = routerFor("order_reader")
-  val orderWriter = routerFor("order_writer")
+  // val orderAccessor = routerFor("order_accessor")
+  // val orderDBAccessor = routerFor("order_db_accessor")
 
-  val orderAccessor = routerFor("order_accessor")
-  val orderDBAccessor = routerFor("order_db_accessor")
+  // val orderBookManager = routerForSingleton("order_book_manager")
+  // val ringFinder = routerForSingleton("ring_finder")
+  // val ringMiner = routerForSingleton("ring_miner")
+  // val orderBookReader = routerFor("order_book_reader")
+  var routers: Map[String, Map[String, ActorRef]] = Map.empty
 
-  val orderBookManager = routerForSingleton("order_book_manager")
-  val ringFinder = routerForSingleton("ring_finder")
-  val ringMiner = routerForSingleton("ring_miner")
-  val orderBookReader = routerFor("order_book_reader")
-
-  private def routerForSingleton(
-    name: String,
-    namePrefix: String = "s",
-    settingsId: Option[String] = None) = {
-    system.actorOf(
-      ClusterSingletonProxy.props(
-        singletonManagerPath = s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}",
-        settings = ClusterSingletonProxySettings(system)),
-      name = s"r_${name}_${settingsId.getOrElse("")}")
-  }
-
-  private def routerFor(
-    name: String,
-    namePrefix: String = "s",
-    settingsId: Option[String] = None) = {
-    system.actorOf(
-      ClusterRouterGroup(
-        RoundRobinGroup(Nil),
-        ClusterRouterGroupSettings(
-          totalInstances = Int.MaxValue,
-          routeesPaths = List(s"/user/${namePrefix}_${name}_${settingsId.getOrElse("")}_*"),
-          allowLocalRoutees = true)).props,
-      name = s"r_${name}_${settingsId.getOrElse("")}")
+  def setRouters(name: String, routerMap: Map[String, ActorRef]) {
+    routers = routers + (name -> routerMap)
+    println("~~~~~~~~~ routers: " + routers)
   }
 }

@@ -14,15 +14,33 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import org.loopring.lightcone.core.routing.Routers
+import akka.cluster.pubsub._
+import akka.cluster.pubsub.DistributedPubSubMediator._
 import scala.concurrent.duration._
 import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
 import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.data.deployment._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object ClusterManager extends NullConfigDeployable {
+  val name = "cluster_manager"
+  val isSingleton = true
+
+  def props = Props(classOf[ClusterManager])
+
+  def getCommon() = CommonSettings("", Seq.empty, 1)
+}
+
+class ClusterManager() extends Actor {
+
+  val mediator = DistributedPubSub(context.system).mediator
+  def receive: Receive = {
+
+    case UploadDynamicSettings(c) =>
+      println("UploadDynamicSettings: " + c)
+      mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
+  }
 }

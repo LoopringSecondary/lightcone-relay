@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors;
+package org.loopring.lightcone.core.actors
 
-import akka.actor.AbstractActor;
-import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import akka.actor._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
+import com.typesafe.config.Config
+import org.loopring.lightcone.data.deployment._
 
-import java.util.Optional;
+case class NullConfig()
 
-public class ClusterManager extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+abstract class NullConfigDeployable extends Deployable[NullConfig] {
+  def getCommon(s: NullConfig): CommonSettings = getCommon()
+  def getCommon(): CommonSettings
 
-    public static Props props(Optional<String> settingsId) {
-        return Props.create(ClusterManager.class);
-    }
-
-    @Override
-    public Receive createReceive() {
-        return receiveBuilder()
-                .build();
-    }
+  def deploy()(implicit cluster: Cluster): Map[String, ActorRef] = deploy(Seq(NullConfig()))
 }
+
