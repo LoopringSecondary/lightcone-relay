@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object EthereumAccessor
+  extends base.Deployable[EthereumAccessorSettings] {
+  val name = "ethereum_accessor"
+  val isSingleton = false
+
+  def props = Props(classOf[EthereumAccessor])
+
+  def getCommon(s: EthereumAccessorSettings) =
+    base.CommonSettings("", s.roles, s.instances)
+}
+
+class EthereumAccessor() extends Actor {
+  def receive: Receive = {
+    case settings: EthereumAccessorSettings =>
+    case _ =>
+  }
 }

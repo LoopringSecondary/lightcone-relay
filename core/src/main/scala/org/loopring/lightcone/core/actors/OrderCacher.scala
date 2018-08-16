@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object OrderCacher
+  extends base.Deployable[OrderCacherSettings] {
+  val name = "order_cacher"
+  val isSingleton = false
+
+  def props = Props(classOf[OrderCacher])
+
+  def getCommon(s: OrderCacherSettings) =
+    base.CommonSettings("", s.roles, s.instances)
+}
+
+class OrderCacher() extends Actor {
+  def receive: Receive = {
+    case settings: OrderCacherSettings =>
+    case _ =>
+  }
 }

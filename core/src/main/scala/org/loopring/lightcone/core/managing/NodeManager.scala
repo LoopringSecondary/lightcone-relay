@@ -34,6 +34,7 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.core.actors._
 import akka.cluster.pubsub._
 import akka.cluster.pubsub.DistributedPubSubMediator._
 import org.loopring.lightcone.data.deployment._
@@ -44,16 +45,14 @@ import com.google.protobuf.any.Any
 class NodeManager()(implicit val cluster: Cluster)
   extends Actor
   with ActorLogging
-  with Timers
-  with DeployCapability {
+  with Timers {
 
   implicit val system = cluster.system
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
 
-  deployActorByName("cluster_manager")
+  Routers.setRouters("cluster_manager", ClusterManager.deploy())
 
-  NodeData.routers = new Routers(NodeData.config)
   val http = new NodeHttpServer(self)
 
   val mediator = DistributedPubSub(system).mediator
@@ -69,71 +68,82 @@ class NodeManager()(implicit val cluster: Cluster)
       }.pipeTo(sender)
 
     case req: UploadDynamicSettings =>
-      NodeData.routers.clusterManager ! req
+      Routers.clusterManager ! req
 
-    case ProcessDynamicSettings(Some(newSettings)) if newSettings != null =>
-      val oldSettings = if (NodeData.dynamicSettings != null) {
-        NodeData.dynamicSettings
-      } else {
-        DynamicSettings()
-      }
-      NodeData.dynamicSettings = newSettings
-      log.info("new dynamic settings: " + newSettings)
-      redeployActors(newSettings, oldSettings)
+    case ProcessDynamicSettings(Some(settings)) =>
+      NodeData.dynamicSettings = settings
+
+      Routers.setRouters(
+        BalanceCacher.name,
+        BalanceCacher.deploy(settings.balanceCacherSettings))
+
+      Routers.setRouters(
+        BalanceManager.name,
+        BalanceManager.deploy(settings.balanceManagerSettings))
+
+      Routers.setRouters(
+        BalanceReader.name,
+        BalanceReader.deploy(settings.balanceReaderSettings))
+
+      Routers.setRouters(
+        BlockchainEventExtractor.name,
+        BlockchainEventExtractor.deploy(settings.blockchainEventExtractorSettings))
+
+      Routers.setRouters(
+        CacheObsoleter.name,
+        CacheObsoleter.deploy(settings.cacheObsoleterSettings))
+
+      Routers.setRouters(
+        EthereumAccessor.name,
+        EthereumAccessor.deploy(settings.ethereumAccessorSettings))
+
+      Routers.setRouters(
+        OrderCacher.name,
+        OrderCacher.deploy(settings.orderCacherSettings))
+
+      Routers.setRouters(
+        OrderDBAccessor.name,
+        OrderDBAccessor.deploy(settings.orderDbAccessorSettings))
+
+      Routers.setRouters(
+        OrderReadCoordinator.name,
+        OrderReadCoordinator.deploy(settings.orderReadCoordinatorSettings))
+
+      Routers.setRouters(
+        OrderReader.name,
+        OrderReader.deploy(settings.orderReaderSettings))
+
+      Routers.setRouters(
+        OrderUpdateCoordinator.name,
+        OrderUpdateCoordinator.deploy(settings.orderUpdateCoordinatorSettings))
+
+      Routers.setRouters(
+        OrderUpdater.name,
+        OrderUpdater.deploy(settings.orderUpdaterSettings))
+
+      Routers.setRouters(
+        OrderWriter.name,
+        OrderWriter.deploy(settings.orderWriterSettings))
+
+      Routers.setRouters(
+        OrderAccessor.name,
+        OrderAccessor.deploy(settings.orderAccessorSettings))
+
+      Routers.setRouters(
+        OrderBookManager.name,
+        OrderBookManager.deploy(settings.orderBookManagerSettingsSeq))
+
+      Routers.setRouters(
+        OrderBookReader.name,
+        OrderBookReader.deploy(settings.orderBookReaderSettingsSeq))
+
+      Routers.setRouters(
+        RingFinder.name,
+        RingFinder.deploy(settings.ringFinderSettingsSeq))
+
+      Routers.setRouters(
+        RingMiner.name,
+        RingMiner.deploy(settings.ringMinerSettingsSeq))
   }
 
-  private def redeployActors(
-    newSettings: DynamicSettings,
-    oldSettings: DynamicSettings) = {
-    if (newSettings != oldSettings) {
-
-      val clusterRoleSet = cluster.selfRoles.toSet;
-
-      val oldDeployMap = oldSettings.actorDeployments
-        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
-        .map(d => (d.actorName, d)).toMap
-
-      val newDeployMap = newSettings.actorDeployments
-        .filter(_.roles.toSet.intersect(clusterRoleSet).nonEmpty)
-        .map(d => (d.actorName, d)).toMap
-
-      // stop all actors that are in the old map but not in the new map
-      oldDeployMap
-        .filter(kv => !newDeployMap.contains(kv._1))
-        .foreach { kv =>
-          system.actorSelection(s"/user/s_${kv._1}_*") ! PoisonPill
-        }
-
-      // Start all new actors
-      newDeployMap
-        .filter(kv => !oldDeployMap.contains(kv._1))
-        .foreach { kv =>
-          (0 until kv._2.numInstancesPerNode) foreach { i =>
-            deployActorByName(kv._1)
-          }
-        }
-
-      // Restart old actors with new parameters
-      newDeployMap
-        .filter(kv => oldDeployMap.contains(kv._1))
-        .foreach { kv =>
-          val oldDeploy = oldDeployMap(kv._1)
-          val newDeploy = kv._2
-
-          if (oldDeploy.numInstancesPerNode > newDeploy.numInstancesPerNode ||
-            oldDeploy.settingsId != newDeploy.settingsId) {
-            system.actorSelection(s"/user/s_${kv._1}_*") ! PoisonPill
-
-            (0 until newDeploy.numInstancesPerNode) foreach { i =>
-              deployActorByName(kv._1)
-            }
-          } else {
-            val extra = newDeploy.numInstancesPerNode - oldDeploy.numInstancesPerNode
-            (0 until extra) foreach { i =>
-              deployActorByName(kv._1)
-            }
-          }
-        }
-    }
-  }
 }

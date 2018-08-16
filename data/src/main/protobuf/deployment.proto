@@ -27,17 +27,118 @@ message ProcessDynamicSettings {
     DynamicSettings settings = 1;
 }
 
-message DynamicSettings {
-
-    message ActorDeployment {
-        string settings_id = 4;
-        string actor_name = 1;
-        repeated string roles = 2;
-        int32 num_instances_per_node = 3;
-    }
-
-    string label = 1;
-    map<string, google.protobuf.Any> actor_setting_map = 2;
-    repeated ActorDeployment actor_deployments = 3;
+message BalanceCacherSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
 }
+
+message BalanceManagerSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message BalanceReaderSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message BlockchainEventExtractorSettings {
+    repeated string roles = 1;
+}
+
+message CacheObsoleterSettings {
+    repeated string roles = 1;
+}
+
+message EthereumAccessorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderAccessorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderBookManagerSettings {
+    string id = 1;
+    repeated string roles = 2;
+}
+
+message OrderBookReaderSettings {
+    string id = 1;
+    repeated string roles = 2;
+    int32 instances = 3;
+}
+
+message OrderCacherSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderDBAccessorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderReadCoordinatorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderReaderSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderUpdateCoordinatorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderUpdaterSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderWriterSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message RingFinderSettings {
+    string id = 1;
+    repeated string roles = 2;
+}
+
+message RingMinerSettings {
+    string address = 1;
+    repeated string roles = 2;
+}
+
+message DynamicSettings {
+    BalanceCacherSettings balance_cacher_settings = 2;
+    BalanceManagerSettings balance_manager_settings = 3;
+    BalanceReaderSettings balance_reader_settings = 4;
+    BlockchainEventExtractorSettings blockchain_event_extractor_settings = 5;
+    CacheObsoleterSettings cache_obsoleter_settings = 6;
+    EthereumAccessorSettings ethereum_accessor_settings = 7;
+    OrderCacherSettings order_cacher_settings = 8;
+    OrderDBAccessorSettings order_db_accessor_settings = 9;
+    OrderReadCoordinatorSettings order_read_coordinator_settings = 10;
+    OrderReaderSettings order_reader_settings = 11;
+    OrderUpdateCoordinatorSettings order_update_coordinator_settings = 12;
+    OrderUpdaterSettings order_updater_settings = 13;
+    OrderWriterSettings order_writer_settings = 14;
+    OrderAccessorSettings order_accessor_settings = 15;
+
+    repeated OrderBookManagerSettings order_book_manager_settings_seq = 102;
+    repeated OrderBookReaderSettings order_book_reader_settings_seq = 103;
+    repeated RingFinderSettings ring_finder_settings_seq = 104;
+    repeated RingMinerSettings ring_miner_settings_seq = 105;
+}
+
+
+
+
 

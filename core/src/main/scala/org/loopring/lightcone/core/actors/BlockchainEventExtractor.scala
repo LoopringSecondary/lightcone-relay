@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object BlockchainEventExtractor
+  extends base.Deployable[BlockchainEventExtractorSettings] {
+  val name = "block_event_extractor"
+  val isSingleton = true
+
+  def props = Props(classOf[BlockchainEventExtractor])
+
+  def getCommon(s: BlockchainEventExtractorSettings) =
+    base.CommonSettings("", s.roles, 1)
+}
+
+class BlockchainEventExtractor() extends Actor {
+  def receive: Receive = {
+    case settings: BlockchainEventExtractorSettings =>
+    case _ =>
+  }
 }
