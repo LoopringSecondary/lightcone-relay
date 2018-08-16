@@ -17,9 +17,16 @@
 package org.loopring.lightcone.core.actors;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
+import org.loopring.lightcone.proto.Order;
+import org.loopring.lightcone.proto.order.*;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.util.Optional;
 
@@ -30,9 +37,33 @@ public class OrderWriter extends AbstractActor {
         return Props.create(OrderWriter.class);
     }
 
+    private ActorRef orderAccessor;
+    private ActorRef orderManager;
+
     @Override
     public Receive createReceive() {
+        // 取消和提交新订单，只要提交db更新成功，返回客户端成功就可以，然后将消息发给orderManager，由orderManager发送消息给orderUpdater，计算最后状态后，通知到socketio连接
         return receiveBuilder()
+                .match(SubmitOrderReq.class, r -> {
+                    Future f = Patterns.ask(orderAccessor, convert(r) , 1000);
+                    OrdersSaved ordersSaved = (OrdersSaved) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(convertResp(ordersSaved), getSender());
+                    orderManager.tell(ordersSaved, orderManager);
+                })
+                .match(CancelOrdersReq.class, r -> {
+                    Future f = Patterns.ask(orderAccessor, SoftCancelOrders.defaultInstance() , 1000);
+                    OrdersSoftCancelled ordersSoftCancelled = (OrdersSoftCancelled) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(CancelOrdersResp.defaultInstance(), getSender());
+                    orderManager.tell(OrdersSoftCancelled.defaultInstance(), orderManager);
+                })
                 .build();
+    }
+
+    private SaveOrders convert(SubmitOrderReq req) {
+        return SaveOrders.defaultInstance();
+    }
+
+    private SubmitOrderResp convertResp(OrdersSaved ordersSaved) {
+        return SubmitOrderResp.defaultInstance();
     }
 }

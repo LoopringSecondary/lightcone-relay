@@ -33,6 +33,7 @@ public class BlockchainEventExtractor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+
                 .build();
     }
 }

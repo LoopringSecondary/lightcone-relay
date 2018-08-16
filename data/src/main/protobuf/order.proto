@@ -8,6 +8,9 @@ message SubmitOrderResp {}
 message GetOrdersReq {}
 message GetOrdersResp {}
 
+message GetOrderReq {}
+message GetOrderResp {}
+
 message CancelOrdersReq {}
 message CancelOrdersResp {}
 
@@ -29,6 +32,9 @@ message OrdersSaved {}
 
 message UpdateOrders {}
 message OrdersUpdated {}
+
+message CalculateOrdersStatus {}
+message OrdersStatus {}
 
 message SoftCancelOrders {}
 message OrdersSoftCancelled {}

@@ -17,9 +17,20 @@
 package org.loopring.lightcone.core.actors;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
+import org.loopring.lightcone.proto.BlockChainEvent;
+import org.loopring.lightcone.proto.balance.AddressBalanceInfo;
+import org.loopring.lightcone.proto.balance.BalancesReq;
+import org.loopring.lightcone.proto.balance.GetAddressBalanceInfo;
+import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack;
+import org.loopring.lightcone.proto.order.*;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.util.Optional;
 
@@ -30,9 +41,37 @@ public class OrderAccessor extends AbstractActor {
         return Props.create(OrderAccessor.class);
     }
 
+    private ActorRef orderDBAccessor;
+
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(SaveOrders.class, r -> {
+                    Future f = Patterns.ask(orderDBAccessor, r, 1000);
+                    OrdersSaved ordersSaved = (OrdersSaved) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(ordersSaved, getSender());
+                })
+                .match(SoftCancelOrders.class, r -> {
+                    Future f = Patterns.ask(orderDBAccessor, r, 1000);
+                    OrdersSoftCancelled ordersSaved = (OrdersSoftCancelled) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(ordersSaved, getSender());
+                })
+                .match(GetOrder.class, r -> {
+                    Future f = Patterns.ask(orderDBAccessor, r, 1000);
+                    OneOrder oneOrder = (OneOrder) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(oneOrder, getSender());
+                })
+                .match(GetOrders.class, r -> {
+                    Future f = Patterns.ask(orderDBAccessor, r, 1000);
+                    MultiOrders multiOrders = (MultiOrders) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(multiOrders, getSender());
+                })
+                .match(GetTopOrders.class, r -> {
+                    Future f = Patterns.ask(orderDBAccessor, r, 1000);
+                    TopOrders topOrders = (TopOrders) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(topOrders, getSender());
+                })
+                .match(ChainRolledBack.class, r -> orderDBAccessor.tell(r, orderDBAccessor))
                 .build();
     }
 }

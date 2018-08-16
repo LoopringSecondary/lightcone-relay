@@ -21,8 +21,13 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import org.loopring.lightcone.proto.balance.AddressBalanceInfo;
-import org.loopring.lightcone.proto.balance.GetAddressBalanceInfo;
+import akka.pattern.Patterns;
+import org.loopring.lightcone.proto.balance.*;
+import org.loopring.lightcone.proto.cache.AddressBalanceFromCache;
+import org.loopring.lightcone.proto.cache.GetAddressBalanceFromCache;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.util.Optional;
 
@@ -39,9 +44,14 @@ public class BalanceManager extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(GetAddressBalanceInfo.class, r -> {
-                    balanceCacher.tell(GetAddressBalanceInfo.defaultInstance(), getSelf());
-                    getSender().tell(new AddressBalanceInfo(), getSelf());
+                    Future f = Patterns.ask(balanceCacher, GetAddressBalanceFromCache.defaultInstance(), 1000);
+                    AddressBalanceFromCache balanceInfo = (AddressBalanceFromCache) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(convert(balanceInfo), getSender());
                 })
                 .build();
+    }
+
+    private AddressBalanceInfo convert(AddressBalanceFromCache balanceInfo) {
+        return AddressBalanceInfo.defaultInstance();
     }
 }

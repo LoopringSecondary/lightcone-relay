@@ -17,9 +17,15 @@
 package org.loopring.lightcone.core.actors;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
+import org.loopring.lightcone.proto.order.*;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.util.Optional;
 
@@ -30,9 +36,21 @@ public class OrderReader extends AbstractActor {
         return Props.create(OrderReader.class);
     }
 
+    private ActorRef orderManager;
+
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(GetOrderReq.class, r -> {
+                    Future f = Patterns.ask(orderManager, r, 1000);
+                    OneOrder oneOrder = (OneOrder) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(GetOrderResp.defaultInstance(), getSender());
+                })
+                .match(GetOrdersReq.class, r -> {
+                    Future f = Patterns.ask(orderManager, r, 1000);
+                    MultiOrders multiOrders = (MultiOrders) Await.result(f, Duration.create(1, "second"));
+                    getSender().tell(GetOrdersResp.defaultInstance(), getSender());
+                })
                 .build();
     }
 }

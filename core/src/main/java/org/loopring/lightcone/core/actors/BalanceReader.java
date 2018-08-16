@@ -47,7 +47,6 @@ public class BalanceReader extends AbstractActor {
                     getSender().tell(convert(balanceInfo), getSender());
                 })
                 .match(AllowancesReq.class, r -> getSender().tell(new AllowancesResp(), getSender()))
-
                 .build();
     }
 

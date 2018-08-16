@@ -37,7 +37,9 @@ public class BalanceCacher extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(CacheAddressBalanceInfo.class, r -> getSender().tell(CachedAddressBalanceInfo.getDefaultInstance(), getSender()))
-                .match(Cache.GetAddressBalanceFromCache.class, r -> getSender().tell(Balance.AddressBalanceInfo.getDefaultInstance(), getSender()))
+                .match(Cache.GetAddressBalanceFromCache.class, r -> getSender().tell(Cache.AddressBalanceFromCache.getDefaultInstance(), getSender()))
+                .match(Cache.PurgeTokenBalancesForAddresses.class, r -> {})
+                .match(Cache.PurgeEverything.class, r -> {})
                 .build();
     }
 }

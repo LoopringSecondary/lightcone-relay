@@ -52,6 +52,7 @@ public class CacheObsoleter extends AbstractActor {
                     balanceCacher.tell(Cache.PurgeTokenBalancesForAddresses.getDefaultInstance(), getSelf());
                     orderCacher.tell(Order.OrderStatusChanged.getDefaultInstance(), getSelf());
                 })
+                // HeartBeat中断的情况下，清除缓存
                 .match(BlockChainEvent.HeartBeat.class, r -> rollbackAll())
                 .match(BlockChainEvent.ChainRolledBack.class, r -> rollbackAll())
                 .build();
