@@ -30,31 +30,31 @@ object Routers {
   def clusterManager = routers(ClusterManager.name)("")
 
   // // Router for service actors
-  // val cacheObsoleter = routerForSingleton("cache_obsoleter")
-  // val blockchainEventExtractor = routerForSingleton("blockchain_event_extractor")
+  def cacheObsoleter = routers(CacheObsoleter.name)("")
+  def blockchainEventExtractor = routers(BlockchainEventExtractor.name)("")
 
-  // val balanceCacher = routerFor("balance_cacher")
-  // val balanceManager = routerFor("balance_manager")
-  // val orderCacher = routerFor("order_cacher")
-  // val orderReadCoordinator = routerFor("order_read_coordinator")
-  // val orderUpdateCoordinator = routerFor("order_update_coordinator")
-  // val orderUpdator = routerFor("order_updator")
+  def balanceCacher = routers(BalanceCacher.name)("")
+  def balanceManager = routers(BalanceManager.name)("")
+  def orderCacher = routers(OrderCacher.name)("")
+  def orderReadCoordinator = routers(OrderReadCoordinator.name)("")
+  def orderUpdateCoordinator = routers(OrderUpdateCoordinator.name)("")
+  def orderUpdater = routers(OrderUpdater.name)("")
 
-  // val balanceReader = routerFor("balance_reader")
-  // val orderReader = routerFor("order_reader")
-  // val orderWriter = routerFor("order_writer")
+  def balanceReader = routers(BalanceReader.name)("")
+  def orderReader = routers(OrderReader.name)("")
+  def orderWriter = routers(OrderWriter.name)("")
 
-  // val orderAccessor = routerFor("order_accessor")
-  // val orderDBAccessor = routerFor("order_db_accessor")
+  def orderAccessor = routers(OrderAccessor.name)("")
+  def orderDBAccessor = routers(OrderDBAccessor.name)("")
 
-  // val orderBookManager = routerForSingleton("order_book_manager")
-  // val ringFinder = routerForSingleton("ring_finder")
-  // val ringMiner = routerForSingleton("ring_miner")
-  // val orderBookReader = routerFor("order_book_reader")
-  var routers: Map[String, Map[String, ActorRef]] = Map.empty
+  def ringFinder(id: String) = routers(RingFinder.name)(id)
+  def orderBookManager(id: String) = routers(OrderBookManager.name)(id)
+  def orderBookReader(id: String) = routers(OrderBookReader.name)(id)
+  def ringMiner(address: String) = routers(RingMiner.name)(address)
+
+  private var routers: Map[String, Map[String, ActorRef]] = Map.empty
 
   def setRouters(name: String, routerMap: Map[String, ActorRef]) {
     routers = routers + (name -> routerMap)
-    println("~~~~~~~~~ routers: " + routers)
   }
 }

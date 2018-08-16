@@ -24,20 +24,20 @@ import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
-object OrderAccessor
-  extends base.Deployable[OrderAccessorSettings] {
-  val name = "order_accessor"
+object OrderWriter
+  extends base.Deployable[OrderWriterSettings] {
+  val name = "example"
   val isSingleton = false
 
-  def props = Props(classOf[OrderAccessor])
+  def props = Props(classOf[OrderWriter])
 
-  def getCommon(s: OrderAccessorSettings) =
+  def getCommon(s: OrderWriterSettings) =
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class OrderAccessor() extends Actor {
+class OrderWriter() extends Actor {
   def receive: Receive = {
-    case settings: OrderAccessorSettings =>
+    case settings: OrderWriterSettings =>
     case _ =>
   }
 }

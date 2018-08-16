@@ -102,9 +102,52 @@ class NodeManager()(implicit val cluster: Cluster)
         EthereumAccessor.deploy(settings.ethereumAccessorSettings))
 
       Routers.setRouters(
-        OrderAccessor.name,
-        OrderAccessor.deploy(settings.orderAccessorSettingsSeq))
+        OrderCacher.name,
+        OrderCacher.deploy(settings.orderCacherSettings))
 
+      Routers.setRouters(
+        OrderDBAccessor.name,
+        OrderDBAccessor.deploy(settings.orderDbAccessorSettings))
+
+      Routers.setRouters(
+        OrderReadCoordinator.name,
+        OrderReadCoordinator.deploy(settings.orderReadCoordinatorSettings))
+
+      Routers.setRouters(
+        OrderReader.name,
+        OrderReader.deploy(settings.orderReaderSettings))
+
+      Routers.setRouters(
+        OrderUpdateCoordinator.name,
+        OrderUpdateCoordinator.deploy(settings.orderUpdateCoordinatorSettings))
+
+      Routers.setRouters(
+        OrderUpdater.name,
+        OrderUpdater.deploy(settings.orderUpdaterSettings))
+
+      Routers.setRouters(
+        OrderWriter.name,
+        OrderWriter.deploy(settings.orderWriterSettings))
+
+      Routers.setRouters(
+        OrderAccessor.name,
+        OrderAccessor.deploy(settings.orderAccessorSettings))
+
+      Routers.setRouters(
+        OrderBookManager.name,
+        OrderBookManager.deploy(settings.orderBookManagerSettingsSeq))
+
+      Routers.setRouters(
+        OrderBookReader.name,
+        OrderBookReader.deploy(settings.orderBookReaderSettingsSeq))
+
+      Routers.setRouters(
+        RingFinder.name,
+        RingFinder.deploy(settings.ringFinderSettingsSeq))
+
+      Routers.setRouters(
+        RingMiner.name,
+        RingMiner.deploy(settings.ringMinerSettingsSeq))
   }
 
 }
