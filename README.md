@@ -6,14 +6,14 @@ sbt compile
 ```
 
 ### Run
-Here is how you can run two nodes to form a cluster (assuming your IP is '192.168.1.152'):
+Here is how you can run two nodes to form a cluster (assuming your IP is `192.168.1.152`):
 
 ```
 sbt "core/run \
 -p=19091 \
 -m=8081 \
 -s 192.168.1.152:19091,192.168.1.152:19092 \
--r all"
+-r foo"
 ```
 
 ```
@@ -21,7 +21,7 @@ sbt "core/run \
 -p=19092 \
 -m=8082 \
 -s 192.168.1.152:19091,192.168.1.152:19092 \
--r all"
+-r bar"
 ```
 
 Note: You must start the first node in the cluster first, otherwise singleton instances will not be deployed correctly.
@@ -37,22 +37,27 @@ post the following as JSON to `http://192.168.1.152:8081/settings` to triger act
 
 ```
 {
-    "label": "simple",
-    "marketConfigs": {},
-    "actorDeployments": [
-        {
-            "actorName": "balance_cacher",
-            "roles": ["all"],
-            "numInstancesPerNode":10,
-            "marketId": ""
-        },
-         {
-            "actorName": "cache_obsoleter",
-            "roles": ["all"],
-            "numInstancesPerNode": 0,
-            "marketId": ""
-        }
-    ]
+    "balanceCacherSettings":
+    {
+        "roles": [],
+        "instances": 2
+    },
+    "balanceManagerSettings":
+    {
+        "roles": ["foo"],
+        "instances": 2
+    },
+    "orderAccessorSettingsSeq": [
+    {
+        "id": "abc",
+        "roles": ["bar"],
+        "instances": 2
+    },
+    {
+        "id": "xyz",
+        "roles": ["foo", "bar"],
+        "instances": 2
+    }]
 }
 
 ```
@@ -75,5 +80,3 @@ Tp see the  global dynamic settings, visit:
 
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
-> Note that all `/user/r_*` actors and `/user/m_*` actors are deployed automatically and cannot be removed; and only `/user/s_*` actors can be dynamically deployed.
->>>>>>> c4219645b8123b0e90ca2452f44d15c01391d104
