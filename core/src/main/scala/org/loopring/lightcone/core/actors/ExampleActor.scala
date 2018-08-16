@@ -25,14 +25,14 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
 object ExampleActor
-  extends Deployable[ExampleActorSettings] {
+  extends base.Deployable[ExampleActorSettings] {
   val name = "example"
   val isSingleton = false
 
   def props = Props(classOf[ExampleActor])
 
   def getCommon(s: ExampleActorSettings) =
-    CommonSettings("", s.roles, s.instances)
+    base.CommonSettings("", s.roles, s.instances)
 }
 
 class ExampleActor() extends Actor {

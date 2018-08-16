@@ -24,12 +24,20 @@ import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 
-case class NullConfig()
+object BalanceReader
+  extends base.Deployable[BalanceReaderSettings] {
+  val name = "balance_reader"
+  val isSingleton = false
 
-abstract class NullConfigDeployable extends Deployable[NullConfig] {
-  def getCommon(s: NullConfig): CommonSettings = getCommon()
-  def getCommon(): CommonSettings
+  def props = Props(classOf[BalanceReader])
 
-  def deploy()(implicit cluster: Cluster): Map[String, ActorRef] = deploy(Seq(NullConfig()))
+  def getCommon(s: BalanceReaderSettings) =
+    base.CommonSettings("", s.roles, s.instances)
 }
 
+class BalanceReader() extends Actor {
+  def receive: Receive = {
+    case settings: BalanceReaderSettings =>
+    case _ =>
+  }
+}

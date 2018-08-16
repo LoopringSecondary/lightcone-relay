@@ -17,29 +17,27 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
-import akka.cluster.pubsub._
-import akka.cluster.pubsub.DistributedPubSubMediator._
-import scala.concurrent.duration._
 import com.typesafe.config.Config
-import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 
-object ClusterManager extends base.NullConfigDeployable {
-  val name = "cluster_manager"
+object BlockchainEventExtractor
+  extends base.Deployable[BlockchainEventExtractorSettings] {
+  val name = "block_event_extractor"
   val isSingleton = true
 
-  def props = Props(classOf[ClusterManager])
+  def props = Props(classOf[BlockchainEventExtractor])
 
+  def getCommon(s: BlockchainEventExtractorSettings) =
+    base.CommonSettings("", s.roles, 1)
 }
 
-class ClusterManager() extends Actor {
-
-  val mediator = DistributedPubSub(context.system).mediator
+class BlockchainEventExtractor() extends Actor {
   def receive: Receive = {
-
-    case UploadDynamicSettings(c) =>
-      println("UploadDynamicSettings: " + c)
-      mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
+    case settings: BlockchainEventExtractorSettings =>
+    case _ =>
   }
 }

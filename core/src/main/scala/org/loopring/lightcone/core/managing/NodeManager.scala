@@ -84,6 +84,27 @@ class NodeManager()(implicit val cluster: Cluster)
       Routers.setRouters(
         BalanceManager.name,
         BalanceManager.deploy(settings.balanceManagerSettings))
+
+      Routers.setRouters(
+        BalanceReader.name,
+        BalanceReader.deploy(settings.balanceReaderSettings))
+
+      Routers.setRouters(
+        BlockchainEventExtractor.name,
+        BlockchainEventExtractor.deploy(settings.blockchainEventExtractorSettings))
+
+      Routers.setRouters(
+        CacheObsoleter.name,
+        CacheObsoleter.deploy(settings.cacheObsoleterSettings))
+
+      Routers.setRouters(
+        EthereumAccessor.name,
+        EthereumAccessor.deploy(settings.ethereumAccessorSettings))
+
+      Routers.setRouters(
+        OrderAccessor.name,
+        OrderAccessor.deploy(settings.orderAccessorSettingsSeq))
+
   }
 
 }

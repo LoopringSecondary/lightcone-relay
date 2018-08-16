@@ -37,6 +37,9 @@ abstract class Deployable[S <: AnyRef] {
   def props(): Props
   def getCommon(s: S): CommonSettings
 
+  private val rand = new scala.util.Random()
+  private def nextRand = rand.nextInt(100000000)
+
   case class SettingsWrapper[S](
     common: CommonSettings,
     settings: S) {
@@ -81,7 +84,6 @@ abstract class Deployable[S <: AnyRef] {
 
     println(s"--------> killing router: /user/r_${name}_*")
     cluster.system.actorSelection(s"/user/r_${name}_*") ! PoisonPill
-    Thread.sleep(1000)
 
     settingsMap.keys.map {
       id =>
@@ -91,7 +93,7 @@ abstract class Deployable[S <: AnyRef] {
               ClusterSingletonProxy.props(
                 singletonManagerPath = s"/user/${name}_${id}_0",
                 settings = ClusterSingletonProxySettings(cluster.system)),
-              name = s"r_${name}_${id}")
+              name = s"r_${name}_${id}_${nextRand}")
           } else {
             cluster.system.actorOf(
               ClusterRouterGroup(
@@ -100,7 +102,7 @@ abstract class Deployable[S <: AnyRef] {
                   totalInstances = Int.MaxValue,
                   routeesPaths = List(s"/user/${name}_${id}_*"),
                   allowLocalRoutees = true)).props,
-              name = s"r_${name}_${id}")
+              name = s"r_${name}_${id}_${nextRand}")
           }
         println("--------> deployed router: " + actor.path)
         (id -> actor)
@@ -114,29 +116,21 @@ abstract class Deployable[S <: AnyRef] {
 
     def getInstances(w: Option[SettingsWrapper[S]]) = {
       val num = w.map(_.numInstances).getOrElse(0)
-      if (isSingleton && num > 1) 1
-      else num
+      if (isSingleton && num > 1) 1 else num
     }
-
-    println("=======")
-    println(id)
-    println(_old)
-    println(_new)
-    println("=======")
 
     val newInstances = getInstances(_new)
     val oldInstances = getInstances(_old)
 
-    val (base, instances) = if (newInstances < oldInstances) {
+    val instances = if (newInstances < oldInstances) {
       actorSelection(id) ! PoisonPill
-      Thread.sleep(1000)
-      (0, newInstances)
+      newInstances
     } else {
-      (oldInstances, newInstances - oldInstances)
+      newInstances - oldInstances
     }
 
     (0 until instances) foreach { i =>
-      val name = getActorName(id, base + i)
+      val name = getActorName(id, nextRand)
       val actor = if (isSingleton) {
         cluster.system.actorOf(
           ClusterSingletonManager.props(

@@ -17,29 +17,27 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
-import akka.cluster.pubsub._
-import akka.cluster.pubsub.DistributedPubSubMediator._
-import scala.concurrent.duration._
 import com.typesafe.config.Config
-import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.data.deployment._
 
-object ClusterManager extends base.NullConfigDeployable {
-  val name = "cluster_manager"
-  val isSingleton = true
+object EthereumAccessor
+  extends base.Deployable[EthereumAccessorSettings] {
+  val name = "ethereum_accessor"
+  val isSingleton = false
 
-  def props = Props(classOf[ClusterManager])
+  def props = Props(classOf[EthereumAccessor])
 
+  def getCommon(s: EthereumAccessorSettings) =
+    base.CommonSettings("", s.roles, s.instances)
 }
 
-class ClusterManager() extends Actor {
-
-  val mediator = DistributedPubSub(context.system).mediator
+class EthereumAccessor() extends Actor {
   def receive: Receive = {
-
-    case UploadDynamicSettings(c) =>
-      println("UploadDynamicSettings: " + c)
-      mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
+    case settings: EthereumAccessorSettings =>
+    case _ =>
   }
 }

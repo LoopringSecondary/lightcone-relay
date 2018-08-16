@@ -42,11 +42,39 @@ message BalanceManagerSettings {
     int32 instances = 2;
 }
 
+message BalanceReaderSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
 
+message BlockchainEventExtractorSettings {
+    repeated string roles = 1;
+}
+
+message CacheObsoleterSettings {
+    repeated string roles = 1;
+}
+
+message EthereumAccessorSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message OrderAccessorSettings {
+    string id = 1;
+    repeated string roles = 2;
+    int32 instances = 3;
+}
 message DynamicSettings {
     ExampleActorSettings example_actor_settings = 1;
     BalanceCacherSettings balance_cacher_settings = 2;
     BalanceManagerSettings balance_manager_settings = 3;
+    BalanceReaderSettings balance_reader_settings = 4;
+    BlockchainEventExtractorSettings blockchain_event_extractor_settings = 5;
+    CacheObsoleterSettings cache_obsoleter_settings = 6;
+    EthereumAccessorSettings ethereum_accessor_settings = 7;
+
+    repeated OrderAccessorSettings order_accessor_settings_seq = 8;
 }
 
 
