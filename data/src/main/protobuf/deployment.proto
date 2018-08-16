@@ -32,10 +32,21 @@ message ExampleActorSettings {
     int32 instances = 2;
 }
 
+message BalanceCacherSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message BalanceManagerSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
 
 
 message DynamicSettings {
     ExampleActorSettings example_actor_settings = 1;
+    BalanceCacherSettings balance_cacher_settings = 2;
+    BalanceManagerSettings balance_manager_settings = 3;
 }
 
 

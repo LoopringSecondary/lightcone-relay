@@ -72,7 +72,18 @@ class NodeManager()(implicit val cluster: Cluster)
 
     case ProcessDynamicSettings(Some(settings)) =>
       NodeData.dynamicSettings = settings
-      ExampleActor.deploy(settings.exampleActorSettings)
+
+      Routers.setRouters(
+        ExampleActor.name,
+        ExampleActor.deploy(settings.exampleActorSettings))
+
+      Routers.setRouters(
+        BalanceCacher.name,
+        BalanceCacher.deploy(settings.balanceCacherSettings))
+
+      Routers.setRouters(
+        BalanceManager.name,
+        BalanceManager.deploy(settings.balanceManagerSettings))
   }
 
 }

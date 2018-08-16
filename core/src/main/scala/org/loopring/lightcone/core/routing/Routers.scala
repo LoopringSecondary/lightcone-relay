@@ -23,10 +23,11 @@ import akka.routing._
 import akka.cluster.singleton._
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.core.actors._
 
 object Routers {
   // // Router for management actors
-  def clusterManager = routers("cluster_manager")("")
+  def clusterManager = routers(ClusterManager.name)("")
 
   // // Router for service actors
   // val cacheObsoleter = routerForSingleton("cache_obsoleter")
