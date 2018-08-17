@@ -43,11 +43,13 @@ class RingMiner(balanceManager: BalanceManager, accessor: EthereumAccessor) exte
 
   def receive: Receive = {
     case settings: RingMinerSettings =>
+
     case ringCandidates: GetRingCandidates => for {
       _ <- Future {}
     } yield {
       sender() ! NotifyRingSettlementDecisions()
     }
+
     case _ =>
   }
 }

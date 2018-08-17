@@ -57,6 +57,7 @@ class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: 
 
   def receive: Receive = {
     case settings: RingFinderSettings =>
+
     case getCrossingOrderSets: GetCrossingOrderSets => for {
       crossingOrderSets <- orderBookManager.ask(getCrossingOrderSets)(Timeout(5 seconds))
     } yield {
@@ -68,6 +69,7 @@ class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: 
       }
       nextFindRound()
     }
+
     case ringSettlementDecisions: NotifyRingSettlementDecisions =>
       orderManager ! MarkOrdersDeferred(deferOrders =
         ringSettlementDecisions.ringSettlementDecisions
@@ -76,8 +78,11 @@ class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: 
       orderManager ! MarkOrdersSettling(orders = ringSettlementDecisions.ringSettlementDecisions
         .filter(r => r.decision == SettlementDecision.Settled)
         .flatMap(r => r.orders))
+
     case getFinderRingCandidates: GetRingCandidates =>
       sender() ! RingCandidates()
+
     case _ =>
+
   }
 }
