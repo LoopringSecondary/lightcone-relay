@@ -23,21 +23,31 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.ring.{ GetRingCandidates, NotifyRingSettlementDecisions }
+
+import scala.concurrent.Future
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {
   val name = "ring_miner"
   val isSingleton = true
 
-  def props = Props(classOf[RingMiner])
+  def props = Props(classOf[RingMiner]).withDispatcher("ring-dispatcher")
 
   def getCommon(s: RingMinerSettings) =
     base.CommonSettings(s.address, s.roles, 1)
 }
 
-class RingMiner() extends Actor {
+class RingMiner(balanceManager: BalanceManager, accessor: EthereumAccessor) extends Actor {
+  import context.dispatcher
+
   def receive: Receive = {
     case settings: RingMinerSettings =>
+    case ringCandidates: GetRingCandidates => for {
+      _ <- Future {}
+    } yield {
+      sender() ! NotifyRingSettlementDecisions()
+    }
     case _ =>
   }
 }

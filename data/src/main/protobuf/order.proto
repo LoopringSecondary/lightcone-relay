@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package org.loopring.lightcone.proto;
 
+message Order {
+
+}
+
 message SubmitOrderReq {}
 message SubmitOrderResp {}
 
@@ -35,10 +39,22 @@ message OrdersSoftCancelled {}
 message NotifyOrderCancelled {}
 message NotifyOrdersSoftCancelled {}
 
-message DeferOrders {}
-message MarkOrdersDeferred {}
+message DeferOrder {
+    Order order = 1;
+    int64 deferedTime = 2;
+}
+
+message MarkOrdersDeferred {
+    repeated DeferOrder deferOrders = 1;
+}
+
 message OrderStatusChanged {}
-message MarkOrdersSettling {}
-message MarkOrdersBeingMatched {}
+message MarkOrdersSettling {
+    repeated Order orders = 1;
+}
+
+message MarkOrdersBeingMatched {
+    repeated Order orders = 1;
+}
 
 message UpdateOrdersById {}

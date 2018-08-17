@@ -23,21 +23,61 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
+import akka.pattern.ask
+import akka.util.Timeout
+import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
+import org.loopring.lightcone.proto.ring._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object RingFinder
   extends base.Deployable[RingFinderSettings] {
   val name = "ring_finder"
   val isSingleton = true
 
-  def props = Props(classOf[RingFinder])
+  def props = Props(classOf[RingFinder]).withDispatcher("ring-dispatcher")
 
   def getCommon(s: RingFinderSettings) =
     base.CommonSettings(s.id, s.roles, 1)
 }
 
-class RingFinder() extends Actor {
+class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: ActorRef, tokenA: String, tokenB: String) extends Actor {
+  import context.dispatcher
+
+  private def nextFindRound() = {
+    context.system.scheduler.scheduleOnce(2 seconds, self, GetCrossingOrderSets(tokenA = tokenA, tokenB = tokenB))
+  }
+
+  override def preStart(): Unit = {
+    super.preStart()
+    nextFindRound()
+  }
+
   def receive: Receive = {
     case settings: RingFinderSettings =>
+    case getCrossingOrderSets: GetCrossingOrderSets => for {
+      crossingOrderSets <- orderBookManager.ask(getCrossingOrderSets)(Timeout(5 seconds))
+    } yield {
+      crossingOrderSets match {
+        case orders: CrossingOrderSets =>
+          orderManager ! MarkOrdersBeingMatched(orders.sellTokenAOrders ++ orders.sellTokenBOrders)
+          ringMiner ! RingCandidates()
+          orderManager ! MarkOrdersDeferred()
+      }
+      nextFindRound()
+    }
+    case ringSettlementDecisions: NotifyRingSettlementDecisions =>
+      orderManager ! MarkOrdersDeferred(deferOrders =
+        ringSettlementDecisions.ringSettlementDecisions
+          .filter(r => r.decision == SettlementDecision.UnSettled)
+          .flatMap(r => r.orders.map(o => DeferOrder(order = Some(o), deferedTime = 100))))
+      orderManager ! MarkOrdersSettling(orders = ringSettlementDecisions.ringSettlementDecisions
+        .filter(r => r.decision == SettlementDecision.Settled)
+        .flatMap(r => r.orders))
+    case getFinderRingCandidates: GetRingCandidates =>
+      sender() ! RingCandidates()
     case _ =>
   }
 }
