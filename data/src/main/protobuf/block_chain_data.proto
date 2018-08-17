@@ -1,0 +1,110 @@
+/*
+ * Copyright 2018 Loopring Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto.eth";
+
+message Transaction {
+    bytes hash = 1;
+    bytes nonce = 2;
+    bytes blockHash = 3;
+    bytes blockNumber = 4;
+    bytes transactionIndex = 5;
+    bytes from = 6;
+    bytes to =7;
+    bytes value = 8;
+    bytes gasPrice = 9 ;
+    bytes gas = 10;
+    bytes input = 11;
+    bytes r = 12;
+    bytes s = 13;
+    bytes v = 14;
+}
+
+message Log {
+    bytes logIndex = 1;
+    bytes blockNumber = 2;
+    bytes blockHash = 3;
+    bytes transactionHash = 4;
+    bytes transactionIndex = 5;
+    bytes address = 6;
+    bytes data = 7;
+    repeated bytes topics = 8;
+    bool removed = 9;
+}
+
+message TransactionReceipt {
+    bytes blockHash = 1;
+    bytes blockNumber = 2;
+    bytes contractAddress = 3;
+    bytes cumulativeGasUsed = 4;
+    bytes from = 5;
+    bytes gasUsed = 6;
+    repeated Log logs = 7;
+    string logsBloom = 8;
+    string root = 9;
+    bytes status = 10;
+    bytes to = 11;
+    bytes transactionHash = 12;
+    bytes transactionIndex = 13;
+}
+
+message Block {
+    bytes number = 1;
+    bytes hash = 2;
+    bytes parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string miner = 9;
+    bytes difficulty = 10;
+    bytes totalDifficulty = 11;
+    string extraData = 12;
+    bytes size = 13;
+    bytes gasLimit = 14;
+    bytes gasUsed = 15;
+    bytes timestamp = 16;
+    repeated string uncles = 17;
+}
+
+message BlockWithTxObject {
+    Block block = 1;
+    repeated Transaction transactions = 2;
+}
+
+message BlockWithTxAndReceipt {
+    Block block = 1;
+    repeated Transaction        transactions = 2;
+    repeated TransactionReceipt receipts = 3;
+}
+
+message BlockWithTxHash {
+    Block block = 1;
+    repeated string transactions = 2;
+}
+
+message CallArgs {
+    string from = 1;
+    string to = 2;
+    bytes gas = 3;
+    bytes gasPrice = 4;
+    bytes value = 5;
+    string data = 6;
+    bytes nonce = 7;
+}
