@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object OrderBookReader
+  extends base.Deployable[OrderBookReaderSettings] {
+  val name = "order_book_reader"
+  val isSingleton = false
+
+  def props = Props(classOf[OrderBookReader])
+
+  def getCommon(s: OrderBookReaderSettings) =
+    base.CommonSettings(s.id, s.roles, s.instances)
+}
+
+class OrderBookReader() extends Actor {
+  def receive: Receive = {
+    case settings: OrderBookReaderSettings =>
+    case _ =>
+  }
 }
