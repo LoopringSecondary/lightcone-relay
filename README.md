@@ -1,4 +1,4 @@
-## lightcone-relay
+# lightcone-relay
 
 ## Compile
 ```
