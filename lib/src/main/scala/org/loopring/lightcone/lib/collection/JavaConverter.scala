@@ -21,21 +21,21 @@ import java.util
 import java.util.ArrayList
 
 import com.google.protobuf.ByteString
-import org.loopring.lightcone.proto.lib.solidity.repeatedBytes
+import org.loopring.lightcone.data.solidity.RepeatedBytes
 
 import scala.collection.JavaConverters
 
 trait JavaConverter {
-  def toSeqRepeatedBytes(src: Any): Seq[repeatedBytes]
+  def toSeqRepeatedBytes(src: Any): Seq[RepeatedBytes]
 }
 
 final class SimpleJavaConverter extends JavaConverter {
 
-  def toSeqRepeatedBytes(src: Any): Seq[repeatedBytes] = src match {
+  def toSeqRepeatedBytes(src: Any): Seq[RepeatedBytes] = src match {
     case arr: Object => {
       arr.asInstanceOf[Array[Object]].toSeq.map(
         subarr => {
-          repeatedBytes().withBytesList(subarr.asInstanceOf[Array[Object]].toSeq.map(x => x match {
+          RepeatedBytes().withBytesList(subarr.asInstanceOf[Array[Object]].toSeq.map(x => x match {
             case obj: Object => ByteString.copyFrom(x.asInstanceOf[Array[Byte]])
             case _ => throw new Exception("to sub array[object] failed")
           }))
