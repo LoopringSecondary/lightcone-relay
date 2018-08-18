@@ -22,7 +22,13 @@ import akka.routing._
 import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
+import akka.pattern.ask
+
+import scala.concurrent.duration._
+import akka.util.Timeout
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.Balance
+import org.loopring.lightcone.proto.balance.{GetAddressBalanceInfoReq, GetAddressBalanceInfoRes}
 
 object BalanceManager
   extends base.Deployable[BalanceManagerSettings] {
@@ -35,9 +41,19 @@ object BalanceManager
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class BalanceManager extends Actor {
+class BalanceManager(balanceCacher: ActorRef, ethereumAccessor: ActorRef) extends Actor {
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
+
+    case getAddressBalanceInfo: GetAddressBalanceInfoReq => for {
+      balanceInfo <- balanceCacher.ask(getAddressBalanceInfo)(Timeout(5 seconds))
+      _ <-  balanceInfo match {
+        case res:GetAddressBalanceInfoRes =>
+      }
+    } yield {
+      sender() ! GetAddressBalanceInfoRes()
+    }
+
     case _ =>
   }
 }
