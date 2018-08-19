@@ -17,11 +17,6 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
 import org.loopring.lightcone.proto.ring.{ GetRingCandidates, NotifyRingSettlementDecisions }
 

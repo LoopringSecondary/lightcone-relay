@@ -109,6 +109,9 @@ message OrderWriterSettings {
 message RingFinderSettings {
     string id = 1;
     repeated string roles = 2;
+    int32 scheduleDelay = 3;
+    string tokenA = 4;
+    string tokenB = 5;
 }
 
 message RingMinerSettings {

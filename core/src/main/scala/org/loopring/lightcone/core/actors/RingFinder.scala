@@ -17,15 +17,10 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.pattern.{ AskTimeoutException, ask }
+import akka.util.Timeout
 import org.loopring.lightcone.data.deployment._
 import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
-import akka.pattern.ask
-import akka.util.Timeout
 import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
 import org.loopring.lightcone.proto.ring._
 
@@ -43,29 +38,36 @@ object RingFinder
     base.CommonSettings(s.id, s.roles, 1)
 }
 
-class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: ActorRef, tokenA: String, tokenB: String) extends Actor {
+class RingFinder(
+  ringMiner: ActorRef,
+  orderManager: ActorRef,
+  orderBookManager: ActorRef)(implicit timeout: Timeout)
+  extends Actor
+  with ActorLogging {
   import context.dispatcher
+  var finderSettings: Option[RingFinderSettings] = None
 
   private def nextFindRound() = {
-    context.system.scheduler.scheduleOnce(2 seconds, self, GetCrossingOrderSets(tokenA = tokenA, tokenB = tokenB))
-  }
-
-  override def preStart(): Unit = {
-    super.preStart()
-    nextFindRound()
+    finderSettings.map(s =>
+      context.system.scheduler.scheduleOnce(s.scheduleDelay seconds, self, GetCrossingOrderSets(tokenA = s.tokenA, tokenB = s.tokenB)))
   }
 
   def receive: Receive = {
     case settings: RingFinderSettings =>
+      finderSettings = Some(settings)
+      nextFindRound()
 
     case getCrossingOrderSets: GetCrossingOrderSets => for {
-      crossingOrderSets <- orderBookManager.ask(getCrossingOrderSets)(Timeout(5 seconds))
+      crossingOrderSets <- orderBookManager ? getCrossingOrderSets recover {
+        case exception: AskTimeoutException ⇒ exception
+      }
     } yield {
       crossingOrderSets match {
         case orders: CrossingOrderSets =>
           orderManager ! MarkOrdersBeingMatched(orders.sellTokenAOrders ++ orders.sellTokenBOrders)
           ringMiner ! RingCandidates()
           orderManager ! MarkOrdersDeferred()
+        case e: AskTimeoutException =>
       }
       nextFindRound()
     }
@@ -75,6 +77,7 @@ class RingFinder(ringMiner: ActorRef, orderManager: ActorRef, orderBookManager: 
         ringSettlementDecisions.ringSettlementDecisions
           .filter(r => r.decision == SettlementDecision.UnSettled)
           .flatMap(r => r.orders.map(o => DeferOrder(order = Some(o), deferedTime = 100))))
+
       orderManager ! MarkOrdersSettling(orders = ringSettlementDecisions.ringSettlementDecisions
         .filter(r => r.decision == SettlementDecision.Settled)
         .flatMap(r => r.orders))
