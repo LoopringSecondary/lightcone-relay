@@ -3,7 +3,6 @@ import Keys._
 
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
-    name := "lightcone",
     organization := Globals.organization,
     version := Globals.version,
     scalaVersion := Globals.scalaVersion,
