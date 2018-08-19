@@ -49,7 +49,10 @@ class RingFinder(
 
   private def nextFindRound() = {
     finderSettings.map(s =>
-      context.system.scheduler.scheduleOnce(s.scheduleDelay seconds, self, GetCrossingOrderSets(tokenA = s.tokenA, tokenB = s.tokenB)))
+      context.system.scheduler.scheduleOnce(
+        s.scheduleDelay seconds,
+        self,
+        GetCrossingOrderSets(tokenA = s.tokenA, tokenB = s.tokenB)))
   }
 
   def receive: Receive = {
