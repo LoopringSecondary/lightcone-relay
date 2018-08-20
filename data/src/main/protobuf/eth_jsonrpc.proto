@@ -13,29 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 syntax = "proto3";
 
+package org.loopring.lightcone.data;
+
 option java_multiple_files = true;
-option java_package = "org.loopring.lightcone.lib";
 
-import "google/protobuf/any.proto";
-
-message repeatedBytes {
-    repeated bytes bytesList = 1;
+message JsonRPCRequest {
+    string id = 1;
+    string jsonrpc = 2;
+    string method = 3;
+    repeated string params = 4;
 }
 
-message repeatedUint {
-    repeated uint32 uintList = 1;
+message JsonRPCResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    string result = 3;
 }
 
-message SubmitRingFunction {
-    repeated repeatedBytes addressList = 1;
-    repeated repeatedBytes uintArgsList = 2;
-    repeated repeatedBytes repeatedUint = 3;
-    repeated bool buyNoMoreThanBList = 4;
-    repeated uint32 vList = 5;
-    repeated bytes rList = 6;
-    repeated bytes sList = 7;
-    bytes feeRecipient = 8;
-    uint32 feeSelection = 9;
+message JsonRPCRequestSeq {
+    repeated JsonRPCRequest req = 1;
+}
+
+///////////////////////////////////////////
+//
+// ethereum json rpc params
+//
+///////////////////////////////////////////
+
+enum Tag {
+    Latest = 0;
+    Pending = 1;
+    Earliest = 2;
+    Hex = 3;
+}
+
+message EthGetBalanceReq {
+    string address = 1;
+    string tag = 2;
+}
+
+message EthGetBalanceResponse {
+    bytes amount = 1;
 }

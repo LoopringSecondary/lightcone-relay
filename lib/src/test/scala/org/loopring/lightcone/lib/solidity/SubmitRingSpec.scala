@@ -17,7 +17,7 @@
 package org.loopring.lightcone.lib.solidity
 
 import org.apache.commons.collections4.Predicate
-import org.loopring.lightcone.lib.collection.SimpleJavaConverter
+import org.loopring.lightcone.lib.collection.SimpleSolidityTypeConverter
 import org.scalatest.FlatSpec
 import org.spongycastle.util.encoders.Hex
 
@@ -36,8 +36,8 @@ class SubmitRingSpec extends FlatSpec {
 
     val list = method.decode(input)
 
-    val convert = new SimpleJavaConverter()
-    val repeatedBytesSeq = convert.toSeqRepeatedBytes(list.get(0))
+    val convert = new SimpleSolidityTypeConverter()
+    val repeatedBytesSeq = convert.objectToBytesArray(list.get(0))
     repeatedBytesSeq.map(x => x.bytesList.map(str => println(Hex.toHexString(str.toByteArray))))
   }
 
