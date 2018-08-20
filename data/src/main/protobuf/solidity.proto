@@ -15,20 +15,19 @@
  */
 syntax = "proto3";
 
+package org.loopring.lightcone.data;
+
 option java_multiple_files = true;
-option java_package = "org.loopring.lightcone.data";
 
-import "google/protobuf/any.proto";
-
-message RepeatedBytes {
+message BytesArray {
     repeated bytes bytesList = 1;
 }
 
-message RepeatedUint {
+message UintArray {
     repeated uint32 uintList = 1;
 }
 
-message RepeatedBigInt {
+message BigIntArray {
     repeated bytes bigintList = 1;
 }
 
@@ -39,9 +38,9 @@ message RepeatedBigInt {
 ///////////////////////////////////////////////////////
 
 message SubmitRingFunction {
-    repeated RepeatedBytes addressList = 1;
-    repeated RepeatedBytes uintArgsList = 2;
-    repeated RepeatedBytes repeatedUint = 3;
+    repeated BytesArray addressList = 1;
+    repeated BytesArray uintArgsList = 2;
+    repeated BytesArray repeatedUint = 3;
     repeated bool buyNoMoreThanBList = 4;
     repeated uint32 vList = 5;
     repeated bytes rList = 6;
@@ -51,8 +50,8 @@ message SubmitRingFunction {
 }
 
 message CancelOrderFunction {
-    RepeatedBytes addressList = 1;
-    RepeatedBigInt OrderValues = 2;
+    BytesArray addressList = 1;
+    BigIntArray OrderValues = 2;
     bool buyNoMoreThanAmountB = 3;
     uint32 marginSplit = 4;
     uint32 v = 5;
@@ -105,7 +104,7 @@ message RingMinedEvent {
     bytes ringhash = 2;
     bytes miner = 3;
     bytes feeRecipient = 4;
-    RepeatedUint orderInfoList = 5;
+    UintArray orderInfoList = 5;
 }
 
 message OrderCancelledEvent {
