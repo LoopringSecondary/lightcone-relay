@@ -20,26 +20,23 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
-import akka.util.ByteString
-import org.loopring.lightcone.data.eth_jsonrpc.JsonRPCRequest
+import akka.util.{ ByteString, Timeout }
+import org.loopring.lightcone.data.eth_jsonrpc.{ JsonRPCRequest, JsonRPCResponse }
 import org.scalatest.FlatSpec
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-class originalEthGetBalanceSpec extends FlatSpec {
+class ethGetBalanceSpec extends FlatSpec {
 
   info("execute cmd [sbt lib/\"testOnly *ethGetBalanceSpec\"] to test single spec of eth_getBalance")
 
-  "balance" should "be a big number" in {
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
 
-    val config = GethClientConfig("127.0.0.1", 8545, false)
-    implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
-    implicit val executionContext = system.dispatcher
-    
-    val reqData =
-      """
+  val req: JsonRPCRequest = JsonRPCRequest().withId("1").withJson(
+    """
     {
  |      "jsonrpc": "2.0"
  |      , "method": "eth_getBalance"
@@ -48,18 +45,31 @@ class originalEthGetBalanceSpec extends FlatSpec {
  |      , "latest"
  |      ], "id": 1
  |    }
-    """.stripMargin
+    """.stripMargin)
 
-    val req: JsonRPCRequest = JsonRPCRequest().withId("1").withJson(reqData)
+  val request = HttpRequest.apply(
+    method = HttpMethods.POST,
+    uri = "http://127.0.0.1:8545/",
+    entity = HttpEntity(ContentTypes.`application/json`, ByteString(req.json)))
 
-    val request = HttpRequest.apply(
-      method = HttpMethods.POST,
-      uri = "http://127.0.0.1:8545/",
-      entity = HttpEntity(ContentTypes.`application/json`, ByteString(req.json)))
-
+  "origin response" should "be a json stri" in {
     val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
 
     val result = Await.result(responseFuture, 1 seconds)
     info(result.entity.withContentType(ContentTypes.`application/json`).toString)
   }
+
+  "json support response" should "be a entity" in {
+    implicit val timeout = Timeout(5 seconds)
+
+    val respFuture = for {
+      httpResp <- Http().singleRequest(request)
+      jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
+    } yield JsonRPCResponse(id = req.id, json = jsonResp)
+
+    val result = Await.result(respFuture, timeout.duration)
+    info(s"geth http client get resp: id->${result.id}, json->${result.json}")
+  }
+
 }
+
