@@ -19,20 +19,6 @@ package org.loopring.lightcone.data;
 
 option java_multiple_files = true;
 
-message JsonRPCRequest {
-    string id = 1;
-    string json = 2;
-}
-
-message JsonRPCResponse {
-    string id = 1;
-    string json = 2;
-}
-
-message JsonRPCRequestSeq {
-    repeated JsonRPCRequest req = 1;
-}
-
 message Transaction {
     bytes hash = 1;
     bytes nonce = 2;
