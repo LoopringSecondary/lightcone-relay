@@ -109,7 +109,7 @@ object Main {
         // Deploying NodeManager
         system.actorOf(
           Props(new managing.NodeManager),
-          "m_node_manager")
+          "node_manager")
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +

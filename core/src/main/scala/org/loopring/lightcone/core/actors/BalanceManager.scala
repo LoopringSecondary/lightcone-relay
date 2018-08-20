@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object BalanceManager
+  extends base.Deployable[BalanceManagerSettings] {
+  val name = "balance_manager"
+  val isSingleton = false
+
+  def props = Props(classOf[BalanceManager])
+
+  def getCommon(s: BalanceManagerSettings) =
+    base.CommonSettings("", s.roles, s.instances)
+}
+
+class BalanceManager extends Actor {
+  def receive: Receive = {
+    case settings: BalanceManagerSettings =>
+    case _ =>
+  }
 }
