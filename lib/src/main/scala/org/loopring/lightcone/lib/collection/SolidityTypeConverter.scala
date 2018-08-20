@@ -36,8 +36,8 @@ final class SimpleSolidityTypeConverter extends SolidityTypeConverter {
       arr.toSeq.map(subarr =>
         subarr match {
           case s: Array[Object] =>
-            BytesArray().withBytesList(s.toSeq.map(x => x match {
-              case obj: Object => ByteString.copyFrom(x.asInstanceOf[Array[Byte]])
+            BytesArray().withBytesList(s.toSeq.map(obj => obj match {
+              case bytes: Array[Byte] => ByteString.copyFrom(bytes)
               case _ => throw new Exception("to sub array[object] failed")
             }))
           case _ => throw new Exception("sub array type error")
