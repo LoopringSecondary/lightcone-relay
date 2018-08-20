@@ -23,7 +23,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator._
 import scala.concurrent.duration._
 import com.typesafe.config.Config
 import org.loopring.lightcone.core.routing._
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 
 object ClusterManager extends base.NullConfigDeployable {
   val name = "cluster_manager"

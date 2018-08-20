@@ -16,26 +16,24 @@
 
 package org.loopring.lightcone.core.accessor
 
-import akka.actor.ActorSystem
+import akka.actor._
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest }
+import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
-//import akka.util.ByteString
 import com.google.protobuf.ByteString
-import org.loopring.lightcone.data.eth_jsonrpc._
-
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
 
-case class GethClientConfig(host: String, port: Int, ssl: Boolean = false)
+case class GethClientConfig(
+  host: String,
+  port: Int,
+  ssl: Boolean = false)
 
-trait EthClient {
-  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse]
-}
-
-class SimpleGethClientImpl(
-  val config: GethClientConfig,
-  implicit val system: ActorSystem,
+class EthClientImpl(
+  val config: GethClientConfig)(
+  implicit
+  val system: ActorSystem,
   implicit val materializer: ActorMaterializer,
   implicit val executionContex: ExecutionContextExecutor) extends EthClient {
 
@@ -54,7 +52,12 @@ class SimpleGethClientImpl(
   }
 
   private def handleRequest(method: String, params: Seq[String]): Future[JsonRPCResponse] = {
-    val request = JsonRPCRequest().withId(id).withJsonrpc(jsonrpcversion).withMethod(method).withParams(params)
+    val request = JsonRPCRequest()
+      .withId(id)
+      .withJsonrpc(jsonrpcversion)
+      .withMethod(method)
+      .withParams(params)
+
     val jsonReq = JsonFormat.toJsonString(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
     val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
@@ -65,5 +68,4 @@ class SimpleGethClientImpl(
       body = JsonFormat.parser.fromJsonString[JsonRPCResponse](jsonResp)
     } yield body
   }
-
 }

@@ -17,13 +17,13 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.pattern.{ AskTimeoutException, ask }
+import akka.pattern._
 import akka.util.Timeout
-import org.loopring.lightcone.core.actors.base.RoundActor
-import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.proto.common.StartNewRound
-import org.loopring.lightcone.proto.ring.{ GetRingCandidates, NotifyRingSettlementDecisions, RingCandidates }
+import org.loopring.lightcone.core.actors.base._
+import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.common._
+import org.loopring.lightcone.proto.ring._
 
 import scala.concurrent.Future
 
@@ -38,38 +38,28 @@ object RingMiner
     base.CommonSettings(s.address, s.roles, 1)
 }
 
-class RingMiner()(implicit timout: Timeout) extends RoundActor {
+class RingMiner(implicit timout: Timeout)
+  extends RepeatedJobActor {
+
   import context.dispatcher
   var finders: Seq[ActorRef] = Seq.empty
-  val balanceManager = Routers.balanceManager
-  val ethereumAccessor = Routers.ethereumAccessor
+  lazy val balanceManager = Routers.balanceManager
+  lazy val ethereumAccessor = Routers.ethereumAccessor
 
-  def receive: Receive = {
+  override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
       finders = settings.marketIds.map { id => Routers.ringFinder(id) }
       initAndStartNextRound(settings.scheduleDelay)
-
-    case m: StartNewRound => for {
-      lastTime <- Future { System.currentTimeMillis }
-      decisions <- Future sequence finders.map(
-        finder => for {
-          candidatesOpt <- finder ? GetRingCandidates()
-        } yield {
-          candidatesOpt match {
-            case candidates: RingCandidates =>
-              val decisions = decideRingCandidates(candidates)
-              finder ! decisions
-              decisions
-          }
-        })
-
-    } yield {
-      nextRound(lastTime)
-    }
-
   }
 
-  def decideRingCandidates(candidates: RingCandidates): NotifyRingSettlementDecisions = {
+  def handleRepeatedJob() = for {
+    resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
+      .mapTo[Seq[RingCandidates]]
+  } yield {
+    resps.map(_.rings).flatten
+  }
+
+  def decideRingCandidates(ring: Seq[Ring]): NotifyRingSettlementDecisions = {
     NotifyRingSettlementDecisions()
   }
 

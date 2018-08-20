@@ -17,21 +17,17 @@
 package org.loopring.lightcone.lib.collection
 
 import com.google.protobuf.ByteString
-import org.loopring.lightcone.data.solidity.BytesArray
+import org.loopring.lightcone.proto.solidity.BytesArray
 
-trait SolidityTypeConverter {
+trait BytesArraySerializer {
   def objectToBytesArray(src: Any): Seq[BytesArray]
 }
 
-final class SimpleSolidityTypeConverter extends SolidityTypeConverter {
-
-  /**
-   * objectToBytesArray
-   *   hex字符串经过ethereumJ decode得到的是object list, object实际类型为地址(bytes)二维数组
-   * @param src: Any
-   * @return
-   */
+// TODO(dongw): figure out how to refactor this class.
+final class SimpleBytesArraySerializer
+  extends BytesArraySerializer {
   def objectToBytesArray(src: Any): Seq[BytesArray] = src match {
+
     case arr: Array[Object] => {
       arr.toSeq.map(subarr =>
         subarr match {

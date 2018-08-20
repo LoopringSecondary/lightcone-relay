@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.managing
 
 import akka.actor._
 import scala.concurrent.duration._
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 
 class LocalActorsDetector extends Actor {
 

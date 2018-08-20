@@ -16,11 +16,12 @@
 
 package org.loopring.lightcone.core.actors.base
 
-import akka.actor.{ Actor, Cancellable }
+import akka.actor._
 import org.loopring.lightcone.proto.common.StartNewRound
 import scala.concurrent.duration._
+import scala.concurrent.Future
 
-trait RoundActor extends Actor {
+trait RepeatedJobActor extends Actor {
   var cancelOpt: Option[Cancellable] = None
   var scheduleDelay: Long = 0l
   var inited = false
@@ -48,12 +49,14 @@ trait RoundActor extends Actor {
     }
   }
 
-  //  private def startNewRound():Runnable = {
-  //    new Runnable[String] {
-  //      override def run(): Unit = {
-  //        lastTime = System.currentTimeMillis
-  //        self ! StartNewRound()
-  //      }
-  //    }
-  //  }
+  def handleRepeatedJob(): Future[Unit]
+
+  def receive: Receive = {
+    case StartNewRound => for {
+      lastTime <- Future.successful(System.currentTimeMillis)
+      _ <- handleRepeatedJob()
+    } yield {
+      nextRound(lastTime)
+    }
+  }
 }
