@@ -17,8 +17,13 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import akka.pattern.{ AskTimeoutException, ask }
+import akka.util.Timeout
+import org.loopring.lightcone.core.actors.base.RoundActor
+import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.proto.ring.{ GetRingCandidates, NotifyRingSettlementDecisions }
+import org.loopring.lightcone.proto.common.StartNewRound
+import org.loopring.lightcone.proto.ring.{ GetRingCandidates, NotifyRingSettlementDecisions, RingCandidates }
 
 import scala.concurrent.Future
 
@@ -33,18 +38,39 @@ object RingMiner
     base.CommonSettings(s.address, s.roles, 1)
 }
 
-class RingMiner(balanceManager: BalanceManager, accessor: EthereumAccessor) extends Actor {
+class RingMiner()(implicit timout: Timeout) extends RoundActor {
   import context.dispatcher
+  var finders: Seq[ActorRef] = Seq.empty
+  val balanceManager = Routers.balanceManager
+  val ethereumAccessor = Routers.ethereumAccessor
 
   def receive: Receive = {
     case settings: RingMinerSettings =>
+      finders = settings.marketIds.map { id => Routers.ringFinder(id) }
+      initAndStartNextRound(settings.scheduleDelay)
 
-    case ringCandidates: GetRingCandidates => for {
-      _ <- Future {}
+    case m: StartNewRound => for {
+      lastTime <- Future { System.currentTimeMillis }
+      decisions <- Future sequence finders.map(
+        finder => for {
+          candidatesOpt <- finder ? GetRingCandidates()
+        } yield {
+          candidatesOpt match {
+            case candidates: RingCandidates =>
+              val decisions = decideRingCandidates(candidates)
+              finder ! decisions
+              decisions
+          }
+        })
+
     } yield {
-      sender() ! NotifyRingSettlementDecisions()
+      nextRound(lastTime)
     }
 
-    case _ =>
   }
+
+  def decideRingCandidates(candidates: RingCandidates): NotifyRingSettlementDecisions = {
+    NotifyRingSettlementDecisions()
+  }
+
 }

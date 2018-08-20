@@ -40,8 +40,8 @@ message NotifyOrderCancelled {}
 message NotifyOrdersSoftCancelled {}
 
 message DeferOrder {
-    Order order = 1;
-    int64 deferedTime = 2;
+    string orderhash = 1;
+    int64 deferredTime = 2;
 }
 
 message MarkOrdersDeferred {
@@ -49,12 +49,13 @@ message MarkOrdersDeferred {
 }
 
 message OrderStatusChanged {}
+
 message MarkOrdersSettling {
-    repeated Order orders = 1;
+    repeated string orderHashes = 1;
 }
 
 message MarkOrdersBeingMatched {
-    repeated Order orders = 1;
+    repeated string orderHashes = 1;
 }
 
 message UpdateOrdersById {}

@@ -19,13 +19,16 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.{ AskTimeoutException, ask }
 import akka.util.Timeout
+import org.loopring.lightcone.core.actors.base.RoundActor
+import org.loopring.lightcone.core.managing.NodeData
+import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
 import org.loopring.lightcone.proto.ring._
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
 object RingFinder
   extends base.Deployable[RingFinderSettings] {
@@ -38,57 +41,49 @@ object RingFinder
     base.CommonSettings(s.id, s.roles, 1)
 }
 
-class RingFinder(
-  ringMiner: ActorRef,
-  orderManager: ActorRef,
-  orderBookManager: ActorRef)(implicit timeout: Timeout)
-  extends Actor
+class RingFinder(val id: String)(implicit timeout: Timeout)
+  extends RoundActor
   with ActorLogging {
   import context.dispatcher
-  var finderSettings: Option[RingFinderSettings] = None
-
-  private def nextFindRound() = {
-    finderSettings.map(s =>
-      context.system.scheduler.scheduleOnce(
-        s.scheduleDelay seconds,
-        self,
-        GetCrossingOrderSets(tokenA = s.tokenA, tokenB = s.tokenB)))
-  }
+  var settingsOpt: Option[RingFinderSettings] = None
+  val marketConfig: MarketConfig = NodeData.getMarketConfigById(id)
+  lazy val orderBookManager: ActorRef = Routers.orderBookManager(id)
+  lazy val orderManager: ActorRef = Routers.orderManager(id)
 
   def receive: Receive = {
     case settings: RingFinderSettings =>
-      finderSettings = Some(settings)
-      nextFindRound()
+      settingsOpt = Some(settings)
+      initAndStartNextRound(settings.scheduleDelay)
 
-    case getCrossingOrderSets: GetCrossingOrderSets => for {
+    case startNewRound: StartNewRound => for {
+      lastTime <- Future { System.currentTimeMillis }
+      getCrossingOrderSets = GetCrossingOrderSets(tokenA = marketConfig.tokenA, tokenB = marketConfig.tokenB)
       crossingOrderSets <- orderBookManager ? getCrossingOrderSets recover {
         case exception: AskTimeoutException ⇒ exception
       }
     } yield {
       crossingOrderSets match {
         case orders: CrossingOrderSets =>
-          orderManager ! MarkOrdersBeingMatched(orders.sellTokenAOrders ++ orders.sellTokenBOrders)
-          ringMiner ! RingCandidates()
-          orderManager ! MarkOrdersDeferred()
+          //todo:order结构暂未定，先写死orderhash再替换掉
+          orderManager ! MarkOrdersBeingMatched(orderHashes =
+            (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o => "orderhash"))
         case e: AskTimeoutException =>
       }
-      nextFindRound()
+      nextRound(lastTime)
     }
 
-    case ringSettlementDecisions: NotifyRingSettlementDecisions =>
+    case m: NotifyRingSettlementDecisions =>
       orderManager ! MarkOrdersDeferred(deferOrders =
-        ringSettlementDecisions.ringSettlementDecisions
+        m.ringSettlementDecisions
           .filter(r => r.decision == SettlementDecision.UnSettled)
-          .flatMap(r => r.orders.map(o => DeferOrder(order = Some(o), deferedTime = 100))))
+          .flatMap(r => r.orders.map(o => DeferOrder(orderhash = "orderhash", deferredTime = 100))))
 
-      orderManager ! MarkOrdersSettling(orders = ringSettlementDecisions.ringSettlementDecisions
+      orderManager ! MarkOrdersSettling(orderHashes = m.ringSettlementDecisions
         .filter(r => r.decision == SettlementDecision.Settled)
-        .flatMap(r => r.orders))
+        .flatMap(r => r.orders.map(o => "orderhash")))
 
     case getFinderRingCandidates: GetRingCandidates =>
       sender() ! RingCandidates()
-
-    case _ =>
 
   }
 }
