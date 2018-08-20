@@ -17,65 +17,61 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest, HttpResponse }
 import akka.http.scaladsl.Http
-import akka.stream.scaladsl.Flow
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest }
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Keep, Sink, Source, SourceQueueWithComplete }
-import akka.stream.{ OverflowStrategy, QueueOfferResult }
 import akka.util.ByteString
 import org.loopring.lightcone.data.eth_jsonrpc._
 
-import scala.concurrent.{ Future, Promise }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scalapb.json4s.JsonFormat
 
 case class GethClientConfig(host: String, port: Int, ssl: Boolean = false)
 
-class SimpleGethClientImpl(
-  val system: ActorSystem,
-  val materilizer: ActorMaterializer,
-  val eth: GethClientConfig) extends EthClient {
+trait EthClient {
+  def ethGetBalance(address: String, tag: String): Future[BigInt]
+}
 
-  def ethGetBalance(address: String): BigInt = {
-    //    val req = JsonRPCRequest().withId("1").withJson()
-    //    handleRequest(req)
-    return null
+class SimpleGethClientImpl(
+  val config: GethClientConfig,
+  implicit val system: ActorSystem,
+  implicit val materializer: ActorMaterializer,
+  implicit val executionContex: ExecutionContextExecutor) extends EthClient {
+
+  private val id = "1"
+  private val jsonrpcversion = "2.0"
+
+  def ethGetBalance(address: String, tag: String): Future[BigInt] = {
+    val method = "eth_getBalance"
+    val params = Seq[String](address, tag)
+    for {
+      resp <- handleRequest(method, params)
+    } yield hex2int(resp.result)
   }
 
-  //
-  //  def handleRequest(req: JsonRPCRequest): Future[JsonRPCResponse] = {
-  //    val httpReq = HttpRequest(
-  //      method = HttpMethods.POST,
-  //      entity = HttpEntity(ContentTypes.`application/json`, ByteString(req.json)))
-  //    for {
-  //      httpResp <- request(httpReq)
-  //      jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
-  //      _ = println(s"geth http client json response => ${jsonResp}")
-  //    } yield JsonRPCResponse(id = req.id, json = jsonResp)
-  //  }
-  //
-  //  private def request(request: HttpRequest): Future[HttpResponse] = {
-  //    val responsePromise = Promise[HttpResponse]()
-  //    queue.offer(request -> responsePromise).flatMap {
-  //      case QueueOfferResult.Enqueued => responsePromise.future
-  //      case QueueOfferResult.Dropped => Future.failed(new RuntimeException("Queue overflowed. Try again later."))
-  //      case QueueOfferResult.Failure(ex) => Future.failed(ex)
-  //      case QueueOfferResult.QueueClosed => Future.failed(new RuntimeException("Queue was closed (pool shut down) while running the request. Try again later."))
-  //    }
-  //  }
+  private def handleRequest(method: String, params: Seq[String]): Future[JsonRPCResponse] = {
+    val request = JsonRPCRequest().withId(id).withJsonrpc(jsonrpcversion).withMethod(method).withParams(params)
+    val jsonReq = JsonFormat.toJsonString(request)
 
-  //  private val queue: SourceQueueWithComplete[(HttpRequest, Promise[HttpResponse])] =
-  //    Source.queue[(HttpRequest, Promise[HttpResponse])](100, OverflowStrategy.backpressure)
-  //      .via(poolClientFlow)
-  //      .toMat(Sink.foreach({
-  //        case (Success(resp), p) => p.success(resp)
-  //        case (Failure(e), p) => p.failure(e) // 这里可以定制一个json
-  //      }))(Keep.left).run()(materilizer)
-  //
-  //  private val poolClientFlow: Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Http.HostConnectionPool] = {
-  //    eth.ssl match {
-  //      case true => Http()(system).cachedHostConnectionPoolHttps[Promise[HttpResponse]](host = eth.host, port = eth.port)
-  //      case _ => Http()(system).cachedHostConnectionPool[Promise[HttpResponse]](host = eth.host, port = eth.port)
-  //    }
-  //  }
+    for {
+      _ <- Future {}
+      httpRequest = HttpRequest.apply(method = HttpMethods.POST, uri = formatUrl, entity = HttpEntity(ContentTypes.`application/json`, ByteString(jsonReq)))
+      httpResp <- Http().singleRequest(httpRequest)
+      jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
+      body = JsonFormat.parser.fromJsonString[JsonRPCResponse](jsonResp)
+    } yield body
+  }
+
+  private val formatUrl: String = {
+    "http://" + config.host + ":" + config.port.toString + "/"
+  }
+
+  private def hex2int(hex: String): BigInt = {
+    if (hex.startsWith("0x")) {
+      val subhex = hex.substring(2)
+      BigInt(subhex, 16)
+    } else {
+      BigInt(hex, 16)
+    }
+  }
 }

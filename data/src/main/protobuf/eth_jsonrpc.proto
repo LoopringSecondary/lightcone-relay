@@ -22,12 +22,15 @@ option java_multiple_files = true;
 
 message JsonRPCRequest {
     string id = 1;
-    string json = 2;
+    string jsonrpc = 2;
+    string method = 3;
+    repeated string params = 4;
 }
 
 message JsonRPCResponse {
     string id = 1;
-    string json = 2;
+    string jsonrpc = 2;
+    string result = 3;
 }
 
 message JsonRPCRequestSeq {
@@ -47,7 +50,11 @@ enum Tag {
     Hex = 3;
 }
 
-message EthGetBalance {
+message EthGetBalanceReq {
     string address = 1;
-    Tag tag = 2;
+    string tag = 2;
+}
+
+message EthGetBalanceResponse {
+    bytes amount = 1;
 }

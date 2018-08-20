@@ -35,7 +35,10 @@ class ethGetBalanceSpec extends FlatSpec {
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  val req: JsonRPCRequest = JsonRPCRequest().withId("1").withJson(
+  implicit val timeout = Timeout(5 seconds)
+
+  val config = GethClientConfig.apply(host = "127.0.0.1", port = 8545, ssl = false)
+  val req: String =
     """
     {
  |      "jsonrpc": "2.0"
@@ -45,31 +48,38 @@ class ethGetBalanceSpec extends FlatSpec {
  |      , "latest"
  |      ], "id": 1
  |    }
-    """.stripMargin)
+    """.stripMargin
 
   val request = HttpRequest.apply(
     method = HttpMethods.POST,
     uri = "http://127.0.0.1:8545/",
-    entity = HttpEntity(ContentTypes.`application/json`, ByteString(req.json)))
+    entity = HttpEntity(ContentTypes.`application/json`, ByteString(req)))
 
   "origin response" should "be a json stri" in {
     val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
 
-    val result = Await.result(responseFuture, 1 seconds)
+    val result = Await.result(responseFuture, timeout.duration)
     info(result.entity.withContentType(ContentTypes.`application/json`).toString)
   }
 
   "json support response" should "be a entity" in {
-    implicit val timeout = Timeout(5 seconds)
-
     val respFuture = for {
       httpResp <- Http().singleRequest(request)
       jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
-    } yield JsonRPCResponse(id = req.id, json = jsonResp)
+    } yield JsonRPCResponse(result = jsonResp)
 
-    val result = Await.result(respFuture, timeout.duration)
-    info(s"geth http client get resp: id->${result.id}, json->${result.json}")
+    val resp = Await.result(respFuture, timeout.duration)
+    info(s"geth http client get resp: id->${resp.id}, json->${resp.result}")
   }
 
+  "geth client" should "use accessor" in {
+    val geth = new SimpleGethClientImpl(config, system, materializer, executionContext)
+    val respFuture = for {
+      resp <- geth.ethGetBalance("0x4bad3053d574cd54513babe21db3f09bea1d387d", "latest")
+    } yield resp
+
+    val result = Await.result(respFuture, timeout.duration)
+    info(s"geth eth_getBalance amount is ${result.toString()}")
+  }
 }
 
