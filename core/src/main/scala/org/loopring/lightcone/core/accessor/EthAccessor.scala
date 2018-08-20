@@ -20,7 +20,8 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest }
 import akka.stream.ActorMaterializer
-import akka.util.ByteString
+//import akka.util.ByteString
+import com.google.protobuf.ByteString
 import org.loopring.lightcone.data.eth_jsonrpc._
 
 import scala.concurrent.{ ExecutionContextExecutor, Future }
@@ -29,7 +30,7 @@ import scalapb.json4s.JsonFormat
 case class GethClientConfig(host: String, port: Int, ssl: Boolean = false)
 
 trait EthClient {
-  def ethGetBalance(address: String, tag: String): Future[BigInt]
+  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse]
 }
 
 class SimpleGethClientImpl(
@@ -40,38 +41,29 @@ class SimpleGethClientImpl(
 
   private val id = "1"
   private val jsonrpcversion = "2.0"
+  private val post = HttpMethods.POST
+  private val uri = "http://" + config.host + ":" + config.port.toString + "/"
 
-  def ethGetBalance(address: String, tag: String): Future[BigInt] = {
+  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse] = {
     val method = "eth_getBalance"
     val params = Seq[String](address, tag)
     for {
       resp <- handleRequest(method, params)
-    } yield hex2int(resp.result)
+      amount = ByteString.copyFrom(resp.result.getBytes())
+    } yield EthGetBalanceResponse().withAmount(amount)
   }
 
   private def handleRequest(method: String, params: Seq[String]): Future[JsonRPCResponse] = {
     val request = JsonRPCRequest().withId(id).withJsonrpc(jsonrpcversion).withMethod(method).withParams(params)
     val jsonReq = JsonFormat.toJsonString(request)
+    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
+    val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
 
     for {
-      _ <- Future {}
-      httpRequest = HttpRequest.apply(method = HttpMethods.POST, uri = formatUrl, entity = HttpEntity(ContentTypes.`application/json`, ByteString(jsonReq)))
       httpResp <- Http().singleRequest(httpRequest)
       jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
       body = JsonFormat.parser.fromJsonString[JsonRPCResponse](jsonResp)
     } yield body
   }
 
-  private val formatUrl: String = {
-    "http://" + config.host + ":" + config.port.toString + "/"
-  }
-
-  private def hex2int(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
 }
