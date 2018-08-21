@@ -1,8 +1,12 @@
 syntax = "proto3";
 
-package org.loopring.lightcone.proto;
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto;
+
 import "order.proto";
 
+message Ring {}
 message GetRingsReq {}
 message GetRingsResp {}
 
@@ -11,13 +15,16 @@ message GetFinderRingCandidates {}
 message GetTransactionPendingRings {}
 message MatchingSystemReport {}
 
-message GetRingCandidates {}
-message RingCandidates {}
+message GetRingCandidates {
+}
+message RingCandidates {
+    repeated Ring rings = 1;
+}
 
 enum SettlementDecision {
-        Unknown = 0;
-        Settled = 1;
-        UnSettled = 2;
+    Unknown = 0;
+    Settled = 1;
+    UnSettled = 2;
 }
 message RingSettlementDecision {
     string ringhash = 1;
