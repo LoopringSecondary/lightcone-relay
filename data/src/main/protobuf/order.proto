@@ -2,43 +2,215 @@ syntax = "proto3";
 
 package org.loopring.lightcone.proto;
 
-message SubmitOrderReq {}
-message SubmitOrderResp {}
+import public "common.proto";
 
-message GetOrdersReq {}
-message GetOrdersResp {}
+message SubmitOrderReq {
+    RawOrder raw_order = 1;
+}
+message SubmitOrderResp {
+    string order_hash = 1;
+}
 
-message CancelOrdersReq {}
-message CancelOrdersResp {}
+message GetOrderReq {
+    string order_hash = 1;
+}
+message GetOrderResp {
+    Order order = 1;
+}
 
-message GetOrder {}
-message OneOrder {}
+message GetOrdersReq {
+    PaginationQuery page = 1;
+    OrderQuery query = 2;
+}
 
-message GetOrders {}
-message MultiOrders {}
+message OrderQuery {
+    string status = 1;
+    string delegate_address = 2;
+    string owner = 3;
+    string market = 4;
+//    string order_hash = 5;
+    repeated string order_hashes = 6;
+    string side = 7;
+    string order_type = 8;
+}
 
-message GetTopOrders {}
-message TopOrders {}
+message GetOrdersResp {
+    repeated Order order = 1;
+    Pagination pagination = 2;
+}
 
-message FetchTopOrderIds {}
-message TopOrdersIds {}
+message CancelOrdersReq {
+    SoftCancelSign sign = 1;
+    CancelOrderOption cancel_option = 2;
+}
 
-message SaveOrders {}
-message SaveUpdatedOrders {}
-message OrdersSaved {}
+message CancelOrderOption {
+    string order_hash = 1;
+    int64 cut_off_time = 2;
+    string token_s = 3;
+    string token_b = 4;
+    string type = 5;
+}
+// use common empty response replaced
+//message CancelOrdersResp {
+//}
 
-message UpdateOrders {}
-message OrdersUpdated {}
+message GetOrder {
+    string order_hash = 1;
+}
+message OneOrder {
+    Order order = 1;
+}
 
-message SoftCancelOrders {}
-message OrdersSoftCancelled {}
-message NotifyOrderCancelled {}
-message NotifyOrdersSoftCancelled {}
+message GetOrders {
+    PaginationQuery page = 1;
+    OrderQuery query = 2;
+}
+message MultiOrders {
+    repeated Order order = 1;
+    Pagination pagination = 2;
+}
 
-message DeferOrders {}
-message MarkOrdersDeferred {}
-message OrderStatusChanged {}
-message MarkOrdersSettling {}
-message MarkOrdersBeingMatched {}
+message GetTopOrders {
+    OrderQuery query = 1;
+}
+message TopOrders {
+    repeated Order order = 1;
+}
 
-message UpdateOrdersById {}
+message FetchTopOrderIds {
+    OrderQuery query = 1;
+}
+message TopOrdersIds {
+    repeated string order_hashed = 1;
+}
+
+message SaveOrders {
+    repeated RawOrder orders = 1;
+}
+message SaveUpdatedOrders {
+    repeated Order orders = 1;
+}
+message OrdersSaved {
+    repeated Order orders = 1;
+}
+
+message UpdateOrders {
+    repeated Order orders = 1;
+}
+message OrdersUpdated {
+    repeated Order orders = 1;
+}
+
+message SoftCancelOrders {
+    CancelOrderOption cancel_option = 1;
+}
+message OrdersSoftCancelled {
+    repeated string order_hashes = 1;
+}
+//message OrderCancelled {}
+
+message MarkOrdersDeferred {
+    repeated string order_hash = 1;
+}
+message OrderStatusChanged {
+    repeated string order_hash = 1;
+}
+message MarkOrdersSettling {
+    repeated string order_hash = 1;
+}
+message MarkOrdersBeingMatched {
+    repeated string order_hash = 1;
+}
+
+message UpdateOrdersById {
+    repeated string order_hash = 1;
+}
+
+message Order {
+    RawOrder raw_order = 1;
+    int64 updated_block = 2;
+    bytes dealtAmountS = 3;
+    bytes dealtAmountB = 4;
+    bytes splitAmountS = 5;
+    bytes splitAmountB = 6;
+    bytes cancelledAmountS = 7;
+    bytes cancelledAmountB = 8;
+    OrderStatus status = 9;
+    int32 broadcast_time = 10;
+}
+
+enum OrderStatus {
+    // level 1 status
+    UNKNOWN = 0;
+    NEW = 1;
+    INVALID = 2;
+    DUST = 3;
+    FULLY_FILLED = 4;
+    SOFT_CANCELLED = 5;
+    HARD_CANCELLED = 6;
+    EXPIRED = 7;
+
+    // level 2 status
+    OPEN = 8;
+    PENDING = 9;
+
+    // level 3 status
+    MATCHING = 10;
+    SETTLEING = 11;
+    DEFERRED = 12;
+    TINY = 13;
+}
+
+enum OrderType {
+    MARKET = 0;
+    P2P = 1;
+}
+
+enum MarketSide {
+    BUY = 0;
+    SELL = 1;
+}
+
+enum SoftCancelType {
+    BY_ORDER_HASH = 0;
+    BY_OWNER = 1;
+    BY_TIME = 2; // like cutoff
+    BY_MARKET = 3;
+}
+
+message RawOrder {
+    bytes protocol = 1;
+    bytes delegate_address = 2;
+    bytes auth_addr = 3;
+    bytes auth_private_key = 4;
+    bytes wallet_address = 5;
+    bytes token_s = 6;
+    bytes token_b = 7;
+    bytes amount_s = 8;
+    bytes amount_b = 9;
+    int64 valid_since = 10;
+    int64 valid_until = 11;
+    bytes lrc_fee = 12;
+    bool buy_no_more_than_amount_b = 13;
+    double margin_split_percentage = 14;
+    int32 v = 15;
+    bytes r = 16;
+    bytes s = 17;
+    double price = 18;
+    bytes owner = 19;
+    bytes hash = 20;
+    string market = 21;
+    int64 create_time = 22;
+    int64 pow_nonce = 23;
+    MarketSide side = 24;
+    OrderType orderType = 25;
+}
+
+message SoftCancelSign {
+    int64 timestamp = 1;
+    int32 v = 2;
+    string r = 3;
+    string s = 4;
+    string owner = 5;
+}

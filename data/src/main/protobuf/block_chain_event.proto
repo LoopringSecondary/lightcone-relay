@@ -13,7 +13,10 @@ message GetBlock {}
 message GetTransaction {}
 message GetTracing {}
 
-message OrderCancelledByContract {}
+message OrderCancelledByContract {
+    bytes amount = 1;
+    bytes order_hash = 2;
+}
 message RingDetectedInMemPoll {}
 message RingMined {}
 message ChainRolledBack {}

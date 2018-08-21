@@ -23,6 +23,7 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.order.SubmitOrderReq
 
 object OrderWriter
   extends base.Deployable[OrderWriterSettings] {
@@ -38,6 +39,11 @@ object OrderWriter
 class OrderWriter() extends Actor {
   def receive: Receive = {
     case settings: OrderWriterSettings =>
-    case _ =>
+    case req: SubmitOrderReq => {
+      if (req.rawOrder.isEmpty) {
+
+      }
+
+    }
   }
 }

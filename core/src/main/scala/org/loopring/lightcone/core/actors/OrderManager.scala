@@ -17,50 +17,27 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-
-import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.proto.order.{ GetOrder, OneOrder }
-import akka.pattern.{ ask, pipe }
-import akka.util.Timeout
-import org.loopring.lightcone.proto.order.GetOrderResp
-import org.loopring.lightcone.proto.order.GetOrdersResp
+import org.loopring.lightcone.proto.order.GetOrder
+import akka.pattern.ask
 
-import scala.concurrent.Await
-
-object OrderReader
+object OrderManager
   extends base.Deployable[OrderReaderSettings] {
   val name = "order_reader"
   val isSingleton = false
 
-  def props = Props(classOf[OrderReader])
+  def props = Props(classOf[OrderManager])
 
   def getCommon(s: OrderReaderSettings) =
     base.CommonSettings("", s.roles, s.instances)
-
 }
 
-class OrderReader() extends Actor {
-  implicit val timeout = Timeout(2 seconds)
-
+class OrderManager() extends Actor {
   def receive: Receive = {
     case settings: OrderReaderSettings =>
     case req: GetOrder => {
-      val oneOrderResult = Routers.orderManager ? req
-      val st = oneOrderResult.mapTo[OneOrder]
-      val oneOrder = Await.result(st, timeout.duration)
-      mapToResp(oneOrder)
     }
     case _ =>
   }
-
-  def mapToResp(oneOrder: OneOrder) = {
-    GetOrderResp()
-  }
 }
-
