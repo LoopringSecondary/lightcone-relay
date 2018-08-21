@@ -21,7 +21,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.util.{ ByteString, Timeout }
-import org.loopring.lightcone.data.eth_jsonrpc.{ JsonRPCRequest, JsonRPCResponse }
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.scalatest.FlatSpec
 
 import scala.concurrent.{ Await, Future }
