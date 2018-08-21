@@ -1,8 +1,127 @@
+/*
+ * Copyright 2018 Loopring Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
+
+///////////////////////////////////////////
+//
+// ethereum original type
+//
+///////////////////////////////////////////
+
+message Transaction {
+    string hash = 1;
+    string nonce = 2;
+    string blockHash = 3;
+    string blockNumber = 4;
+    string transactionIndex = 5;
+    string from = 6;
+    string to =7;
+    string value = 8;
+    string gasPrice = 9 ;
+    string gas = 10;
+    string input = 11;
+    string r = 12;
+    string s = 13;
+    string v = 14;
+}
+
+message Log {
+    bytes logIndex = 1;
+    bytes blockNumber = 2;
+    bytes blockHash = 3;
+    bytes transactionHash = 4;
+    bytes transactionIndex = 5;
+    bytes address = 6;
+    bytes data = 7;
+    repeated bytes topics = 8;
+    bool removed = 9;
+}
+
+message TransactionReceipt {
+    bytes blockHash = 1;
+    bytes blockNumber = 2;
+    bytes contractAddress = 3;
+    bytes cumulativeGasUsed = 4;
+    bytes from = 5;
+    bytes gasUsed = 6;
+    repeated Log logs = 7;
+    string logsBloom = 8;
+    string root = 9;
+    bytes status = 10;
+    bytes to = 11;
+    bytes transactionHash = 12;
+    bytes transactionIndex = 13;
+}
+
+message Block {
+    bytes number = 1;
+    bytes hash = 2;
+    bytes parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string miner = 9;
+    bytes difficulty = 10;
+    bytes totalDifficulty = 11;
+    string extraData = 12;
+    bytes size = 13;
+    bytes gasLimit = 14;
+    bytes gasUsed = 15;
+    bytes timestamp = 16;
+    repeated string uncles = 17;
+}
+
+message BlockWithTxObject {
+    Block block = 1;
+    repeated Transaction transactions = 2;
+}
+
+message BlockWithTxAndReceipt {
+    Block block = 1;
+    repeated Transaction        transactions = 2;
+    repeated TransactionReceipt receipts = 3;
+}
+
+message BlockWithTxHash {
+    Block block = 1;
+    repeated string transactions = 2;
+}
+
+message CallArgs {
+    string from = 1;
+    string to = 2;
+    bytes gas = 3;
+    bytes gasPrice = 4;
+    bytes value = 5;
+    string data = 6;
+    bytes nonce = 7;
+}
+
+///////////////////////////////////////////
+//
+// ethereum json rpc request & response
+//
+///////////////////////////////////////////
 
 message JsonRPCRequest {
     string id = 1;
@@ -34,11 +153,23 @@ enum Tag {
     Hex = 3;
 }
 
-message EthGetBalanceReq {
+message EthGetBalanceRequest {
     string address = 1;
     string tag = 2;
 }
 
 message EthGetBalanceResponse {
-    bytes amount = 1;
+    string id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+message GetTransactionByHashRequest {
+    string hash = 1;
+}
+
+message GetTransactionByHashResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    Transaction result = 3;
 }

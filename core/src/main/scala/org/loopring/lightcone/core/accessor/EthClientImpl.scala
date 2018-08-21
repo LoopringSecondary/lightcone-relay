@@ -20,7 +20,6 @@ import akka.actor._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
-import com.google.protobuf.ByteString
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
@@ -42,16 +41,27 @@ class EthClientImpl(
   private val post = HttpMethods.POST
   private val uri = "http://" + config.host + ":" + config.port.toString + "/"
 
-  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse] = {
+  def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse] = {
     val method = "eth_getBalance"
-    val params = Seq[String](address, tag)
+    val params = Seq[String](req.address, req.tag)
+
     for {
-      resp <- handleRequest(method, params)
-      amount = ByteString.copyFrom(resp.result.getBytes())
-    } yield EthGetBalanceResponse().withAmount(amount)
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[EthGetBalanceResponse](json)
+    } yield resp
   }
 
-  private def handleRequest(method: String, params: Seq[String]): Future[JsonRPCResponse] = {
+  def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse] = {
+    val method = "eth_getTransactionByHash"
+    val params = Seq[String](req.hash)
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetTransactionByHashResponse](json)
+    } yield resp
+  }
+
+  private def handleRequest(method: String, params: Seq[String]): Future[String] = {
     val request = JsonRPCRequest()
       .withId(id)
       .withJsonrpc(jsonrpcversion)
@@ -65,7 +75,6 @@ class EthClientImpl(
     for {
       httpResp <- Http().singleRequest(httpRequest)
       jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
-      body = JsonFormat.parser.fromJsonString[JsonRPCResponse](jsonResp)
-    } yield body
+    } yield jsonResp
   }
 }

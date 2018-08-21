@@ -17,9 +17,23 @@
 package org.loopring.lightcone.core.accessor
 
 import org.loopring.lightcone.proto.eth_jsonrpc._
-import scala.concurrent._
+import org.scalatest.FlatSpec
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 
-trait EthClient {
-  def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse]
-  def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse]
+class EthGetBalanceSpec extends FlatSpec {
+
+  info("execute cmd [sbt core/'testOnly *EthGetBalanceSpec'] to test single spec of eth_getBalance")
+
+  "eth balance" should "use accessor" in {
+    val req = EthGetBalanceRequest()
+      .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
+      .withTag("latest")
+    val respFuture = for {
+      resp <- accessor.geth.ethGetBalance(req)
+    } yield resp
+
+    val result = Await.result(respFuture, accessor.timeout.duration)
+    info(s"geth eth_getBalance amount is ${result.toString()}")
+  }
 }

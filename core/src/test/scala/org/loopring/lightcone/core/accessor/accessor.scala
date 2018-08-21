@@ -16,10 +16,17 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import scala.concurrent._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import scala.concurrent.duration._
 
-trait EthClient {
-  def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse]
-  def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse]
+package object accessor {
+  implicit val system = ActorSystem()
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
+
+  val config = GethClientConfig.apply(host = "127.0.0.1", port = 8545, ssl = false)
+  val geth = new EthClientImpl(config)(system, materializer, executionContext)
+  val timeout = Timeout(5 seconds)
 }
