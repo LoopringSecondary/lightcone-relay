@@ -73,7 +73,6 @@ message MultiOrders {
     Pagination pagination = 2;
 }
 
-<<<<<<< HEAD:data/src/main/protobuf/order.proto
 message GetTopOrders {
     OrderQuery query = 1;
 }
