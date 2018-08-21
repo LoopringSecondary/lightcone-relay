@@ -19,8 +19,10 @@ package org.loopring.lightcone.core
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import java.net.InetAddress
+
 import akka.actor._
 import akka.cluster._
+import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
 
 object Main {
@@ -105,6 +107,8 @@ object Main {
 
         implicit val system = ActorSystem("Lightcone", config)
         implicit val cluster = Cluster(system)
+        implicit val materializer = ActorMaterializer()
+        implicit val executionContext = system.dispatcher
 
         // Deploying NodeManager
         system.actorOf(

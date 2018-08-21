@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import scala.concurrent.duration._
-import com.typesafe.config.Config
 import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+object OrderManager
+  extends base.Deployable[OrderManagerSettings] {
+  val name = "order_manager"
+  val isSingleton = false
 
-  def getMarketConfigById(id: String): MarketConfig = {
-    dynamicSettings.marketsSettings(id)
+  def props = Props(classOf[OrderManager])
+
+  def getCommon(s: OrderManagerSettings) =
+    base.CommonSettings("", s.roles, 1)
+}
+
+class OrderManager() extends Actor {
+  def receive: Receive = {
+    case settings: OrderManagerSettings =>
+    case _ =>
   }
 }
