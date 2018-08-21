@@ -73,7 +73,7 @@ class ethGetBalanceSpec extends FlatSpec {
   }
 
   "geth client" should "use accessor" in {
-    val geth = new SimpleGethClientImpl(config, system, materializer, executionContext)
+    val geth = new EthClientImpl(config)
     val respFuture = for {
       resp <- geth.ethGetBalance("0x4bad3053d574cd54513babe21db3f09bea1d387d", "latest")
     } yield resp
