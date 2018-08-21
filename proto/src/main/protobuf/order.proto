@@ -113,17 +113,26 @@ message OrdersSoftCancelled {
 //message OrderCancelled {}
 
 message OrderStatusChanged {
-    repeated string order_hash = 1;
+    repeated string order_hashes = 1;
 }
 message MarkOrdersSettling {
-    repeated string order_hash = 1;
+    repeated string order_hashes = 1;
 }
 message MarkOrdersBeingMatched {
-    repeated string order_hash = 1;
+    repeated string order_hashes = 1;
+}
+
+message DeferOrder {
+    string orderhash = 1;
+    int64 deferredTime = 2;
+}
+
+message MarkOrdersDeferred {
+    repeated DeferOrder defer_orders = 1;
 }
 
 message UpdateOrdersById {
-    repeated string order_hash = 1;
+    repeated string order_hashes = 1;
 }
 
 message Order {

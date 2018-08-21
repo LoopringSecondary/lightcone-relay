@@ -17,11 +17,9 @@ message Pagination {
     int32 total = 3;
 }
 
-message CommonResp {
-    bool success = 1;
-    string error_code = 2;
-    string msg = 3;
-    google.protobuf.Any data = 4;
+message ErrorResp {
+    string error_code = 1;
+    string msg = 2;
 }
 
 message PageResult {
@@ -29,5 +27,5 @@ message PageResult {
     google.protobuf.Any data = 2;
 }
 
-message EmptyResponse {
+message StartNewRound {
 }
