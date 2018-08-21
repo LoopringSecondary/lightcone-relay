@@ -34,7 +34,7 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.StatusCodes
 import org.loopring.lightcone.core.routing._
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 import com.google.protobuf.any.Any
 
 class NodeHttpServer(nodeManager: ActorRef)(implicit val cluster: Cluster)

@@ -6,53 +6,58 @@ sbt compile
 ```
 
 ### Run
-Here is how you can run two nodes to form a cluster (assuming your IP is '192.168.1.152'):
+Here is how you can run two nodes to form a cluster:
 
 ```
 sbt "core/run \
 -p=19091 \
 -m=8081 \
--s 192.168.1.152:19091,192.168.1.152:19092 \
--r all"
+-s localhost:19091,localhost:19092 \
+-r foo"
 ```
 
 ```
 sbt "core/run \
 -p=19092 \
 -m=8082 \
--s 192.168.1.152:19091,192.168.1.152:19092 \
--r all"
+-s localhost:19091,localhost:19092 \
+-r bar"
 ```
 
 Note: You must start the first node in the cluster first, otherwise singleton instances will not be deployed correctly.
 
 You can see all top-level actors deployed on each of these nodes by visiting:
 
-- [http://192.168.1.152:8081/stats](http://192.168.1.152:8081/stats)
-- [http://192.168.1.152:8082/stats](http://192.168.1.152:8082/stats)
+- [http://localhost:8081/stats](http://localhost:8081/stats)
+- [http://localhost:8082/stats](http://localhost:8082/stats)
 
 ### Deploy actors dynamically
 
-post the following as JSON to `http://192.168.1.152:8081/settings` to triger actor (re)depolyments.
+post the following as JSON to `http://localhost:8081/settings` to triger actor (re)depolyments.
 
 ```
 {
-    "label": "simple",
-    "marketConfigs": {},
-    "actorDeployments": [
-        {
-            "actorName": "balance_cacher",
-            "roles": ["all"],
-            "numInstancesPerNode":10,
-            "marketId": ""
-        },
-         {
-            "actorName": "cache_obsoleter",
-            "roles": ["all"],
-            "numInstancesPerNode": 0,
-            "marketId": ""
-        }
-    ]
+    "balanceCacherSettings":
+    {
+        "roles": [],
+        "instances": 2
+    },
+    "balanceManagerSettings":
+    {
+        "roles": ["foo"],
+        "instances": 2
+    },
+    "orderAccessorSettingsSeq": [
+    {
+        "id": "abc",
+        "roles": ["bar"],
+        "instances": 2
+    },
+    {
+        "id": "xyz",
+        "roles": ["foo", "bar"],
+        "instances": 2
+    }]
 }
 
 ```
@@ -69,11 +74,9 @@ curl \
 
 Tp see the  global dynamic settings, visit:
 
-- [http://192.168.1.152:8081/settings](http://192.168.1.152:8081/settings)
-- [http://192.168.1.152:8082/settings](http://192.168.1.152:8082/settings)
+- [http://localhost:8081/settings](http://localhost:8081/settings)
+- [http://localhost:8082/settings](http://localhost:8082/settings)
 
 
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
-> Note that all `/user/r_*` actors and `/user/m_*` actors are deployed automatically and cannot be removed; and only `/user/s_*` actors can be dynamically deployed.
->>>>>>> c4219645b8123b0e90ca2452f44d15c01391d104
