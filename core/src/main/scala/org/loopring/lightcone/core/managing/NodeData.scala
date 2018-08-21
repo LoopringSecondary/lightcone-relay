@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.managing
 import akka.actor._
 import scala.concurrent.duration._
 import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.core.routing._
 
 object NodeData {

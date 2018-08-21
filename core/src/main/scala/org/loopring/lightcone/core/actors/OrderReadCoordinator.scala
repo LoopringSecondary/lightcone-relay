@@ -22,7 +22,7 @@ import akka.routing._
 import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 
 object OrderReadCoordinator
   extends base.Deployable[OrderReadCoordinatorSettings] {

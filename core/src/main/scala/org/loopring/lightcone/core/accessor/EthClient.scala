@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors;
+package org.loopring.lightcone.core.accessor
 
-import akka.actor.AbstractActor;
-import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import scala.concurrent._
 
-import java.util.Optional;
-
-public class ExternalWebServer extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-
-    public static Props props(Optional<String> settingsId) {
-        return Props.create(ExternalWebServer.class);
-    }
-
-    @Override
-    public Receive createReceive() {
-        return receiveBuilder()
-                .build();
-    }
+trait EthClient {
+  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse]
 }

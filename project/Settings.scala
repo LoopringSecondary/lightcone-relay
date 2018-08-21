@@ -1,9 +1,10 @@
 import sbt._
-import Keys._
+import sbt.Keys._
+import de.heikoseeberger.sbtheader.FileType
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
-    name := "lightcone",
     organization := Globals.organization,
     version := Globals.version,
     scalaVersion := Globals.scalaVersion,
