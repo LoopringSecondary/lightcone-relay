@@ -27,6 +27,7 @@ import akka.pattern.ask
 
 import scala.concurrent.duration._
 import akka.util.Timeout
+import org.loopring.lightcone.data.deployment.BalanceManagerSettings
 import org.loopring.lightcone.proto.Balance
 import org.loopring.lightcone.proto.balance.{ GetAddressBalanceInfoReq, GetAddressBalanceInfoRes }
 
