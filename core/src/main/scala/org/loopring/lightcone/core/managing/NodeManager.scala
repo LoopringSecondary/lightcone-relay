@@ -37,7 +37,7 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.core.actors._
 import akka.cluster.pubsub._
 import akka.cluster.pubsub.DistributedPubSubMediator._
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
 import com.google.protobuf.any.Any

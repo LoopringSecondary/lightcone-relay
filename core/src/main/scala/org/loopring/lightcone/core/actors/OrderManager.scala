@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 
 object OrderManager
   extends base.Deployable[OrderManagerSettings] {
@@ -27,7 +27,7 @@ object OrderManager
   def props = Props(classOf[OrderManager])
 
   def getCommon(s: OrderManagerSettings) =
-    base.CommonSettings("", s.roles, 1)
+    base.CommonSettings("", s.roles, s.instances)
 }
 
 class OrderManager() extends Actor {

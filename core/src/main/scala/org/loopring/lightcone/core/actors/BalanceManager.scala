@@ -22,11 +22,11 @@ import akka.routing._
 import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
+import org.loopring.lightcone.proto.deployment._
 import akka.pattern.ask
 
 import scala.concurrent.duration._
 import akka.util.Timeout
-import org.loopring.lightcone.data.deployment._
 import org.loopring.lightcone.proto.Balance
 import org.loopring.lightcone.proto.balance.{ GetAddressBalanceInfoReq, GetAddressBalanceInfoRes }
 

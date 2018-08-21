@@ -22,7 +22,7 @@ import akka.cluster.routing._
 import akka.routing._
 import akka.cluster.singleton._
 import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
+import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.core.actors._
 
 object Routers {
