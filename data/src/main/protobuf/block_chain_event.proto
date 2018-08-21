@@ -1,24 +1,82 @@
 syntax = "proto3";
 
-package org.loopring.lightcone.proto;
+package org.loopring.lightcone.data;
 
-message SimulateTransaction {}
+option java_multiple_files = true;
 
-message BroadcastTransaction {}
+//message SimulateTransaction {}
+//message BroadcastTransaction {}
+//message GetOrderFillAmountAndCancelStatus {}
+//message OrderFillAmountAndCancelStatus {}
+//message GetBlock {}
+//message GetTransaction {}
+//message GetTracing {}
+//message OrderCancelledByContract {}
+//message RingDetectedInMemPoll {}
+//message RingMined {}
+//message ChainRolledBack {}
+//message HeartBeat {}
 
-message GetOrderFillAmountAndCancelStatus {}
-message OrderFillAmountAndCancelStatus {}
+message AddressBalanceChanged {
+    bytes token = 1;
+    bytes owner = 2;
+    bytes value = 3;
+    bool income = 4;
+}
 
-message GetBlock {}
-message GetTransaction {}
-message GetTracing {}
+// 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
+message RingDetectedInMemPoll {
+    bytes txhash = 1;
+    bytes ringhash = 2;
+    repeated bytes orderhash = 3;
+}
 
-message OrderCancelledByContract {}
-message RingDetectedInMemPoll {}
-message RingMined {}
-message ChainRolledBack {}
-message HeartBeat {}
+message OrderFilled {
+    bytes ringIndex = 1;
+    bytes ringhash = 2;
+    bytes preOrderhash = 3;
+    bytes orderhash = 4;
+    bytes nextOrderhash = 5;
+    bytes owner = 6;
+    bytes tokenS = 7;
+    bytes tokenB = 8;
+    bytes amountS = 9;
+    bytes amountB = 10;
+    bytes lrcReward = 11;
+    bytes lrcFee = 12;
+    bytes splitS = 13;
+    bytes splitB = 14;
+    int32 fillIndex = 15;
+}
 
+message RingMined {
+    bytes txhash = 1;
+    repeated OrderFilled fills = 2;
+}
 
+message OrderCancelled {
+    bytes orderhash = 1;
+    bytes amount = 2;
+}
 
+message Cutoff {
+    bytes owner = 1;
+    int32 cutoff = 2;
+}
 
+message CutoffPair {
+    bytes owner = 1;
+    string market = 2;
+    int32 cutoff = 3;
+}
+
+message ChainRolledBack {
+    bytes detectedBlockNumber = 1;
+    bytes delectedBlockhash = 2;
+    bytes forkBlockNumber = 3;
+    bytes forkBlockhash = 4;
+}
+
+message HeartBeat {
+    bytes bloockNumber = 1;
+}

@@ -30,6 +30,7 @@ object Routers {
   def clusterManager = routers(ClusterManager.name)("")
 
   // // Router for service actors
+  def ethereumAccessor = routers(EthereumAccessor.name)("")
   def cacheObsoleter = routers(CacheObsoleter.name)("")
   def blockchainEventExtractor = routers(BlockchainEventExtractor.name)("")
 
@@ -49,6 +50,7 @@ object Routers {
 
   def ringFinder(id: String) = routers(RingFinder.name)(id)
   def orderBookManager(id: String) = routers(OrderBookManager.name)(id)
+  def orderManager(id: String) = routers(OrderManager.name)(id)
   def orderBookReader(id: String) = routers(OrderBookReader.name)(id)
   def ringMiner(address: String) = routers(RingMiner.name)(address)
 

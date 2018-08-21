@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.lib.collection
 
-import akka.actor._
-import scala.concurrent.duration._
-import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.core.routing._
+trait HexConverter {
+  def hex2Bigint(hex: String): BigInt
+}
 
-object NodeData {
-  var config: Config = null
-  var dynamicSettings: DynamicSettings = DynamicSettings()
+final class SimpleHexConverter extends HexConverter {
 
-  def getMarketConfigById(id: String): MarketConfig = {
-    dynamicSettings.marketsSettings(id)
+  def hex2Bigint(hex: String): BigInt = {
+    if (hex.startsWith("0x")) {
+      val subhex = hex.substring(2)
+      BigInt(subhex, 16)
+    } else {
+      BigInt(hex, 16)
+    }
   }
 }

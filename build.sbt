@@ -14,13 +14,13 @@ lazy val data = (project in file("data"))
         flatPackage = false,
         javaConversions = true) -> (sourceManaged in Compile).value))
 
-// lazy val lib = (project in file("lib"))
-//   .dependsOn(data)
-//   .enablePlugins(AutomateHeaderPlugin)
-//   .settings(
-//     basicSettings,
-//     libraryDependencies ++= commonDependency,
-//     libraryDependencies ++= ethereumDependency)
+ lazy val lib = (project in file("lib"))
+   .dependsOn(data)
+   .enablePlugins(AutomateHeaderPlugin)
+   .settings(
+     basicSettings,
+     libraryDependencies ++= commonDependency,
+     libraryDependencies ++= ethereumDependency)
 
 lazy val core = (project in file("core"))
   .dependsOn(data)
