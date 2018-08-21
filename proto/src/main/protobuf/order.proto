@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-package org.loopring.lightcone.proto;
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto;
 
 import public "common.proto";
 
@@ -71,6 +73,7 @@ message MultiOrders {
     Pagination pagination = 2;
 }
 
+<<<<<<< HEAD:data/src/main/protobuf/order.proto
 message GetTopOrders {
     OrderQuery query = 1;
 }
@@ -110,9 +113,6 @@ message OrdersSoftCancelled {
 }
 //message OrderCancelled {}
 
-message MarkOrdersDeferred {
-    repeated string order_hash = 1;
-}
 message OrderStatusChanged {
     repeated string order_hash = 1;
 }

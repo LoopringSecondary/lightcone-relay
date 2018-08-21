@@ -1,7 +1,8 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "org.loopring.lightcone.data";
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto;
 
 import "google/protobuf/any.proto";
 
@@ -106,14 +107,27 @@ message OrderWriterSettings {
     int32 instances = 2;
 }
 
+message OrderManagerSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message MarketConfig {
+    string tokenA = 1;
+    string tokenB = 2;
+}
+
 message RingFinderSettings {
     string id = 1;
     repeated string roles = 2;
+    int64 scheduleDelay = 3;
 }
 
 message RingMinerSettings {
     string address = 1;
     repeated string roles = 2;
+    repeated string marketIds = 3;
+    int64 scheduleDelay = 4;
 }
 
 message DynamicSettings {
@@ -136,6 +150,7 @@ message DynamicSettings {
     repeated OrderBookReaderSettings order_book_reader_settings_seq = 103;
     repeated RingFinderSettings ring_finder_settings_seq = 104;
     repeated RingMinerSettings ring_miner_settings_seq = 105;
+    map<string, MarketConfig> markets_settings = 106;
 }
 
 

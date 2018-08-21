@@ -17,27 +17,22 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.data.deployment._
-import org.loopring.lightcone.proto.order.GetOrder
-import akka.pattern.ask
+import org.loopring.lightcone.proto.deployment._
 
 object OrderManager
-  extends base.Deployable[OrderReaderSettings] {
-  val name = "order_reader"
+  extends base.Deployable[OrderManagerSettings] {
+  val name = "order_manager"
   val isSingleton = false
 
   def props = Props(classOf[OrderManager])
 
-  def getCommon(s: OrderReaderSettings) =
+  def getCommon(s: OrderManagerSettings) =
     base.CommonSettings("", s.roles, s.instances)
 }
 
 class OrderManager() extends Actor {
   def receive: Receive = {
-    case settings: OrderReaderSettings =>
-    case req: GetOrder => {
-    }
+    case settings: OrderManagerSettings =>
     case _ =>
   }
 }

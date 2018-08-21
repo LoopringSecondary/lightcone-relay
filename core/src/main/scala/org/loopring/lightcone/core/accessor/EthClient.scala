@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors.base
+package org.loopring.lightcone.core.accessor
 
-import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
-import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import scala.concurrent._
 
-case class NullConfig()
-
-abstract class NullConfigDeployable extends Deployable[NullConfig] {
-  def getCommon(s: NullConfig): CommonSettings = getCommon()
-  def getCommon() = CommonSettings("", Seq.empty, 1)
-
-  def deploy()(implicit cluster: Cluster): Map[String, ActorRef] =
-    deploy(Seq(NullConfig()))
+trait EthClient {
+  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse]
 }
-

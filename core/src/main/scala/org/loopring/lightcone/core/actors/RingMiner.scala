@@ -17,27 +17,50 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
-import org.loopring.lightcone.data.deployment._
+import akka.pattern._
+import akka.util.Timeout
+import org.loopring.lightcone.core.actors.base._
+import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.common._
+import org.loopring.lightcone.proto.ring._
+
+import scala.concurrent.Future
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {
   val name = "ring_miner"
   val isSingleton = true
 
-  def props = Props(classOf[RingMiner])
+  def props = Props(classOf[RingMiner]).withDispatcher("ring-dispatcher")
 
   def getCommon(s: RingMinerSettings) =
     base.CommonSettings(s.address, s.roles, 1)
 }
 
-class RingMiner() extends Actor {
-  def receive: Receive = {
+class RingMiner(implicit timout: Timeout)
+  extends RepeatedJobActor {
+
+  import context.dispatcher
+  var finders: Seq[ActorRef] = Seq.empty
+  lazy val balanceManager = Routers.balanceManager
+  lazy val ethereumAccessor = Routers.ethereumAccessor
+
+  override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
-    case _ =>
+      finders = settings.marketIds.map { id => Routers.ringFinder(id) }
+      initAndStartNextRound(settings.scheduleDelay)
   }
+
+  def handleRepeatedJob() = for {
+    resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
+      .mapTo[Seq[RingCandidates]]
+  } yield {
+    resps.map(_.rings).flatten
+  }
+
+  def decideRingCandidates(ring: Seq[Ring]): NotifyRingSettlementDecisions = {
+    NotifyRingSettlementDecisions()
+  }
+
 }

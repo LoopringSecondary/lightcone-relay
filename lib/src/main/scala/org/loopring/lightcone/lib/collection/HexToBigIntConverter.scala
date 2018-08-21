@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors;
+package org.loopring.lightcone.lib.collection
 
-import akka.actor.AbstractActor;
-import akka.actor.Props;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+trait HexToBigIntConverter {
+  def hex2Bigint(hex: String): BigInt
+}
 
-import java.util.Optional;
-
-public class ExternalWebServer extends AbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-
-    public static Props props(Optional<String> settingsId) {
-        return Props.create(ExternalWebServer.class);
+final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
+  def hex2Bigint(hex: String): BigInt = {
+    if (hex.startsWith("0x")) {
+      val subhex = hex.substring(2)
+      BigInt(subhex, 16)
+    } else {
+      BigInt(hex, 16)
     }
-
-    @Override
-    public Receive createReceive() {
-        return receiveBuilder()
-                .build();
-    }
+  }
 }

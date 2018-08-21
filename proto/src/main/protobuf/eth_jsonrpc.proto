@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto;
+
+message JsonRPCRequest {
+    string id = 1;
+    string jsonrpc = 2;
+    string method = 3;
+    repeated string params = 4;
+}
+
+message JsonRPCResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+message JsonRPCRequestSeq {
+    repeated JsonRPCRequest req = 1;
+}
+
+///////////////////////////////////////////
+//
+// ethereum json rpc params
+//
+///////////////////////////////////////////
+
+enum Tag {
+    Latest = 0;
+    Pending = 1;
+    Earliest = 2;
+    Hex = 3;
+}
+
+message EthGetBalanceReq {
+    string address = 1;
+    string tag = 2;
+}
+
+message EthGetBalanceResponse {
+    bytes amount = 1;
+}

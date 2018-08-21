@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto;
+
+import "order.proto";
+
+message GetOrderBookReq {}
+message GetOrderBookResp {}
+
+message OrderBook {}
+
+message GetCrossingOrderSets {
+    string tokenA = 1;
+    string tokenB = 2;
+
+}
+message CrossingOrderSets {
+    repeated Order sellTokenAOrders = 1;
+    repeated Order sellTokenBOrders = 2;
+}
+
+
