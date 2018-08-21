@@ -55,8 +55,7 @@ class OrderReader() extends Actor {
     }
     case req: GetOrdersReq => {
       val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
-      val orders = oneOrderResult.mapTo[MultiOrders]
-      orders onComplete {
+      oneOrderResult.mapTo[MultiOrders] onComplete {
         case Success(o) => wrapToResp(o)
         case Failure(_) => ErrorResp()
       }
