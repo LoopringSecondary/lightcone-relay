@@ -28,7 +28,9 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 import org.loopring.lightcone.data.deployment._
 import org.loopring.lightcone.proto.Balance
-import org.loopring.lightcone.proto.balance.{GetAddressBalanceInfoReq, GetAddressBalanceInfoRes}
+import org.loopring.lightcone.proto.balance.{ GetAddressBalanceInfoReq, GetAddressBalanceInfoRes }
+
+import scala.concurrent.Future
 
 object BalanceManager
   extends base.Deployable[BalanceManagerSettings] {
@@ -36,19 +38,22 @@ object BalanceManager
   val isSingleton = false
 
   def props = Props(classOf[BalanceManager])
-
   def getCommon(s: BalanceManagerSettings) =
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class BalanceManager(balanceCacher: ActorRef, ethereumAccessor: ActorRef) extends Actor {
+class BalanceManager()(implicit timeout: Timeout) extends Actor {
+  import context.dispatcher
+
+  lazy val balanceCacher = Routers.balanceCacher
+
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
 
     case getAddressBalanceInfo: GetAddressBalanceInfoReq => for {
-      balanceInfo <- balanceCacher.ask(getAddressBalanceInfo)(Timeout(5 seconds))
-      _ <-  balanceInfo match {
-        case res:GetAddressBalanceInfoRes =>
+      balanceInfo <- balanceCacher ? getAddressBalanceInfo
+      _ <- balanceInfo match {
+        case res: GetAddressBalanceInfoRes => Future {}
       }
     } yield {
       sender() ! GetAddressBalanceInfoRes()
