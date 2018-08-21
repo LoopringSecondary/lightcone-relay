@@ -1,13 +1,21 @@
 syntax = "proto3";
 
 package org.loopring.lightcone.proto;
+import "order.proto";
 
 message GetOrderBookReq {}
 message GetOrderBookResp {}
 
 message OrderBook {}
 
-message GetCrossingOrderSets {}
-message CrossingOrderSets {}
+message GetCrossingOrderSets {
+    string tokenA = 1;
+    string tokenB = 2;
+
+}
+message CrossingOrderSets {
+    repeated Order sellTokenAOrders = 1;
+    repeated Order sellTokenBOrders = 2;
+}
 
 
