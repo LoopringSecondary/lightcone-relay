@@ -71,43 +71,55 @@ message TransactionReceipt {
     string status = 13;
 }
 
-//
-//message Block {
-//    bytes number = 1;
-//    bytes hash = 2;
-//    bytes parentHash = 3;
-//    string nonce = 4;
-//    string sha3Uncles = 5;
-//    string logsBloom = 6;
-//    string transactionsRoot = 7;
-//    string stateRoot = 8;
-//    string miner = 9;
-//    bytes difficulty = 10;
-//    bytes totalDifficulty = 11;
-//    string extraData = 12;
-//    bytes size = 13;
-//    bytes gasLimit = 14;
-//    bytes gasUsed = 15;
-//    bytes timestamp = 16;
-//    repeated string uncles = 17;
-//}
-//
-//message BlockWithTxObject {
-//    Block block = 1;
-//    repeated Transaction transactions = 2;
-//}
-//
+message BlockWithTxHash {
+    string number = 1;
+    string hash = 2;
+    string parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    string miner = 10;
+    string difficulty = 11;
+    string totalDifficulty = 12;
+    string extraData = 13;
+    string size = 14;
+    string gasLimit = 15;
+    string gasUsed = 16;
+    string timestamp = 17;
+    repeated string transactions = 18;
+    repeated string uncles = 19;
+}
+
+message BlockWithTxObject {
+    string number = 1;
+    string hash = 2;
+    string parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    string miner = 10;
+    string difficulty = 11;
+    string totalDifficulty = 12;
+    string extraData = 13;
+    string size = 14;
+    string gasLimit = 15;
+    string gasUsed = 16;
+    string timestamp = 17;
+    repeated Transaction transactions = 18;
+    repeated string uncles = 19;
+}
+
 //message BlockWithTxAndReceipt {
 //    Block block = 1;
 //    repeated Transaction        transactions = 2;
 //    repeated TransactionReceipt receipts = 3;
 //}
-//
-//message BlockWithTxHash {
-//    Block block = 1;
-//    repeated string transactions = 2;
-//}
-//
 //message CallArgs {
 //    string from = 1;
 //    string to = 2;
@@ -176,4 +188,42 @@ message GetTransactionReceiptResponse {
     string id = 1;
     string jsonrpc = 2;
     TransactionReceipt result = 3;
+}
+
+// eth_getBlockByNumber
+message GetBlockWithTxHashByNumberRequest {
+    string blockNumber = 1;
+}
+message GetBlockWithTxHashByNumberResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    BlockWithTxHash result = 3;
+}
+
+message GetBlockWithTxObjectByNumberRequest {
+    string blockNumber = 1;
+}
+message GetBlockWithTxObjectByNumberResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    BlockWithTxObject result = 3;
+}
+
+// eth_getBlockByHash
+message GetBlockWithTxHashByHashRequest {
+    string blockHash = 1;
+}
+message GetBlockWithTxHashByHashResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    BlockWithTxHash result = 3;
+}
+
+message GetBlockWithTxObjectByHashRequest {
+    string blockHash = 1;
+}
+message GetBlockWithTxObjectByHashResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    BlockWithTxObject result = 3;
 }

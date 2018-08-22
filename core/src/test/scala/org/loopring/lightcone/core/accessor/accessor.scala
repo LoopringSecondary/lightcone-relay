@@ -33,4 +33,6 @@ package object accessor {
   val txconverter = new TransactionConverter()
   val logConverter = new ReceiptLogConverter()
   val receiptconverter = new TransactionReceiptConverter()(logConverter)
+  val blockWithTxHashConverter = new BlockWithTxHashConverter()
+  val blockWithTxObjectConverter = new BlockWithTxObjectConverter()(txconverter)
 }

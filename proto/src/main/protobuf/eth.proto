@@ -86,3 +86,47 @@ message TransactionReceipt {
     Hash transactionHash = 12;
     int32 transactionIndex = 13;
 }
+
+message BlockWithTxHash {
+    Big number = 1;
+    Hash hash = 2;
+    Hash parentHash = 3;
+    Big nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    Address miner = 10;
+    Big difficulty = 11;
+    Big totalDifficulty = 12;
+    string extraData = 13;
+    Big size = 14;
+    Big gasLimit = 15;
+    Big gasUsed = 16;
+    Big timestamp = 17;
+    repeated Hash transactions = 18;
+    repeated Hash uncles = 19;
+}
+
+message BlockWithTxObject {
+    Big number = 1;
+    Hash hash = 2;
+    Hash parentHash = 3;
+    Big nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    Address miner = 10;
+    Big difficulty = 11;
+    Big totalDifficulty = 12;
+    string extraData = 13;
+    Big size = 14;
+    Big gasLimit = 15;
+    Big gasUsed = 16;
+    Big timestamp = 17;
+    repeated Transaction transactions = 18;
+    repeated Hash uncles = 19;
+}

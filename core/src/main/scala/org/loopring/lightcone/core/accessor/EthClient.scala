@@ -23,4 +23,8 @@ trait EthClient {
   def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse]
   def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse]
   def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse]
+  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberRequest): Future[GetBlockWithTxHashByNumberResponse]
+  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse]
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse]
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse]
 }

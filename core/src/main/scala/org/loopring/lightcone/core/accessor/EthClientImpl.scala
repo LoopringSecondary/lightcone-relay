@@ -71,6 +71,29 @@ class EthClientImpl(
     } yield resp
   }
 
+  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberRequest): Future[GetBlockWithTxHashByNumberResponse] = {
+    val method = "eth_getBlockByNumber"
+    val params = Seq[String](req.blockNumber, "false")
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByNumberResponse](json)
+    } yield resp
+  }
+
+  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse] = {
+    val method = "eth_getBlockByNumber"
+    val params = Seq[String](req.blockNumber, "true")
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByNumberResponse](json)
+    } yield resp
+  }
+
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse] = ???
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse] = ???
+
   private def handleRequest(method: String, params: Seq[String]): Future[String] = {
     val request = JsonRPCRequest()
       .withId(id)
