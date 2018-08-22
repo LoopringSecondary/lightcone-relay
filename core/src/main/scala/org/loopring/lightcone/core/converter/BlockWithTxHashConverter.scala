@@ -22,7 +22,6 @@ import org.loopring.lightcone.core._
 
 class BlockWithTxHashConverter() extends EthDataConverter[rBlock, dBlock] {
 
-  // todo(fukun): 拜占庭分叉前status默认为0
   def convertDown(org: rBlock): dBlock = {
     var block = dBlock()
       .withParentHash(Hash().fromString(org.parentHash))

@@ -35,7 +35,5 @@ class GetTransactionReceiptSpec extends FlatSpec {
     val tx = Await.result(resultFuture, accessor.timeout.duration)
 
     info(tx.toString)
-    //    info(s"blockhash:${tx.getBlockHash.Hex()}")
-    //    info(s"transactionHash:${tx.getHash.Hex()}")
   }
 }

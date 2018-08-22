@@ -17,18 +17,15 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import scala.concurrent.duration._
 import org.loopring.lightcone.core.converter._
 
 package object accessor {
   implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
 
   val config = GethClientConfig.apply(host = "127.0.0.1", port = 8545, ssl = false)
-  val geth = new EthClientImpl(config)(system, materializer, executionContext)
+  val geth = new EthClientImpl(config)(system)
   val timeout = Timeout(5 seconds)
   val txconverter = new TransactionConverter()
   val logConverter = new ReceiptLogConverter()

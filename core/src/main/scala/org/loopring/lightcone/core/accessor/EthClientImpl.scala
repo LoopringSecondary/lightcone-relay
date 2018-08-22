@@ -38,9 +38,10 @@ case class JsonDebugRequest(id: String, method: String, params: Seq[Any])
 class EthClientImpl(
   val config: GethClientConfig)(
   implicit
-  val system: ActorSystem,
-  implicit val materializer: ActorMaterializer,
-  implicit val executionContex: ExecutionContextExecutor) extends EthClient {
+  val system: ActorSystem) extends EthClient {
+
+  implicit val materializer = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
 
   private val id = "1"
   private val jsonrpcversion = "2.0"
