@@ -117,7 +117,7 @@ message BlockWithTxObject {
     repeated string uncles = 19;
 }
 
-message DebugCall {
+message TraceCall {
     string from = 1;
     string to = 2;
     string input = 3;
@@ -127,7 +127,7 @@ message DebugCall {
     string value = 7;
 }
 
-message DebugTransaction {
+message TraceTransaction {
     string from = 1;
     string to = 2;
     string input = 3;
@@ -135,7 +135,7 @@ message DebugTransaction {
     string gasUsed = 5;
     string type = 6;
     string value = 7;
-    repeated DebugCall calls = 8;
+    repeated TraceCall calls = 8;
 }
 
 //message BlockWithTxAndReceipt {
@@ -229,6 +229,10 @@ message GetBlockWithTxObjectByHashResponse {
 }
 
 // debug_traceTransaction
-message DebugTraceTransactionRequest {
+message TraceTransactionRequest {
     string txhash = 1;
+}
+
+message TraceTransactionResponse {
+
 }

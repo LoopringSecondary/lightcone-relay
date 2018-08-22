@@ -131,7 +131,7 @@ message BlockWithTxObject {
     repeated Hash uncles = 19;
 }
 
-message DebugCall {
+message TraceCall {
     Address from = 1;
     Address to = 2;
     Hex input = 3;
@@ -141,7 +141,7 @@ message DebugCall {
     Big value = 7;
 }
 
-message DebugTransaction {
-    DebugCall tx = 1;
-    repeated DebugCall calls = 2;
+message TraceTransaction {
+    TraceCall tx = 1;
+    repeated TraceCall calls = 2;
 }

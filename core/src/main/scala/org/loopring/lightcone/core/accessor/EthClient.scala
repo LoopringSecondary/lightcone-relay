@@ -28,4 +28,6 @@ trait EthClient {
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse]
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse]
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse]
+
+  def traceTransaction(req: TraceTransactionRequest): Future[TraceTransactionResponse]
 }

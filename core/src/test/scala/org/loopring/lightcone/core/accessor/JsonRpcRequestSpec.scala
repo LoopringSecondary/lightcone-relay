@@ -18,18 +18,18 @@ package org.loopring.lightcone.core.accessor
 
 import org.scalatest.FlatSpec
 
-class AnyTypeJsonSpec extends FlatSpec {
+class JsonRpcRequestSpec extends FlatSpec {
 
-  info("execute cmd [sbt core/'testOnly *AnyTypeJsonSpec'] to test single spec of json format any type")
+  info("execute cmd [sbt core/'testOnly *JsonRpcRequestSpec'] to test single spec of json format any type")
 
-  "eth balance" should "use accessor" in {
+  "json rpc request" should "convert back and front" in {
     val params = Seq[Any]("0x41", true)
     val request = JsonRpcRequest("1", "2.0", "eth_getBlockByNumber", params)
-    val jsonobj = accessor.geth.formatJsonRequest(request)
-    val recover = accessor.geth.parseJsonRequest(jsonobj)
+    val jsonobj = accessor.geth.formatJsonRpcRequest(request)
+    val recover = accessor.geth.parseJsonRpcRequest(jsonobj)
     info(jsonobj.toString())
     info(s"method: ${recover.method}, id:${recover.id}, rpc:${recover.jsonrpc}")
-    recover.params.map(x => info(s"type:${x.getClass.toString}, value:${x}"))
+    recover.params.map(x => info(s"type:${x.getClass.getName}, value:${x}"))
   }
 
 }
