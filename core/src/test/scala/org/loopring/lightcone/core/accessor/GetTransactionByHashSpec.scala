@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.accessor
 
 import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionByHashRequest
+import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,12 +26,15 @@ class GetTransactionByHashSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *GetTransactionByHashSpec'] to test single spec of eth_getTransactionByHash")
 
   "transaction hash" should "contain gasLimit but without gasUsed" in {
-    val req = GetTransactionByHashRequest().withHash("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
-    val respFuture = for {
+    val req = GetTransactionByHashRequest("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
+    val resultFuture = for {
       resp <- accessor.geth.getTransactionByHash(req)
-    } yield resp
+      result = accessor.txconverter.convertDown(resp.getResult)
+    } yield result
 
-    val result = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getTransactionByHash hash:${result.getResult.blockHash}, from:${result.getResult.from}")
+    val tx = Await.result(resultFuture, accessor.timeout.duration)
+
+    info(s"blockhash:${tx.getBlockHash.Hex()}")
+    info(s"transactionHash:${tx.getHash.Hex()}")
   }
 }

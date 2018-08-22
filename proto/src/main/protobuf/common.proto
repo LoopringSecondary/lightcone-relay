@@ -4,10 +4,6 @@ option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
-message Address {
-    bytes address_byte = 1;
-}
-
 message Pagination {
     int32 index = 1;
     int32 size = 2;
