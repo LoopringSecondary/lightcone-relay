@@ -234,5 +234,6 @@ message TraceTransactionRequest {
 }
 
 message TraceTransactionResponse {
-
+    string id = 1;
+    TraceTransaction result = 2;
 }
