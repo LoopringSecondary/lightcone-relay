@@ -28,18 +28,19 @@ class AnyTypeJsonSpec extends FlatSpec {
     val params = Seq[Any]("0x41", true)
     val request = JsonRequest("1", "2.0", "eth_getBlockByNumber", params)
     val formater = JsonRequestFormat
-    val result = request.toJson.toString()
-    info(result)
+    val jsonobj = request.toJson
+
+    info(jsonobj.toString())
   }
 
   case class JsonRequest(id: String, jsonrpc: String, method: String, params: Seq[Any]) {}
 
   implicit object JsonRequestFormat extends JsonFormat[JsonRequest] {
-    override def write(request: JsonRequest): JsValue = JsArray(
-      JsString(request.id),
-      JsString(request.jsonrpc),
-      JsString(request.method),
-      JsArray(request.params.map(x => writeAny(x)): _*))
+    override def write(request: JsonRequest): JsValue = JsObject(Map(
+      "id" -> JsString(request.id),
+      "jsonrpc" -> JsString(request.jsonrpc),
+      "method" -> JsString(request.method),
+      "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
 
     private def writeAny(src: Any) = src match {
       case n: Int => JsNumber(n)
