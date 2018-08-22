@@ -100,6 +100,9 @@ message OrdersSaved {
 message UpdateOrders {
     repeated Order orders = 1;
 }
+message CalculateOrdersStatus {
+    repeated Order orders = 1;
+}
 message OrdersUpdated {
     repeated Order orders = 1;
 }
@@ -221,4 +224,19 @@ message SoftCancelSign {
     string r = 3;
     string s = 4;
     string owner = 5;
+}
+
+message NotifyRollbackOrders {
+    repeated OrderChangeLog change_logs = 1;
+}
+
+message OrderChangeLog {
+    bytes order_hash = 1;
+    bytes dealtAmountS = 3;
+    bytes dealtAmountB = 4;
+    bytes splitAmountS = 5;
+    bytes splitAmountB = 6;
+    bytes cancelledAmountS = 7;
+    bytes cancelledAmountB = 8;
+    OrderStatus status = 9;
 }

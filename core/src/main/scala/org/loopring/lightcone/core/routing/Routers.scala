@@ -45,7 +45,6 @@ object Routers {
   def orderReader = routers(OrderReader.name)("")
   def orderWriter = routers(OrderWriter.name)("")
 
-  def orderManager = routers(OrderManager.name)("")
   def orderAccessor = routers(OrderAccessor.name)("")
   def orderDBAccessor = routers(OrderDBAccessor.name)("")
 
