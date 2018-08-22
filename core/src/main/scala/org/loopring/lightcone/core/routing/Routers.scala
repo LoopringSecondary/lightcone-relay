@@ -47,10 +47,10 @@ object Routers {
 
   def orderAccessor = routers(OrderAccessor.name)("")
   def orderDBAccessor = routers(OrderDBAccessor.name)("")
+  def orderManager = routers(OrderManager.name)("")
 
   def ringFinder(id: String) = routers(RingFinder.name)(id)
   def orderBookManager(id: String) = routers(OrderBookManager.name)(id)
-  def orderManager(id: String) = routers(OrderManager.name)(id)
   def orderBookReader(id: String) = routers(OrderBookReader.name)(id)
   def ringMiner(address: String) = routers(RingMiner.name)(address)
 

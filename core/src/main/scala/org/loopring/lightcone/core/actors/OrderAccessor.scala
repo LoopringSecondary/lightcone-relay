@@ -44,6 +44,6 @@ class OrderAccessor() extends Actor {
   implicit val timeout = Timeout(2 seconds)
   def receive: Receive = {
     case settings: OrderAccessorSettings =>
-    case a => Routers.orderDBAccessor ? a
+    case any => Routers.orderDBAccessor forward any
   }
 }

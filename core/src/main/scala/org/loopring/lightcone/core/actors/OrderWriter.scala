@@ -56,7 +56,7 @@ class OrderWriter() extends Actor {
 
       Routers.orderAccessor ? unwrapToRawOrder(req) onComplete {
         case Success(os) =>
-          Routers.orderManager("") ! os
+          Routers.orderManager ! os
           os
         case Failure(e) => ErrorResp()
       }
@@ -68,7 +68,7 @@ class OrderWriter() extends Actor {
 
         Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
           case Success(os) =>
-            Routers.orderManager("") ! os
+            Routers.orderManager ! os
             os
           case Failure(_) => ErrorResp()
         }
