@@ -17,12 +17,17 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+
+import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.order._
+import akka.pattern.ask
+import akka.util.Timeout
+import org.loopring.lightcone.proto.common.ErrorResp
+
+import scala.concurrent.{ Await, ExecutionContext }
+import scala.util.{ Failure, Success }
 
 object OrderReader
   extends base.Deployable[OrderReaderSettings] {
@@ -33,11 +38,44 @@ object OrderReader
 
   def getCommon(s: OrderReaderSettings) =
     base.CommonSettings("", s.roles, s.instances)
+
 }
 
 class OrderReader() extends Actor {
+  implicit val timeout = Timeout(2 seconds)
+  implicit val executor = ExecutionContext.global
+
   def receive: Receive = {
     case settings: OrderReaderSettings =>
-    case _ =>
+    case req: GetOrderReq =>
+      val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
+      oneOrderResult.mapTo[OneOrder] onComplete {
+        case Success(o) => wrapToResp(o)
+        case Failure(_) => ErrorResp()
+      }
+
+    case req: GetOrdersReq =>
+      val multiOrderResult = Routers.orderManager ? unwrapToQuery(req)
+      multiOrderResult.mapTo[MultiOrders] onComplete {
+        case Success(o) => wrapToResp(o)
+        case Failure(_) => ErrorResp()
+      }
+  }
+
+  def wrapToResp(oneOrder: OneOrder) = {
+    GetOrderResp()
+  }
+
+  def wrapToResp(oneOrder: MultiOrders) = {
+    GetOrdersResp()
+  }
+
+  def unwrapToQuery(req: GetOrderReq) = {
+    OrderQuery()
+  }
+
+  def unwrapToQuery(req: GetOrdersReq) = {
+    OrderQuery()
   }
 }
+

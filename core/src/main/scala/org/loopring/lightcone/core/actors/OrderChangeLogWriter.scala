@@ -17,46 +17,33 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import akka.util.ByteString
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import org.loopring.lightcone.core.actors.base.CommonSettings
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.order.{ RawOrder, SaveOrders, SaveUpdatedOrders, SoftCancelOrders }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object OrderDBAccessor
-  extends base.Deployable[OrderDBAccessorSettings] {
+object OrderChangeLogWriter
+  extends base.Deployable[CommonSettings] {
   val name = "order_db_accessor"
   val isSingleton = false
 
-  def props = Props(classOf[OrderDBAccessor])
+  def props = Props(classOf[OrderChangeLogWriter])
 
-  def getCommon(s: OrderDBAccessorSettings) =
+  def getCommon(s: CommonSettings) =
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class OrderDBAccessor() extends Actor {
+class OrderChangeLogWriter() extends Actor {
   implicit val executor = ExecutionContext.global
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>
-      writeToDB(s.orders)
-      Future {
-        s.orders
-      }
-    case chainRolledBack: ChainRolledBack => rollbackOrders(chainRolledBack.detectedBlockNumber)
-    case changeLogs: NotifyRollbackOrders =>
-
+    case chainRolledBack: ChainRolledBack => rollbackOrderChange(chainRolledBack.detectedBlockNumber)
   }
 
-  def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: com.google.protobuf.ByteString) = {
-  }
+  def rollbackOrderChange(blockNumber: com.google.protobuf.ByteString) = {}
 }
