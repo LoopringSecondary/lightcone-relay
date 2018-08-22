@@ -22,6 +22,7 @@ import org.loopring.lightcone.core._
 
 class TransactionReceiptConverter()(implicit val logConverter: ReceiptLogConverter) extends EthDataConverter[rReceipt, dReceipt] {
 
+  // todo(fukun): 拜占庭分叉前status默认为0
   def convertDown(org: rReceipt): dReceipt = {
     var receipt = dReceipt()
       .withBlockHash(Hash().fromString(org.blockHash))
