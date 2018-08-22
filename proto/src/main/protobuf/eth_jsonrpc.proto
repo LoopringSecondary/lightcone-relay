@@ -134,29 +134,6 @@ message BlockWithTxObject {
 
 ///////////////////////////////////////////
 //
-// ethereum json rpc request & response
-//
-///////////////////////////////////////////
-
-message JsonRPCRequest {
-    string id = 1;
-    string jsonrpc = 2;
-    string method = 3;
-    repeated string params = 4;
-}
-
-message JsonRPCResponse {
-    string id = 1;
-    string jsonrpc = 2;
-    string result = 3;
-}
-
-message JsonRPCRequestSeq {
-    repeated JsonRPCRequest req = 1;
-}
-
-///////////////////////////////////////////
-//
 // ethereum json rpc params
 //
 ///////////////////////////////////////////

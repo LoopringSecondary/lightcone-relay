@@ -17,8 +17,6 @@
 package org.loopring.lightcone.core.accessor
 
 import org.scalatest.FlatSpec
-import spray.json._
-import DefaultJsonProtocol._
 
 class AnyTypeJsonSpec extends FlatSpec {
 
@@ -26,45 +24,12 @@ class AnyTypeJsonSpec extends FlatSpec {
 
   "eth balance" should "use accessor" in {
     val params = Seq[Any]("0x41", true)
-    val request = JsonRequest("1", "2.0", "eth_getBlockByNumber", params)
-    val formater = JsonRequestFormat
-    val jsonobj = request.toJson
-
+    val request = JsonRpcRequest("1", "2.0", "eth_getBlockByNumber", params)
+    val jsonobj = accessor.geth.formatJsonRequest(request)
+    val recover = accessor.geth.parseJsonRequest(jsonobj)
     info(jsonobj.toString())
-  }
-
-  case class JsonRequest(id: String, jsonrpc: String, method: String, params: Seq[Any]) {}
-
-  implicit object JsonRequestFormat extends JsonFormat[JsonRequest] {
-    override def write(request: JsonRequest): JsValue = JsObject(Map(
-      "id" -> JsString(request.id),
-      "jsonrpc" -> JsString(request.jsonrpc),
-      "method" -> JsString(request.method),
-      "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
-
-    private def writeAny(src: Any) = src match {
-      case n: Int => JsNumber(n)
-      case s: String => JsString(s)
-      case b: Boolean if b.equals(true) => JsTrue
-      case b: Boolean if b.equals(false) => JsFalse
-      case _ => JsNull
-    }
-
-    override def read(value: JsValue): JsonRequest = {
-      value.asJsObject.getFields("id", "jsonrpc", "method", "params") match {
-        case Seq(JsString(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
-          JsonRequest(id, jsonrpc, method, params)
-        case _ => throw new Exception("Color expected")
-      }
-    }
-
-    private def readAny(value: JsValue) = value match {
-      case JsNumber(n) => n.intValue()
-      case JsString(s) => s
-      case JsTrue => true
-      case JsFalse => false
-      case _ => null
-    }
+    info(s"method: ${recover.method}, id:${recover.id}, rpc:${recover.jsonrpc}")
+    recover.params.map(x => info(s"type:${x.getClass.toString}, value:${x}"))
   }
 
 }

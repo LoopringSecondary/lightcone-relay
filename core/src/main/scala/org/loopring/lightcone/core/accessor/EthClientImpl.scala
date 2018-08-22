@@ -21,13 +21,18 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.proto.eth_jsonrpc._
+
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
+import spray.json._
+import DefaultJsonProtocol._
 
 case class GethClientConfig(
   host: String,
   port: Int,
   ssl: Boolean = false)
+
+case class JsonRpcRequest(id: String, jsonrpc: String, method: String, params: Seq[Any])
 
 class EthClientImpl(
   val config: GethClientConfig)(
@@ -40,10 +45,11 @@ class EthClientImpl(
   private val jsonrpcversion = "2.0"
   private val post = HttpMethods.POST
   private val uri = "http://" + config.host + ":" + config.port.toString + "/"
+  private val jsonRequestFormater = JsonRequestFormat
 
   def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse] = {
     val method = "eth_getBalance"
-    val params = Seq[String](req.address, req.tag)
+    val params = Seq[Any](req.address, req.tag)
 
     for {
       json <- handleRequest(method, params)
@@ -53,7 +59,7 @@ class EthClientImpl(
 
   def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse] = {
     val method = "eth_getTransactionByHash"
-    val params = Seq[String](req.hash)
+    val params = Seq[Any](req.hash)
 
     for {
       json <- handleRequest(method, params)
@@ -63,7 +69,7 @@ class EthClientImpl(
 
   def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse] = {
     val method = "eth_getTransactionReceipt"
-    val params = Seq[String](req.hash)
+    val params = Seq[Any](req.hash)
 
     for {
       json <- handleRequest(method, params)
@@ -73,7 +79,7 @@ class EthClientImpl(
 
   def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberRequest): Future[GetBlockWithTxHashByNumberResponse] = {
     val method = "eth_getBlockByNumber"
-    val params = Seq[String](req.blockNumber, "false")
+    val params = Seq[Any](req.blockNumber, false)
 
     for {
       json <- handleRequest(method, params)
@@ -83,7 +89,7 @@ class EthClientImpl(
 
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse] = {
     val method = "eth_getBlockByNumber"
-    val params = Seq[String](req.blockNumber, "true")
+    val params = Seq[Any](req.blockNumber, true)
 
     for {
       json <- handleRequest(method, params)
@@ -94,15 +100,10 @@ class EthClientImpl(
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse] = ???
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse] = ???
 
-  private def handleRequest(method: String, params: Seq[String]): Future[String] = {
-    val request = JsonRPCRequest()
-      .withId(id)
-      .withJsonrpc(jsonrpcversion)
-      .withMethod(method)
-      .withParams(params)
-
-    val jsonReq = JsonFormat.toJsonString(request)
-    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
+  private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
+    val request = JsonRpcRequest(id, jsonrpcversion, method, params)
+    val jsonReq = formatJsonRequest(request)
+    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
     val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
 
     for {
@@ -110,4 +111,44 @@ class EthClientImpl(
       jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
     } yield jsonResp
   }
+
+  ////////////////////////////////////////////////////////////////////
+  //
+  // JsonRpcRequest format and parse
+  //
+  ////////////////////////////////////////////////////////////////////
+  implicit object JsonRequestFormat extends JsonFormat[JsonRpcRequest] {
+    override def write(request: JsonRpcRequest): JsValue = JsObject(Map(
+      "id" -> JsString(request.id),
+      "jsonrpc" -> JsString(request.jsonrpc),
+      "method" -> JsString(request.method),
+      "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
+
+    private def writeAny(src: Any) = src match {
+      case n: Int => JsNumber(n)
+      case s: String => JsString(s)
+      case b: Boolean if b.equals(true) => JsTrue
+      case b: Boolean if b.equals(false) => JsFalse
+      case _ => JsNull
+    }
+
+    override def read(value: JsValue): JsonRpcRequest = {
+      value.asJsObject.getFields("id", "jsonrpc", "method", "params") match {
+        case Seq(JsString(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
+          JsonRpcRequest(id, jsonrpc, method, params)
+        case _ => throw new Exception("JsonRpcRequest expected")
+      }
+    }
+
+    private def readAny(value: JsValue) = value match {
+      case JsNumber(n) => n.intValue()
+      case JsString(s) => s
+      case JsTrue => true
+      case JsFalse => false
+      case _ => null
+    }
+  }
+
+  def formatJsonRequest(request: JsonRpcRequest): JsValue = request.toJson
+  def parseJsonRequest(data: JsValue): JsonRpcRequest = data.convertTo[JsonRpcRequest]
 }
