@@ -23,6 +23,7 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.order.{ CalculateOrdersStatus, UpdateOrders }
 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
@@ -38,6 +39,7 @@ object OrderUpdater
 class OrderUpdater() extends Actor {
   def receive: Receive = {
     case settings: OrderUpdaterSettings =>
-    case _ =>
+    case UpdateOrders =>
+    case CalculateOrdersStatus =>
   }
 }
