@@ -43,33 +43,34 @@ message Transaction {
     string v = 14;
 }
 
-//message Log {
-//    bytes logIndex = 1;
-//    bytes blockNumber = 2;
-//    bytes blockHash = 3;
-//    bytes transactionHash = 4;
-//    bytes transactionIndex = 5;
-//    bytes address = 6;
-//    bytes data = 7;
-//    repeated bytes topics = 8;
-//    bool removed = 9;
-//}
-//
-//message TransactionReceipt {
-//    bytes blockHash = 1;
-//    bytes blockNumber = 2;
-//    bytes contractAddress = 3;
-//    bytes cumulativeGasUsed = 4;
-//    bytes from = 5;
-//    bytes gasUsed = 6;
-//    repeated Log logs = 7;
-//    string logsBloom = 8;
-//    string root = 9;
-//    bytes status = 10;
-//    bytes to = 11;
-//    bytes transactionHash = 12;
-//    bytes transactionIndex = 13;
-//}
+message Log {
+    string logIndex = 1;
+    string blockNumber = 2;
+    string blockHash = 3;
+    string transactionHash = 4;
+    string transactionIndex = 5;
+    string address = 6;
+    string data = 7;
+    repeated string topics = 8;
+    bool removed = 9;
+}
+
+message TransactionReceipt {
+    string blockHash = 1;
+    string blockNumber = 2;
+    string transactionHash = 3;
+    string transactionIndex = 4;
+    string from = 5;
+    string to = 6;
+    string contractAddress = 7;
+    string cumulativeGasUsed = 8;
+    string gasUsed = 9;
+    repeated Log logs = 10;
+    string logsBloom = 11;
+    string root = 12;
+    string status = 13;
+}
+
 //
 //message Block {
 //    bytes number = 1;
@@ -161,9 +162,18 @@ message EthGetBalanceResponse {
 message GetTransactionByHashRequest {
     string hash = 1;
 }
-
 message GetTransactionByHashResponse {
     string id = 1;
     string jsonrpc = 2;
     Transaction result = 3;
+}
+
+// eth_getTransactionReceipt
+message GetTransactionReceiptRequest {
+    string hash = 1;
+}
+message GetTransactionReceiptResponse {
+    string id = 1;
+    string jsonrpc = 2;
+    TransactionReceipt result = 3;
 }

@@ -61,6 +61,16 @@ class EthClientImpl(
     } yield resp
   }
 
+  def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse] = {
+    val method = "eth_getTransactionReceipt"
+    val params = Seq[String](req.hash)
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetTransactionReceiptResponse](json)
+    } yield resp
+  }
+
   private def handleRequest(method: String, params: Seq[String]): Future[String] = {
     val request = JsonRPCRequest()
       .withId(id)

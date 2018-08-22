@@ -58,3 +58,31 @@ message Transaction {
     Hex s = 13;
     Hex v = 14;
 }
+
+message Log {
+    int32 logIndex = 1;
+    Big blockNumber = 2;
+    Hash blockHash = 3;
+    Hash transactionHash = 4;
+    int32 transactionIndex = 5;
+    Address address = 6;
+    Hex data = 7;
+    repeated Hex topics = 8;
+    bool removed = 9;
+}
+
+message TransactionReceipt {
+    Hash blockHash = 1;
+    Big blockNumber = 2;
+    Address contractAddress = 3;
+    Big cumulativeGasUsed = 4;
+    Address from = 5;
+    Big gasUsed = 6;
+    repeated Log logs = 7;
+    string logsBloom = 8;
+    string root = 9;
+    int32 status = 10;
+    Address to = 11;
+    Hash transactionHash = 12;
+    int32 transactionIndex = 13;
+}

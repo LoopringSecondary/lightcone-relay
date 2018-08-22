@@ -39,6 +39,7 @@ package object core {
     def fromString(str: String) = src.copy(content = str)
     def String = BigNumber.toString()
     def BigNumber = BigInt(Hex, 16)
+    def Int = BigNumber.intValue()
 
     def Hex = {
       if (src.content.startsWith("0x")) {

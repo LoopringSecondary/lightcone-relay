@@ -31,4 +31,6 @@ package object accessor {
   val geth = new EthClientImpl(config)(system, materializer, executionContext)
   val timeout = Timeout(5 seconds)
   val txconverter = new TransactionConverter()
+  val logConverter = new ReceiptLogConverter()
+  val receiptconverter = new TransactionReceiptConverter()(logConverter)
 }
