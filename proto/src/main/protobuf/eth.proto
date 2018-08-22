@@ -130,3 +130,18 @@ message BlockWithTxObject {
     repeated Transaction transactions = 18;
     repeated Hash uncles = 19;
 }
+
+message DebugCall {
+    Address from = 1;
+    Address to = 2;
+    Hex input = 3;
+    Hex output = 4;
+    Big gasUsed = 5;
+    string type = 6;
+    Big value = 7;
+}
+
+message DebugTransaction {
+    DebugCall tx = 1;
+    repeated DebugCall calls = 2;
+}
