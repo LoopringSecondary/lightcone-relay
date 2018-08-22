@@ -16,8 +16,9 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.GetBlockWithTxHashByNumberRequest
+import org.loopring.lightcone.proto.eth_jsonrpc.{ GetBlockWithTxHashByHashRequest, GetBlockWithTxHashByNumberRequest, GetBlockWithTxObjectByHashRequest, GetBlockWithTxObjectByNumberRequest }
 import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -30,6 +31,39 @@ class GetBlockSpec extends FlatSpec {
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxHashByNumber(req)
       result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
+    } yield result
+
+    val block = Await.result(respFuture, accessor.timeout.duration)
+    info(s"block is $block")
+  }
+
+  "eth get block with object by number" should "contain hash list" in {
+    val req = GetBlockWithTxObjectByNumberRequest("0xa8a0")
+    val respFuture = for {
+      resp <- accessor.geth.getBlockWithTxObjectByNumber(req)
+      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
+    } yield result
+
+    val block = Await.result(respFuture, accessor.timeout.duration)
+    info(s"block is $block")
+  }
+
+  "eth get block with hash by hash" should "contain hash list" in {
+    val req = GetBlockWithTxHashByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
+    val respFuture = for {
+      resp <- accessor.geth.getBlockWithTxHashByHash(req)
+      result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
+    } yield result
+
+    val block = Await.result(respFuture, accessor.timeout.duration)
+    info(s"block is $block")
+  }
+
+  "eth get block with object by hash" should "contain hash list" in {
+    val req = GetBlockWithTxObjectByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
+    val respFuture = for {
+      resp <- accessor.geth.getBlockWithTxObjectByHash(req)
+      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)

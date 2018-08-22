@@ -47,6 +47,15 @@ class EthClientImpl(
   private val uri = "http://" + config.host + ":" + config.port.toString + "/"
   private val jsonRequestFormater = JsonRequestFormat
 
+  // todo(fukun): 如何解决泛型在json解析时的实例化问题
+  def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
+  //  {
+  //    for {
+  //      json <- handleRequest(method, params)
+  //      resp = JsonFormat.parser.fromJsonString[P](json)
+  //    } yield resp
+  //  }
+
   def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse] = {
     val method = "eth_getBalance"
     val params = Seq[Any](req.address, req.tag)
@@ -97,8 +106,25 @@ class EthClientImpl(
     } yield resp
   }
 
-  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse] = ???
-  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse] = ???
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse] = {
+    val method = "eth_getBlockByHash"
+    val params = Seq[Any](req.blockHash, false)
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByHashResponse](json)
+    } yield resp
+  }
+
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse] = {
+    val method = "eth_getBlockByHash"
+    val params = Seq[Any](req.blockHash, true)
+
+    for {
+      json <- handleRequest(method, params)
+      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByHashResponse](json)
+    } yield resp
+  }
 
   private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
     val request = JsonRpcRequest(id, jsonrpcversion, method, params)

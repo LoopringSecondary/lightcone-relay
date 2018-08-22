@@ -20,6 +20,7 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 import scala.concurrent._
 
 trait EthClient {
+  def request[R, P](req: R, method: String, params: Seq[Any]): Future[P]
   def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse]
   def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse]
   def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse]
