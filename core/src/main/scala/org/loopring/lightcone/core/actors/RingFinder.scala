@@ -48,7 +48,7 @@ class RingFinder(val id: String)(implicit timeout: Timeout)
   import context.dispatcher
   var settingsOpt: Option[RingFinderSettings] = None
   lazy val orderBookManager: ActorRef = Routers.orderBookManager(id)
-  lazy val orderManager: ActorRef = Routers.orderManager(id)
+  lazy val orderManager: ActorRef = Routers.orderManager
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
 

@@ -17,12 +17,17 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+import akka.pattern.ask
+import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+
+import scala.concurrent.duration._
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.common.ErrorResp
+import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.ExecutionContext
+import scala.util.{ Failure, Success }
 
 object OrderWriter
   extends base.Deployable[OrderWriterSettings] {
@@ -36,8 +41,43 @@ object OrderWriter
 }
 
 class OrderWriter() extends Actor {
+
+  implicit val timeout = Timeout(2 seconds)
+  implicit val executor = ExecutionContext.global
+
   def receive: Receive = {
     case settings: OrderWriterSettings =>
-    case _ =>
+    case req: SubmitOrderReq => {
+      if (req.rawOrder.isEmpty) {
+        new ErrorResp()
+      } else if (checkOrder(req.rawOrder.get)) {
+        new ErrorResp()
+      }
+
+      Routers.orderAccessor ? unwrapToRawOrder(req) onComplete {
+        case Success(os) =>
+          Routers.orderManager ! os
+          os
+        case Failure(e) => ErrorResp()
+      }
+
+    }
+    case req: CancelOrdersReq =>
+      if (!softCancelSignCheck(req.sign)) {
+        new ErrorResp()
+
+        Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
+          case Success(os) =>
+            Routers.orderManager ! os
+            os
+          case Failure(_) => ErrorResp()
+        }
+
+      }
   }
+
+  def checkOrder(rawOrder: RawOrder) = true
+  def unwrapToRawOrder(req: SubmitOrderReq) = RawOrder()
+  def softCancelSignCheck(sign: Option[SoftCancelSign]) = true
+
 }
