@@ -32,7 +32,7 @@ case class GethClientConfig(
   port: Int,
   ssl: Boolean = false)
 
-case class JsonRpcRequest(id: String, jsonrpc: String, method: String, params: Seq[Any])
+case class JsonRpcRequest(id: Int, jsonrpc: String, method: String, params: Seq[Any])
 case class DebugParams(timeout: String, tracer: String)
 
 class EthClientImpl(
@@ -43,10 +43,10 @@ class EthClientImpl(
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  private val id = "1"
+  private val id: Int = 1
   private val jsonrpcversion = "2.0"
   private val post = HttpMethods.POST
-  private val uri = "http://" + config.host + ":" + config.port.toString + "/"
+  private val uri = s"http://${config.host}:${config.port.toString}"
   private val jsonRpcRequestFormater = JsonRequestFormat
   private val debugTimeoutStr = "5s"
   private val debugTracerStr = "callTracer"
@@ -160,15 +160,15 @@ class EthClientImpl(
   ////////////////////////////////////////////////////////////////////
   implicit object JsonRequestFormat extends JsonFormat[JsonRpcRequest] {
     override def write(request: JsonRpcRequest): JsValue = JsObject(Map(
-      "id" -> JsString(request.id),
+      "id" -> JsNumber(request.id),
       "jsonrpc" -> JsString(request.jsonrpc),
       "method" -> JsString(request.method),
       "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
 
     override def read(value: JsValue): JsonRpcRequest = {
       value.asJsObject.getFields("id", "jsonrpc", "method", "params") match {
-        case Seq(JsString(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
-          JsonRpcRequest(id, jsonrpc, method, params)
+        case Seq(JsNumber(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
+          JsonRpcRequest(id.intValue(), jsonrpc, method, params)
         case _ => throw new Exception("JsonRpcRequest expected")
       }
     }

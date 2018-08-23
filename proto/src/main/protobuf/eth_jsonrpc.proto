@@ -165,7 +165,7 @@ message EthGetBalanceRequest {
     string tag = 2;
 }
 message EthGetBalanceResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
 }
@@ -175,7 +175,7 @@ message GetTransactionByHashRequest {
     string hash = 1;
 }
 message GetTransactionByHashResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     Transaction result = 3;
 }
@@ -185,7 +185,7 @@ message GetTransactionReceiptRequest {
     string hash = 1;
 }
 message GetTransactionReceiptResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     TransactionReceipt result = 3;
 }
@@ -195,7 +195,7 @@ message GetBlockWithTxHashByNumberRequest {
     string blockNumber = 1;
 }
 message GetBlockWithTxHashByNumberResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxHash result = 3;
 }
@@ -204,7 +204,7 @@ message GetBlockWithTxObjectByNumberRequest {
     string blockNumber = 1;
 }
 message GetBlockWithTxObjectByNumberResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxObject result = 3;
 }
@@ -214,7 +214,7 @@ message GetBlockWithTxHashByHashRequest {
     string blockHash = 1;
 }
 message GetBlockWithTxHashByHashResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxHash result = 3;
 }
@@ -223,7 +223,7 @@ message GetBlockWithTxObjectByHashRequest {
     string blockHash = 1;
 }
 message GetBlockWithTxObjectByHashResponse {
-    string id = 1;
+    int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxObject result = 3;
 }
@@ -234,6 +234,7 @@ message TraceTransactionRequest {
 }
 
 message TraceTransactionResponse {
-    string id = 1;
-    TraceTransaction result = 2;
+    int32 id = 1;
+    string jsonrpc = 2;
+    TraceTransaction result = 3;
 }

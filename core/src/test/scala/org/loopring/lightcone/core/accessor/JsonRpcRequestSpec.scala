@@ -24,7 +24,7 @@ class JsonRpcRequestSpec extends FlatSpec {
 
   "json rpc request" should "convert back and front" in {
     val params = Seq[Any]("0x41", DebugParams("5s", "callTracer"))
-    val request = JsonRpcRequest("1", "2.0", "eth_getBlockByNumber", params)
+    val request = JsonRpcRequest(1, "2.0", "eth_getBlockByNumber", params)
     val jsonobj = accessor.geth.formatJsonRpcRequest(request)
     val recover = accessor.geth.parseJsonRpcRequest(jsonobj)
     info(jsonobj.toString())

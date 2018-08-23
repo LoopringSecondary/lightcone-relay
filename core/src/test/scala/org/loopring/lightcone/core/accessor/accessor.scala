@@ -24,7 +24,7 @@ import org.loopring.lightcone.core.converter._
 package object accessor {
   implicit val system = ActorSystem()
 
-  val config = GethClientConfig.apply(host = "127.0.0.1", port = 8545, ssl = false)
+  val config = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
   val geth = new EthClientImpl(config)(system)
   val timeout = Timeout(5 seconds)
   val txconverter = new TransactionConverter()
