@@ -16,9 +16,9 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionByHashRequest
-import org.loopring.lightcone.core._
+import org.loopring.lightcone.proto.eth_jsonrpc.AllowanceRequest
 import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -26,16 +26,19 @@ class AllowanceSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *AllowanceSpec'] to get allowance of erc20 token")
 
   "allowance" should "encode params and return amount of big number" in {
-    //accessor.erc
-    val req = GetTransactionByHashRequest("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
+
+    val req = AllowanceRequest()
+      .withOwner(accessor.owner)
+      .withToken(accessor.lrc)
+      .withSpender(accessor.delegate)
+      .withTag("latest")
+
     val resultFuture = for {
-      resp <- accessor.geth.getTransactionByHash(req)
-      result = accessor.txconverter.convertDown(resp.getResult)
-    } yield result
+      resp <- accessor.geth.allowance(req)
+    } yield resp
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)
 
-    info(s"blockhash:${tx.getBlockHash.Hex()}")
-    info(s"transactionHash:${tx.getHash.Hex()}")
+    info(tx.result)
   }
 }

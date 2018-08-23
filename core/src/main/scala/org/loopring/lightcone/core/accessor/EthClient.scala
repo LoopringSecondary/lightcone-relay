@@ -35,5 +35,5 @@ trait EthClient {
 
   // erc20
   def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse]
-  def allowance(req: AllowanceRequest): Future[AllowanceRequest]
+  def allowance(req: AllowanceRequest): Future[AllowanceResponse]
 }

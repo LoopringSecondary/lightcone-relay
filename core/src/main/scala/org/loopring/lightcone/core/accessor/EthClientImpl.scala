@@ -36,7 +36,7 @@ case class GethClientConfig(
 
 case class JsonRpcRequest(id: Int, jsonrpc: String, method: String, params: Seq[Any])
 case class DebugParams(timeout: String, tracer: String)
-case class CallArgs(from: String, to: String, gas: String, gasPrice: String, value: String, data: String)
+//case class CallArgs(from: String, to: String, gas: String, gasPrice: String, value: String, data: String)
 
 class EthClientImpl(
   val config: GethClientConfig,
@@ -56,6 +56,7 @@ class EthClientImpl(
   private val jsonRpcRequestFormater = JsonRequestFormat
   private val debugTimeoutStr = "5s"
   private val debugTracerStr = "callTracer"
+  private val ethCall = "eth_call"
 
   // todo(fukun): 如何解决泛型在json解析时的实例化问题
   def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
@@ -149,32 +150,29 @@ class EthClientImpl(
   }
 
   // erc20 contract requests
-  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse] = ???
-  //  {
-  //    val methodName: Predicate[Abi.Function] = (x) => x.name.equals("balanceOf")
-  //    val method = erc20Abi.findFunction(methodName)
-  //
-  //    val data = method.encode(req.owner)
-  //    val args = CallArgs().withTo(req.token).withData(bytesToHex(data))
-  //
-  //    args.toJson
-  //
-  //    val params = Seq[Any](args, "latest")
-  //
-  //    //    val method = "debug_traceTransaction"
-  //    //    val debugParams = DebugParams(debugTimeoutStr, debugTracerStr)
-  //    //    val params = Seq[Any](req.txhash, debugParams)
-  //    //
-  //    //    for {
-  //    //      json <- handleRequest(method, params)
-  //    //      resp = JsonFormat.parser.fromJsonString[TraceTransactionResponse](json)
-  //    //    } yield resp
-  //    for {
-  //      _ <- Future {}
-  //    } yield BalanceOfResponse()
-  //  }
+  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse] = {
+    val function = findErc20Function("balanceOf")
+    val data = bytesToHex(function.encode(req.owner))
+    val args = CallArgs().withTo(req.token).withData(data)
+    val params = Seq[Any](args, req.tag)
 
-  def allowance(req: AllowanceRequest): Future[AllowanceRequest] = ???
+    for {
+      json <- handleRequest(ethCall, params)
+      resp = JsonFormat.parser.fromJsonString[BalanceOfResponse](json)
+    } yield resp
+  }
+
+  def allowance(req: AllowanceRequest): Future[AllowanceResponse] = {
+    val function = findErc20Function("allowance")
+    val data = bytesToHex(function.encode(req.owner, req.spender))
+    val args = CallArgs().withTo(req.token).withData(data)
+    val params = Seq[Any](args, req.tag)
+
+    for {
+      json <- handleRequest(ethCall, params)
+      resp = JsonFormat.parser.fromJsonString[AllowanceResponse](json)
+    } yield resp
+  }
 
   private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
     val request = JsonRpcRequest(id, jsonrpcversion, method, params)
@@ -188,7 +186,12 @@ class EthClientImpl(
     } yield jsonResp
   }
 
-  private def bytesToHex(data: Array[Byte]): String = Hex.toHexString(data)
+  private def findErc20Function(name: String) = {
+    val method: Predicate[Abi.Function] = (x) => x.name.equals(name)
+    erc20Abi.findFunction(method)
+  }
+
+  private def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
 
   ////////////////////////////////////////////////////////////////////
   //
@@ -218,6 +221,16 @@ class EthClientImpl(
       case o: DebugParams => JsObject(Map(
         "timeout" -> JsString(o.timeout),
         "tracer" -> JsString(o.tracer)))
+      case o: CallArgs => {
+        var map: Map[String, JsValue] = Map()
+        if (!o.from.isEmpty) map += "from" -> JsString(o.from)
+        if (!o.to.isEmpty) map += "to" -> JsString(o.to)
+        if (!o.gas.isEmpty) map += "gas" -> JsString(o.gas)
+        if (!o.gasPrice.isEmpty) map += "gasPrice" -> JsString(o.gasPrice)
+        if (!o.value.isEmpty) map += "value" -> JsString(o.value)
+        if (!o.data.isEmpty) map += "data" -> JsString(o.data)
+        JsObject(map)
+      }
       case _ => JsNull
     }
 
@@ -226,8 +239,12 @@ class EthClientImpl(
       case JsString(s) => s
       case JsTrue => true
       case JsFalse => false
-      case o: JsObject => o.getFields("timeout", "tracer") match {
+      case o: JsObject if o.fields.size.equals(2) => o.getFields("timeout", "tracer") match {
         case Seq(JsString(timeout), JsString(tracer)) => DebugParams(timeout, tracer)
+        case _ => null
+      }
+      case o: JsObject if o.fields.size.equals(5) => o.getFields("from", "to", "gas", "gasPrice", "value", "data") match {
+        case Seq(JsString(from), JsString(to), JsString(gas), JsString(gasPrice), JsString(v), JsString(data)) => CallArgs(from, to, gas, gasPrice, v, data)
         case _ => null
       }
       case _ => null

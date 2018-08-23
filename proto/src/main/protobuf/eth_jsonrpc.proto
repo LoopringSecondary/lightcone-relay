@@ -138,6 +138,15 @@ message TraceTransaction {
     repeated TraceCall calls = 8;
 }
 
+message CallArgs {
+    string from = 1;
+    string to = 2;
+    string gas = 3;
+    string gasPrice = 4;
+    string value = 5;
+    string data = 6;
+}
+
 //message BlockWithTxAndReceipt {
 //    Block block = 1;
 //    repeated Transaction        transactions = 2;
@@ -231,27 +240,28 @@ message TraceTransactionResponse {
     TraceTransaction result = 3;
 }
 
-// erc20 allowance
-message AllowanceRequest {
+// erc20 balanceOf
+message BalanceOfRequest {
     string token = 1;
-    string spender = 2;
-    string owner = 3;
+    string owner = 2;
+    string tag = 3;
 }
 
-message AllowanceResponse {
+message BalanceOfResponse {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
 }
 
-
-// erc20 balanceOf
-message BalanceOfRequest {
-    string token = 1;
-    string owner = 2;
+// erc20 allowance
+message AllowanceRequest {
+    string owner = 1;
+    string spender = 2;
+    string token = 3;
+    string tag = 4;
 }
 
-message BalanceOfResponse {
+message AllowanceResponse {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
