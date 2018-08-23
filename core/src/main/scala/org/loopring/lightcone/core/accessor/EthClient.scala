@@ -30,5 +30,6 @@ trait EthClient {
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse]
 
   // todo(fukun): {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"The method debug_traceTransaction does not exist/is not available"}}
+  // curl - H "Content-Type: application/json" - d '{"id": 1, "method": "debug_traceTransaction", "params": [“0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db”, {tracer:"callTracer"}]}'
   def traceTransaction(req: TraceTransactionRequest): Future[TraceTransactionResponse]
 }
