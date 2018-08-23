@@ -23,13 +23,13 @@ class JsonDebugRequestSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *JsonDebugRequestSpec'] to test single spec of json format any type")
 
   "debug trace json request" should "contain list of call" in {
-    val params = Seq[Any]("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
-    val request = JsonDebugRequest("1", "debug_traceTransaction", params)
-    val jsonobj = accessor.geth.formatJsonDebugRequest(request)
-    val recover = accessor.geth.parseJsonDebugRequest(jsonobj)
-    info(jsonobj.toString())
-    info(s"method: ${recover.method}, id:${recover.id}")
-    recover.params.map(x => info(s"type:${x.getClass.getName()}, value:${x}"))
+    //    val params = Seq[Any]("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
+    //    val request = JsonDebugRequest("1", "debug_traceTransaction", params)
+    //    val jsonobj = accessor.geth.formatJsonDebugRequest(request)
+    //    val recover = accessor.geth.parseJsonDebugRequest(jsonobj)
+    //    info(jsonobj.toString())
+    //    info(s"method: ${recover.method}, id:${recover.id}")
+    //    recover.params.map(x => info(s"type:${x.getClass.getName()}, value:${x}"))
   }
 
 }
