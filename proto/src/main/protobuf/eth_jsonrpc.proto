@@ -143,15 +143,7 @@ message TraceTransaction {
 //    repeated Transaction        transactions = 2;
 //    repeated TransactionReceipt receipts = 3;
 //}
-//message CallArgs {
-//    string from = 1;
-//    string to = 2;
-//    bytes gas = 3;
-//    bytes gasPrice = 4;
-//    bytes value = 5;
-//    string data = 6;
-//    bytes nonce = 7;
-//}
+
 
 ///////////////////////////////////////////
 //
@@ -237,4 +229,41 @@ message TraceTransactionResponse {
     int32 id = 1;
     string jsonrpc = 2;
     TraceTransaction result = 3;
+}
+
+// erc20 allowance
+message AllowanceRequest {
+    string token = 1;
+    string spender = 2;
+    string owner = 3;
+}
+
+message AllowanceResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+
+// erc20 balanceOf
+message BalanceOfRequest {
+    string token = 1;
+    string owner = 2;
+}
+
+message BalanceOfResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+// eth_estimateGas
+message EstimateGasRequest {
+
+}
+
+message EstimateGasResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
 }

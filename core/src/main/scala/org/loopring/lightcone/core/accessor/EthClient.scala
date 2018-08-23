@@ -31,4 +31,9 @@ trait EthClient {
 
   // todo:数据量太大时报错,需要设置http entity size(akka.http.scaladsl.model.EntityStreamException: HTTP chunk size exceeds the configured limit of 1048576 bytes)
   def traceTransaction(req: TraceTransactionRequest): Future[TraceTransactionResponse]
+  //def estimateGas()
+
+  // erc20
+  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse]
+  def allowance(req: AllowanceRequest): Future[AllowanceRequest]
 }

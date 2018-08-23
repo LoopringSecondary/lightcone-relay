@@ -26,7 +26,7 @@ lazy val lib = (project in file("lib"))
 
 lazy val core = (project in file("core"))
   .dependsOn(proto)
-  // .dependsOn(lib)
+  .dependsOn(lib)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,

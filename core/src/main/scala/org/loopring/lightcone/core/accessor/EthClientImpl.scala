@@ -20,13 +20,15 @@ import akka.actor._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
+import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.lib.solidity.Abi
+import org.spongycastle.util.encoders.Hex
 
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
 import spray.json._
 import DefaultJsonProtocol._
-
 case class GethClientConfig(
   host: String,
   port: Int,
@@ -34,14 +36,18 @@ case class GethClientConfig(
 
 case class JsonRpcRequest(id: Int, jsonrpc: String, method: String, params: Seq[Any])
 case class DebugParams(timeout: String, tracer: String)
+case class CallArgs(from: String, to: String, gas: String, gasPrice: String, value: String, data: String)
 
 class EthClientImpl(
-  val config: GethClientConfig)(
+  val config: GethClientConfig,
+  val abiStrMap: Map[String, String])(
   implicit
   val system: ActorSystem) extends EthClient {
 
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
+
+  implicit val erc20Abi = Abi.fromJson(abiStrMap("erc20"))
 
   private val id: Int = 1
   private val jsonrpcversion = "2.0"
@@ -60,6 +66,7 @@ class EthClientImpl(
   //    } yield resp
   //  }
 
+  // eth actions
   def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse] = {
     val method = "eth_getBalance"
     val params = Seq[Any](req.address, req.tag)
@@ -141,6 +148,34 @@ class EthClientImpl(
     } yield resp
   }
 
+  // erc20 contract requests
+  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse] = ???
+  //  {
+  //    val methodName: Predicate[Abi.Function] = (x) => x.name.equals("balanceOf")
+  //    val method = erc20Abi.findFunction(methodName)
+  //
+  //    val data = method.encode(req.owner)
+  //    val args = CallArgs().withTo(req.token).withData(bytesToHex(data))
+  //
+  //    args.toJson
+  //
+  //    val params = Seq[Any](args, "latest")
+  //
+  //    //    val method = "debug_traceTransaction"
+  //    //    val debugParams = DebugParams(debugTimeoutStr, debugTracerStr)
+  //    //    val params = Seq[Any](req.txhash, debugParams)
+  //    //
+  //    //    for {
+  //    //      json <- handleRequest(method, params)
+  //    //      resp = JsonFormat.parser.fromJsonString[TraceTransactionResponse](json)
+  //    //    } yield resp
+  //    for {
+  //      _ <- Future {}
+  //    } yield BalanceOfResponse()
+  //  }
+
+  def allowance(req: AllowanceRequest): Future[AllowanceRequest] = ???
+
   private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
     val request = JsonRpcRequest(id, jsonrpcversion, method, params)
     val jsonReq = formatJsonRpcRequest(request)
@@ -152,6 +187,8 @@ class EthClientImpl(
       jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
     } yield jsonResp
   }
+
+  private def bytesToHex(data: Array[Byte]): String = Hex.toHexString(data)
 
   ////////////////////////////////////////////////////////////////////
   //
@@ -189,7 +226,7 @@ class EthClientImpl(
       case JsString(s) => s
       case JsTrue => true
       case JsFalse => false
-      case JsObject(o) => value.asJsObject.getFields("timeout", "tracer") match {
+      case o: JsObject => o.getFields("timeout", "tracer") match {
         case Seq(JsString(timeout), JsString(tracer)) => DebugParams(timeout, tracer)
         case _ => null
       }
