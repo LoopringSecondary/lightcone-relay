@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rdb="http://www.dangdang.com/schema/ddframe/rdb"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.dangdang.com/schema/ddframe/rdb
+                        http://www.dangdang.com/schema/ddframe/rdb/rdb.xsd">
+
+    <context:component-scan base-package="org.loopring.lightcone.core.persistence"/>
+
+    <!--统计信息-->
+    <bean id="statFilter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <!--慢查询统计,阈值3000ms-->
+        <property name="slowSqlMillis" value="3000"/>
+        <property name="logSlowSql" value="true"/>
+        <!--sql统计合并-->
+        <property name="mergeSql" value="true"/>
+    </bean>
+
+    <!--log信息-->
+    <bean id="logFilter" class="com.alibaba.druid.filter.logging.Log4jFilter">
+        <property name="dataSourceLogEnabled" value="true" />
+        <property name="statementExecutableSqlLogEnable" value="true"/>
+        <property name="statementLogEnabled" value="true" />
+        <property name="connectionLogEnabled" value="true" />
+    </bean>
+
+    <!--配置数据源-->
+    <bean id="ds_master0" class="com.alibaba.druid.pool.DruidDataSource" init-method="init"
+          destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/ds_master0"/>
+        <property name="username" value="root"/>
+        <property name="password" value="111111"/>
+        <property name="initialSize" value="1"/>
+        <property name="minIdle" value="1"/>
+        <property name="maxActive" value="10"/>
+        <property name="maxWait" value="6000"/>
+        <property name="timeBetweenEvictionRunsMillis" value="6000"/>
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <property name="validationQuery" value="SELECT 'x'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="poolPreparedStatements" value="true"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="50"/>
+        <property name="maxOpenPreparedStatements" value="100"/>
+        <property name="useGlobalDataSourceStat" value="false" />
+        <property name="proxyFilters">
+            <list>
+                <ref bean="statFilter"/>
+                <ref bean="logFilter"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="ds_master0_slave0" parent="ds_master0">
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/ds_master0_slave0"/>
+        <property name="username" value="root"/>
+        <property name="password" value="111111"/>
+    </bean>
+
+    <bean id="ds_master1" parent="ds_master0">
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/ds_master1"/>
+        <property name="username" value="root"/>
+        <property name="password" value="111111"/>
+    </bean>
+
+    <bean id="ds_master1_slave0" parent="ds_master0">
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/ds_master1_slave0"/>
+        <property name="username" value="root"/>
+        <property name="password" value="111111"/>
+    </bean>
+
+    <!--<bean id="randomStrategy" class="com.dangdang.ddframe.rdb.sharding.api.strategy.slave.RandomMasterSlaveLoadBalanceStrategy" />-->
+    <!--<master-slave:data-source id="rbb_lrc" master-data-source-name="ds_master0" slave-data-source-names="ds_master0_slave0" strategy-ref="randomStrategy" />-->
+    <!--<master-slave:data-source id="rbb_eth" master-data-source-name="ds_master0" slave-data-source-names="ds_master0_slave0" strategy-ref="randomStrategy" />-->
+
+    <rdb:master-slave-data-source id="rbb_lrc" master-data-source-ref="ds_master0" slave-data-sources-ref="ds_master0_slave0"/>
+    <rdb:master-slave-data-source id="rbb_eth" master-data-source-ref="ds_master1" slave-data-sources-ref="ds_master1_slave0"/>
+
+    <rdb:strategy id="databaseShardingStrategy" sharding-columns="market"
+                  algorithm-class="com.dylenfu.lightcone.persistence.sharding.DbShardingByMarketAlgorithm"/>
+    <rdb:strategy id="tableShardingStrategy" sharding-columns="address"
+                  algorithm-class="com.dylenfu.lightcone.persistence.sharding.TbShardingByAddressAlgorithm"/>
+
+    <rdb:data-source id="shardingDataSource">
+        <rdb:sharding-rule data-sources="rbb_lrc,rbb_eth">
+            <rdb:table-rules>
+                <rdb:table-rule logic-table="user"  actual-tables="user_a,user_b"
+                                database-strategy="databaseShardingStrategy" table-strategy="tableShardingStrategy"/>
+            </rdb:table-rules>
+        </rdb:sharding-rule>
+    </rdb:data-source>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        <property name="dataSource" ref="shardingDataSource"/>
+        <property name="mapperLocations" value="classpath*:mapper/*.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.loopring.lightcone.core.persistence"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+</beans>

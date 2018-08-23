@@ -41,4 +41,13 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
+
+  lazy val mysqlDependencies = Seq(
+    "org.mybatis" % "mybatis" % "3.4.6",
+    "mysql" % "mysql-connector-java" % "6.0.6",
+    "com.alibaba" % "druid" % "1.1.10",
+    "org.mybatis" % "mybatis-spring" % "1.3.2",
+    "org.springframework" % "spring-tx" % "4.3.18.RELEASE",
+    "com.dangdang" % "sharding-jdbc-core" % "1.5.4",
+    "com.dangdang" % "sharding-jdbc-config-spring" % "1.5.4")
 }

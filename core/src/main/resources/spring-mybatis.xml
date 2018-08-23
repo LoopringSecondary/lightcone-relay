@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rdb="http://www.dangdang.com/schema/ddframe/rdb"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.dangdang.com/schema/ddframe/rdb
+                        http://www.dangdang.com/schema/ddframe/rdb/rdb.xsd">
+
+    <context:component-scan base-package="org.loopring.lightcone.core.persistence"/>
+
+    <!--配置数据源-->
+    <bean id="singletonDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init"
+          destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/loopring_miner_v1.1"/>
+        <property name="username" value="root"/>
+        <property name="password" value="111111"/>
+
+        <!-- 配置连接池初始化大小、最小、最大 -->
+        <property name="initialSize" value="1"/>
+        <property name="minIdle" value="1"/>
+        <property name="maxActive" value="10"/>
+
+        <!-- 配置获取连接等待超时的时间,单位ms -->
+        <property name="maxWait" value="6000"/>
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位ms -->
+        <property name="timeBetweenEvictionRunsMillis" value="6000"/>
+
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <!-- 用来检测连接是否有效的sql，要求是一个查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用-->
+        <property name="validationQuery" value="SELECT 'x'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+        <property name="poolPreparedStatements" value="true"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="50"/>
+        <property name="maxOpenPreparedStatements" value="100"/>
+
+        <!--合并多个DruidDataSource的监控数据,与定期保存冲突-->
+        <property name="useGlobalDataSourceStat" value="true" />
+
+        <!--定期保存监控日志-->
+        <!--<property name="timeBetweenLogStatsMillis" value="300000" />-->
+
+        <!--filters-->
+        <property name="proxyFilters">
+            <list>
+                <ref bean="statFilter"/>
+                <ref bean="logFilter"/>
+            </list>
+        </property>
+    </bean>
+
+    <!--统计信息-->
+    <bean id="statFilter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <!--慢查询统计,阈值3000ms-->
+        <property name="slowSqlMillis" value="3000"/>
+        <property name="logSlowSql" value="true"/>
+        <!--sql统计合并-->
+        <property name="mergeSql" value="true"/>
+    </bean>
+
+    <!--log信息-->
+    <bean id="logFilter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
+        <property name="statementExecutableSqlLogEnable" value="false"/>
+        <property name="dataSourceLogEnabled" value="false"/>
+        <!--<property name="statementLogEnabled" value="false" />-->
+    </bean>
+
+    <!--防sql注入，貌似当前版本有点问题-->
+    <!--<bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter">-->
+    <!--<property name="dbType" value="mysql" />-->
+    <!--</bean>-->
+    <!--<bean id="wall-filter-config" class="com.alibaba.druid.wall.WallConfig" init-method="init">-->
+    <!--&lt;!&ndash; 指定配置装载的目录  &ndash;&gt;-->
+    <!--<property name="dir" value="META-INF/druid/wall/mysql" />-->
+    <!--</bean>-->
+
+    <!--mybatis配置-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        <property name="dataSource" ref="singletonDataSource"/>
+        <property name="mapperLocations" value="classpath*:mapper/*.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.loopring.lightcone.core.persistence"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+</beans>
