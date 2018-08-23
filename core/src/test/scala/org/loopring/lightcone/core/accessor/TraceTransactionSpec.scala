@@ -25,6 +25,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class TraceTransactionSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *TraceTransactionSpec'] to test single spec of debug_traceTransaction")
 
+  // curl localhost:8545 -X POST --header 'Content-type: application/json' --data '{"method":"debug_traceTransaction", "params":["0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49", {"tracer":"callTracer", "timeout":"5s"}], "id":1}'
+
   "debug trace transaction" should "contain list of calls" in {
     val req = TraceTransactionRequest("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
     val resultFuture = for {

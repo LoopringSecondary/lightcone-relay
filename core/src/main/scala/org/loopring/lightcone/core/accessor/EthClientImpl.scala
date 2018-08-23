@@ -33,7 +33,6 @@ case class GethClientConfig(
   ssl: Boolean = false)
 
 case class JsonRpcRequest(id: String, jsonrpc: String, method: String, params: Seq[Any])
-case class JsonDebugRequest(id: String, method: String, params: Seq[Any])
 case class DebugParams(timeout: String, tracer: String)
 
 class EthClientImpl(
@@ -49,7 +48,6 @@ class EthClientImpl(
   private val post = HttpMethods.POST
   private val uri = "http://" + config.host + ":" + config.port.toString + "/"
   private val jsonRpcRequestFormater = JsonRequestFormat
-  //private val jsonDebugRequestFormater = JsonDebugFormat
   private val debugTimeoutStr = "5s"
   private val debugTracerStr = "callTracer"
 
@@ -67,7 +65,7 @@ class EthClientImpl(
     val params = Seq[Any](req.address, req.tag)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[EthGetBalanceResponse](json)
     } yield resp
   }
@@ -77,7 +75,7 @@ class EthClientImpl(
     val params = Seq[Any](req.hash)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetTransactionByHashResponse](json)
     } yield resp
   }
@@ -87,7 +85,7 @@ class EthClientImpl(
     val params = Seq[Any](req.hash)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetTransactionReceiptResponse](json)
     } yield resp
   }
@@ -97,7 +95,7 @@ class EthClientImpl(
     val params = Seq[Any](req.blockNumber, false)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByNumberResponse](json)
     } yield resp
   }
@@ -107,7 +105,7 @@ class EthClientImpl(
     val params = Seq[Any](req.blockNumber, true)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByNumberResponse](json)
     } yield resp
   }
@@ -117,7 +115,7 @@ class EthClientImpl(
     val params = Seq[Any](req.blockHash, false)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByHashResponse](json)
     } yield resp
   }
@@ -127,7 +125,7 @@ class EthClientImpl(
     val params = Seq[Any](req.blockHash, true)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByHashResponse](json)
     } yield resp
   }
@@ -138,26 +136,15 @@ class EthClientImpl(
     val params = Seq[Any](req.txhash, debugParams)
 
     for {
-      json <- handleJsonRpcRequest(method, params)
+      json <- handleRequest(method, params)
       resp = JsonFormat.parser.fromJsonString[TraceTransactionResponse](json)
     } yield resp
   }
 
-  private def handleJsonRpcRequest(method: String, params: Seq[Any]): Future[String] = {
+  private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
     val request = JsonRpcRequest(id, jsonrpcversion, method, params)
     val jsonReq = formatJsonRpcRequest(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
-    handleRequest(entity)
-  }
-
-  //  private def handleJsonDebugRequest(method: String, params: Seq[Any]): Future[String] = {
-  //    val request = JsonDebugRequest(id, method, params)
-  //    val jsonReq = formatJsonDebugRequest(request)
-  //    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
-  //    handleRequest(entity)
-  //  }
-
-  private def handleRequest(entity: RequestEntity): Future[String] = {
     val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
 
     for {
@@ -185,48 +172,31 @@ class EthClientImpl(
         case _ => throw new Exception("JsonRpcRequest expected")
       }
     }
-  }
 
-  //  implicit object JsonDebugFormat extends JsonFormat[JsonDebugRequest] {
-  //    override def write(request: JsonDebugRequest): JsValue = JsObject(Map(
-  //      "id" -> JsString(request.id),
-  //      "method" -> JsString(request.method),
-  //      "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
-  //
-  //    override def read(value: JsValue): JsonDebugRequest = {
-  //      value.asJsObject.getFields("id", "method", "params") match {
-  //        case Seq(JsString(id), JsString(method), JsArray(params)) =>
-  //          JsonDebugRequest(id, method, params)
-  //        case _ => throw new Exception("JsonDebugRequest expected")
-  //      }
-  //    }
-  //  }
+    private def writeAny(src: Any) = src match {
+      case n: Int => JsNumber(n)
+      case s: String => JsString(s)
+      case b: Boolean if b.equals(true) => JsTrue
+      case b: Boolean if b.equals(false) => JsFalse
+      case o: DebugParams => JsObject(Map(
+        "timeout" -> JsString(o.timeout),
+        "tracer" -> JsString(o.tracer)))
+      case _ => JsNull
+    }
 
-  private def writeAny(src: Any) = src match {
-    case n: Int => JsNumber(n)
-    case s: String => JsString(s)
-    case b: Boolean if b.equals(true) => JsTrue
-    case b: Boolean if b.equals(false) => JsFalse
-    case o: DebugParams => JsObject(Map(
-      "timeout" -> JsString(o.timeout),
-      "tracer" -> JsString(o.tracer)))
-    case _ => JsNull
-  }
-
-  private def readAny(value: JsValue) = value match {
-    case JsNumber(n) => n.intValue()
-    case JsString(s) => s
-    case JsTrue => true
-    case JsFalse => false
-    case JsObject(o) => value.asJsObject.getFields("timeout", "tracer") match {
-      case Seq(JsString(timeout), JsString(tracer)) => DebugParams(timeout, tracer)
+    private def readAny(value: JsValue) = value match {
+      case JsNumber(n) => n.intValue()
+      case JsString(s) => s
+      case JsTrue => true
+      case JsFalse => false
+      case JsObject(o) => value.asJsObject.getFields("timeout", "tracer") match {
+        case Seq(JsString(timeout), JsString(tracer)) => DebugParams(timeout, tracer)
+        case _ => null
+      }
       case _ => null
     }
-    case _ => null
   }
 
   def formatJsonRpcRequest(req: JsonRpcRequest): JsValue = req.toJson
   def parseJsonRpcRequest(data: JsValue): JsonRpcRequest = data.convertTo[JsonRpcRequest]
-  //  def formatJsonDebugRequest(req: JsonDebugRequest): JsValue = req.toJson
-  //  def parseJsonDebugRequest(data: JsValue): JsonDebugRequest = data.convertTo[JsonDebugRequest]
 }
