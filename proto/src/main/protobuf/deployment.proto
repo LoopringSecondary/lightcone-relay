@@ -110,6 +110,12 @@ message OrderWriterSettings {
 message OrderManagerSettings {
     repeated string roles = 1;
     int32 instances = 2;
+    repeated string market_ids = 3;
+}
+
+message CommonSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
 }
 
 message MarketConfig {
