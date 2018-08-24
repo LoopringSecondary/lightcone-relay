@@ -42,9 +42,9 @@ class BlockWithTxHashConverter() extends EthDataConverter[rBlock, dBlock] {
       .withTransactions(org.transactions.map(Hash().fromString(_)))
 
     // fields will be null while block pending
-    if (!org.hash.isEmpty) block.withHash(Hash().fromString(org.hash))
-    if (!org.number.isEmpty) block.withNumber(Big().fromString(org.number))
-    if (!org.nonce.isEmpty) block.withNonce(Big().fromString(org.nonce))
+    if (!org.hash.isEmpty) block = block.withHash(Hash().fromString(org.hash))
+    if (!org.number.isEmpty) block = block.withNumber(Big().fromString(org.number))
+    if (!org.nonce.isEmpty) block = block.withNonce(Big().fromString(org.nonce))
 
     block
   }

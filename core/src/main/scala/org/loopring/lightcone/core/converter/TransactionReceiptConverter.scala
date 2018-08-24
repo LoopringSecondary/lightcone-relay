@@ -36,9 +36,9 @@ class TransactionReceiptConverter()(implicit val logConverter: ReceiptLogConvert
       .withTransactionIndex(Big().fromString(org.transactionIndex).Int)
       .withLogs(org.logs.map(x => logConverter.convertDown(x)))
 
-    if (!org.contractAddress.isEmpty) receipt.withContractAddress(Address().fromString(org.contractAddress))
-    if (!org.status.isEmpty) receipt.withStatus(Big().fromString(org.status).Int)
-    if (!org.root.isEmpty) receipt.withRoot(org.root)
+    if (!org.contractAddress.isEmpty) receipt = receipt.withContractAddress(Address().fromString(org.contractAddress))
+    if (!org.status.isEmpty) receipt = receipt.withStatus(Big().fromString(org.status).Int)
+    if (!org.root.isEmpty) receipt = receipt.withRoot(org.root)
 
     receipt
   }
