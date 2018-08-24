@@ -21,22 +21,22 @@ import org.loopring.lightcone.proto.eth._
 package object core {
 
   implicit class RichHex(src: Hex) {
-    def fromString(str: String) = src.copy(content = str)
+    def fromString(str: String) = src.withContent(str)
     def Hex() = src.content
   }
 
   implicit class RichAddress(src: Address) {
-    def fromString(str: String) = src.copy(content = str)
+    def fromString(str: String) = src.withContent(str)
     def Hex() = src.content
   }
 
   implicit class RichHash(src: Hash) {
-    def fromString(str: String) = src.copy(content = str)
+    def fromString(str: String) = src.withContent(str)
     def Hex() = src.content
   }
 
   implicit class RichBig(src: Big) {
-    def fromString(str: String) = src.copy(content = str)
+    def fromString(str: String) = src.withContent(str)
     def String = BigNumber.toString()
     def BigNumber = BigInt(Hex, 16)
     def Int = BigNumber.intValue()
