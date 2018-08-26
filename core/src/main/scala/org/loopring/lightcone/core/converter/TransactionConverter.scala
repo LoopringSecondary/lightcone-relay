@@ -16,25 +16,26 @@
 
 package org.loopring.lightcone.core.converter
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ Transaction => rTransaction }
-import org.loopring.lightcone.proto.eth.{ Transaction => dTransaction, Hash, Big, Hex, Address }
+import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
+import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
-class TransactionConverter extends EthDataConverter[rTransaction, dTransaction] {
+class TransactionConverter
+  extends EthDataConverter[ethj.Transaction, Transaction] {
 
-  def convertDown(org: rTransaction) = dTransaction()
-    .withHash(Hash().fromString(org.hash))
-    .withNonce(Big().fromString(org.nonce))
-    .withBlockHash(Hash().fromString(org.blockHash))
-    .withBlockNumber(Big().fromString(org.blockNumber))
-    .withTransactionIndex(Big().fromString(org.transactionIndex))
-    .withFrom(Address().fromString(org.from))
-    .withTo(Address().fromString(org.to))
-    .withValue(Big().fromString(org.value))
-    .withGas(Big().fromString(org.gas))
-    .withGasPrice(Big().fromString(org.gasPrice))
-    .withInput(Hex().fromString(org.input))
-    .withV(Hex().fromString(org.v))
-    .withR(Hex().fromString(org.r))
-    .withS(Hex().fromString(org.s))
+  def convertDown(org: ethj.Transaction) = Transaction()
+    .withHash(Hash(org.hash))
+    .withNonce(Big(org.nonce))
+    .withBlockHash(Hash(org.blockHash))
+    .withBlockNumber(Big(org.blockNumber))
+    .withTransactionIndex(Big(org.transactionIndex))
+    .withFrom(Address(org.from))
+    .withTo(Address(org.to))
+    .withValue(Big(org.value))
+    .withGas(Big(org.gas))
+    .withGasPrice(Big(org.gasPrice))
+    .withInput(Hex(org.input))
+    .withV(Hex(org.v))
+    .withR(Hex(org.r))
+    .withS(Hex(org.s))
 }

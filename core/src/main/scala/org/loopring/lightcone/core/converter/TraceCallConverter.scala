@@ -16,18 +16,19 @@
 
 package org.loopring.lightcone.core.converter
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceCall => rCall }
-import org.loopring.lightcone.proto.eth.{ TraceCall => dCall, Hash, Big, Hex, Address }
+import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
+import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
-class TraceCallConverter extends EthDataConverter[rCall, dCall] {
+class TraceCallConverter
+  extends EthDataConverter[ethj.TraceCall, TraceCall] {
 
-  def convertDown(org: rCall) = dCall()
-    .withFrom(Address().fromString(org.from))
-    .withTo(Address().fromString(org.to))
-    .withInput(Hex().fromString(org.input))
-    .withOutput(Hex().fromString(org.output))
-    .withGasUsed(Big().fromString(org.gasUsed))
-    .withValue(Big().fromString(org.value))
+  def convertDown(org: ethj.TraceCall) = TraceCall()
+    .withFrom(Address(org.from))
+    .withTo(Address(org.to))
+    .withInput(Hex(org.input))
+    .withOutput(Hex(org.output))
+    .withGasUsed(Big(org.gasUsed))
+    .withValue(Big(org.value))
     .withType(org.`type`)
 }
