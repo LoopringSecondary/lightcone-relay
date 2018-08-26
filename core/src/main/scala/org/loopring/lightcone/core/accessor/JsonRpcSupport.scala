@@ -23,18 +23,10 @@ import akka.stream.ActorMaterializer
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.lib.solidity.Abi
-import org.spongycastle.util.encoders.Hex
-
-import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scala.concurrent._
 import scalapb.json4s.JsonFormat
-import spray.json._
-import DefaultJsonProtocol._
-
-case class JsonRpcRequest(
-  id: Int,
-  jsonrpc: String,
-  method: String,
-  params: Seq[Any])
+import org.json4s._
+import org.json4s.native.Serialization
 
 trait JsonRpcSupport {
   implicit val system: ActorSystem
@@ -50,9 +42,8 @@ trait JsonRpcSupport {
   val DEBUG_TIMEOUT_STR = "5s"
   val DEBUG_TRACER = "callTracer"
   val ETH_CALL = "eth_call"
-  val post = HttpMethods.POST
 
-  implicit val format = JsonRpcRequestFormat
+  implicit val formats = Serialization.formats(NoTypeHints)
 
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(
@@ -60,9 +51,9 @@ trait JsonRpcSupport {
     implicit
     c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
     val request = JsonRpcRequest(id, JSON_RPC_VERSION, method, params)
-    val jsonReq = formatJsonRpcRequest(request)
+    val jsonReq = Serialization.write(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
-    val httpReq = HttpRequest.apply(method = post, uri = uri, entity = entity)
+    val httpReq = HttpRequest.apply(method = HttpMethods.POST, uri = uri, entity = entity)
 
     for {
       httpRes <- Http().singleRequest(httpReq)
@@ -75,9 +66,4 @@ trait JsonRpcSupport {
     val method: Predicate[Abi.Function] = (x) => x.name.equals(name)
     erc20Abi.findFunction(method)
   }
-
-  def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
-
-  def formatJsonRpcRequest(req: JsonRpcRequest): JsValue = req.toJson
-  def parseJsonRpcRequest(data: JsValue): JsonRpcRequest = data.convertTo[JsonRpcRequest]
 }

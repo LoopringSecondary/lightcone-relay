@@ -24,8 +24,7 @@ object Dependencies {
     "org.json4s" %% "json4s-native" % json4sVersion,
     "org.json4s" %% "json4s-jackson" % json4sVersion,
     "org.json4s" %% "json4s-ext" % json4sVersion,
-    "org.scalatest" %% "scalatest" % "3.0.0" % Test,
-    "io.spray" %% "spray-json" % "1.3.4")
+    "org.scalatest" %% "scalatest" % "3.0.0" % Test)
 
   lazy val ethereumDependency = Seq(
     "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")
