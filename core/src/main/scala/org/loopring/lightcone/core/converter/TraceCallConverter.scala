@@ -21,9 +21,9 @@ import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
 class TraceCallConverter
-  extends EthDataConverter[ethj.TraceCall, TraceCall] {
+  extends Converter[ethj.TraceCall, TraceCall] {
 
-  def convertDown(org: ethj.TraceCall) = TraceCall()
+  def convert(org: ethj.TraceCall) = TraceCall()
     .withFrom(Address(org.from))
     .withTo(Address(org.to))
     .withInput(Hex(org.input))

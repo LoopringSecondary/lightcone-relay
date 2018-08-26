@@ -23,10 +23,10 @@ import org.loopring.lightcone.core._
 class TransactionReceiptConverter()(
   implicit
   val logConverter: ReceiptLogConverter)
-  extends EthDataConverter[ethj.TransactionReceipt, TransactionReceipt] {
+  extends Converter[ethj.TransactionReceipt, TransactionReceipt] {
 
   // todo(fukun): 拜占庭分叉前status默认为0
-  def convertDown(org: ethj.TransactionReceipt): TransactionReceipt = {
+  def convert(org: ethj.TransactionReceipt): TransactionReceipt = {
     var receipt = TransactionReceipt()
       .withBlockHash(Hash(org.blockHash))
       .withBlockNumber(Big(org.blockNumber))
@@ -37,7 +37,7 @@ class TransactionReceiptConverter()(
       .withTo(Address(org.to))
       .withTransactionHash(Hash(org.transactionHash))
       .withTransactionIndex(Big(org.transactionIndex).getIntValue)
-      .withLogs(org.logs.map(logConverter.convertDown))
+      .withLogs(org.logs.map(logConverter.convert))
 
     if (!org.contractAddress.isEmpty)
 

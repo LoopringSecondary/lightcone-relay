@@ -21,9 +21,9 @@ import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
 class BlockWithTxHashConverter()
-  extends EthDataConverter[ethj.BlockWithTxHash, BlockWithTxHash] {
+  extends Converter[ethj.BlockWithTxHash, BlockWithTxHash] {
 
-  def convertDown(org: ethj.BlockWithTxHash): BlockWithTxHash = {
+  def convert(org: ethj.BlockWithTxHash): BlockWithTxHash = {
     var block = BlockWithTxHash()
       .withParentHash(Hash(org.parentHash))
       .withSha3Uncles(org.sha3Uncles)

@@ -21,9 +21,9 @@ import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
 class TransactionConverter
-  extends EthDataConverter[ethj.Transaction, Transaction] {
+  extends Converter[ethj.Transaction, Transaction] {
 
-  def convertDown(org: ethj.Transaction) = Transaction()
+  def convert(org: ethj.Transaction) = Transaction()
     .withHash(Hash(org.hash))
     .withNonce(Big(org.nonce))
     .withBlockHash(Hash(org.blockHash))

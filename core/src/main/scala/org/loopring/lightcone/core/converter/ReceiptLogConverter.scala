@@ -21,9 +21,9 @@ import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
 class ReceiptLogConverter
-  extends EthDataConverter[ethj.Log, Log] {
+  extends Converter[ethj.Log, Log] {
 
-  def convertDown(org: ethj.Log) = Log()
+  def convert(org: ethj.Log) = Log()
     .withLogIndex(Big(org.logIndex).getIntValue)
     .withBlockNumber(Big(org.blockNumber))
     .withBlockHash(Hash(org.blockHash))

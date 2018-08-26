@@ -23,9 +23,9 @@ import org.loopring.lightcone.core._
 class BlockWithTxObjectConverter()(
   implicit
   val transactionConverter: TransactionConverter)
-  extends EthDataConverter[ethj.BlockWithTxObject, BlockWithTxObject] {
+  extends Converter[ethj.BlockWithTxObject, BlockWithTxObject] {
 
-  def convertDown(org: ethj.BlockWithTxObject): BlockWithTxObject = {
+  def convert(org: ethj.BlockWithTxObject): BlockWithTxObject = {
     var block = BlockWithTxObject()
       .withParentHash(Hash(org.parentHash))
       .withSha3Uncles(org.sha3Uncles)
@@ -42,7 +42,7 @@ class BlockWithTxObjectConverter()(
       .withGasUsed(Big(org.gasUsed))
       .withTimestamp(Big(org.timestamp))
       .withUncles(org.uncles.map(Hash(_)))
-      .withTransactions(org.transactions.map(transactionConverter.convertDown))
+      .withTransactions(org.transactions.map(transactionConverter.convert))
 
     // fields will be null while block pending
     if (!org.hash.isEmpty) block = block.withHash(Hash(org.hash))
