@@ -20,32 +20,20 @@ import org.loopring.lightcone.proto.eth._
 
 package object core {
 
-  implicit class RichHex(src: Hex) {
-    def fromString(str: String) = src.withContent(str)
-    def Hex() = src.content
-  }
+  implicit class RichBig(big: Big) {
+    def fromString(str: String) = big.withContent(str)
 
-  implicit class RichAddress(src: Address) {
-    def fromString(str: String) = src.withContent(str)
-    def Hex() = src.content
-  }
+    def toBigInt = BigInt(getHexString, 16)
 
-  implicit class RichHash(src: Hash) {
-    def fromString(str: String) = src.withContent(str)
-    def Hex() = src.content
-  }
+    def getBitIntString = toBigInt.toString()
 
-  implicit class RichBig(src: Big) {
-    def fromString(str: String) = src.withContent(str)
-    def String = BigNumber.toString()
-    def BigNumber = BigInt(Hex, 16)
-    def Int = BigNumber.intValue()
+    def getIntValue = toBigInt.intValue()
 
-    def Hex = {
-      if (src.content.startsWith("0x")) {
-        src.content.substring(2)
+    def getHexString = {
+      if (big.content.startsWith("0x")) {
+        big.content.substring(2)
       } else {
-        src.content
+        big.content
       }
     }
   }

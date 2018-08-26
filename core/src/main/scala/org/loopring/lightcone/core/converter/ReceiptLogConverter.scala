@@ -16,20 +16,21 @@
 
 package org.loopring.lightcone.core.converter
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ Log => rLog }
-import org.loopring.lightcone.proto.eth.{ Log => dLog, Hash, Big, Hex, Address }
+import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
+import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
-class ReceiptLogConverter extends EthDataConverter[rLog, dLog] {
+class ReceiptLogConverter
+  extends Converter[ethj.Log, Log] {
 
-  def convertDown(org: rLog) = dLog()
-    .withLogIndex(Big().fromString(org.logIndex).Int)
-    .withBlockNumber(Big().fromString(org.blockNumber))
-    .withBlockHash(Hash().fromString(org.blockHash))
-    .withTransactionHash(Hash().fromString(org.transactionHash))
-    .withTransactionIndex(Big().fromString(org.transactionIndex).Int)
-    .withAddress(Address().fromString(org.address))
-    .withData(Hex().fromString(org.data))
+  def convert(org: ethj.Log) = Log()
+    .withLogIndex(Big(org.logIndex).getIntValue)
+    .withBlockNumber(Big(org.blockNumber))
+    .withBlockHash(Hash(org.blockHash))
+    .withTransactionHash(Hash(org.transactionHash))
+    .withTransactionIndex(Big(org.transactionIndex).getIntValue)
+    .withAddress(Address(org.address))
+    .withData(Hex(org.data))
     .withRemoved(org.removed)
-    .withTopics(org.topics.map(Hex().fromString(_)))
+    .withTopics(org.topics.map(Hex(_)))
 }
