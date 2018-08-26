@@ -268,11 +268,11 @@ message GetAllowanceRes {
 }
 
 // eth_estimateGas
-message EstimateGasReq {
+message GetEstimatedGasReq {
 
 }
 
-message EstimateGasRes {
+message GetEstimatedGasRes {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;

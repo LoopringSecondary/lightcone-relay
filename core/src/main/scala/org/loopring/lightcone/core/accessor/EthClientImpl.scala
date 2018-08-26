@@ -47,8 +47,6 @@ class EthClientImpl(
 
   val uri = s"http://${config.host}:${config.port.toString}"
 
-  // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
-
   // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =
     httpGet[EthGetBalanceRes]("eth_getBalance") {
@@ -107,4 +105,9 @@ class EthClientImpl(
       val args = CallArgs().withTo(req.token).withData(data)
       Seq[Any](args, req.tag)
     }
+
+  // def getEstimatedGas() = ???
+
+  // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
+
 }
