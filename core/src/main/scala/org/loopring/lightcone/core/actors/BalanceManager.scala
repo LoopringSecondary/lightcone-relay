@@ -17,19 +17,13 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
-import org.loopring.lightcone.proto.deployment._
 import akka.pattern.ask
-
-import scala.concurrent.duration._
 import akka.util.Timeout
-import org.loopring.lightcone.data.deployment.BalanceManagerSettings
-import org.loopring.lightcone.proto.Balance
-import org.loopring.lightcone.proto.balance.{ GetAddressBalanceInfoReq, GetAddressBalanceInfoRes }
+import org.loopring.lightcone.core.routing.Routers
+import org.loopring.lightcone.proto.balance.{ BalanceInfo, GetBalanceInfo }
+import org.loopring.lightcone.proto.cache.CacheBalanceInfo
+import org.loopring.lightcone.proto.common.ErrorResp
+import org.loopring.lightcone.proto.deployment._
 
 import scala.concurrent.Future
 
@@ -40,26 +34,34 @@ object BalanceManager
 
   def props = Props(classOf[BalanceManager])
   def getCommon(s: BalanceManagerSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(s.id, s.roles, s.instances)
 }
 
 class BalanceManager()(implicit timeout: Timeout) extends Actor {
   import context.dispatcher
-
-  lazy val balanceCacher = Routers.balanceCacher
+  var id = ""
 
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
+      id = settings.id
 
-    case getAddressBalanceInfo: GetAddressBalanceInfoReq => for {
-      balanceInfo <- balanceCacher ? getAddressBalanceInfo
-      _ <- balanceInfo match {
-        case res: GetAddressBalanceInfoRes => Future {}
+    case getBalanceInfo: GetBalanceInfo => for {
+      res <- Routers.balanceCacher ? getBalanceInfo
+      info <- res match {
+        case err: ErrorResp => for {
+          ethRes <- Routers.ethereumAccessor ? getBalanceInfo
+        } yield {
+          ethRes match {
+            case err: ErrorResp => err
+            case info: BalanceInfo =>
+              Routers.balanceCacher ! CacheBalanceInfo()
+              info
+          }
+        }
+
+        case info: BalanceInfo =>
+          Future.successful(info)
       }
-    } yield {
-      sender() ! GetAddressBalanceInfoRes()
-    }
-
-    case _ =>
+    } yield info
   }
 }

@@ -17,11 +17,9 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import org.loopring.lightcone.proto.balance.{ GetAllowancesReq, GetBalancesReq }
 import org.loopring.lightcone.proto.deployment._
 
 object BalanceReader
@@ -35,9 +33,12 @@ object BalanceReader
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class BalanceReader() extends Actor {
+class BalanceReader()(implicit timeout: Timeout) extends Actor {
+
   def receive: Receive = {
     case settings: BalanceReaderSettings =>
-    case _ =>
+
+    case req @ (GetBalancesReq(_, _) | GetAllowancesReq(_, _, _)) =>
+      Routers.balanceManager forward req
   }
 }

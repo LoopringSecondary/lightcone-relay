@@ -4,6 +4,47 @@ option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
+message GetBalancesReq {
+    bytes Owner = 1;
+    repeated bytes Tokens = 2;
+}
 
-message GetAddressBalanceInfo {}
-message AddressBalanceInfo {}
+message GetBalancesResp {
+    bytes Owner = 1;
+    repeated TokenAmount Balances = 2;
+}
+
+message GetAllowancesReq {
+    bytes Owner = 1;
+    repeated bytes Tokens = 2;
+    repeated bytes DelegateAddress = 3;
+}
+
+message GetAllowancesResp {
+    bytes Owner = 1;
+    repeated Allowance Allowances = 2;
+}
+
+message GetBalanceInfo {
+    bytes Owner = 1;
+    repeated bytes Tokens = 2;
+    repeated bytes DelegateAddress = 3;
+}
+
+message TokenAmount {
+    bytes Token = 1;
+    bytes Amount = 2;
+}
+
+message Allowance {
+    bytes DelegateAddress = 1;
+    repeated TokenAmount TokenAmounts = 2;
+}
+
+message BalanceInfo {
+    bytes Owner = 1;
+    repeated TokenAmount Balances = 2;
+    repeated Allowance Allowances = 3;
+}
+
+
