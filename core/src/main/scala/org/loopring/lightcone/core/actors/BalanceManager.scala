@@ -59,7 +59,6 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
               info
           }
         }
-
         case infoFromCache: BalanceInfoFromCache => processInfoFromCache(infoFromCache)
       }
     } yield info
