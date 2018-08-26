@@ -101,9 +101,9 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
 
   def mergeResp(cachedRes: Any, uncachedRes: Any) = (cachedRes, uncachedRes) match {
     case (None, None) =>
-    case (res1: GetBalancesResp, res2: GetBalancesResp) => GetBalancesResp()
-    case (res1: GetAllowancesResp, res2: GetAllowancesResp) => GetAllowancesResp()
-    case (res1: GetBalanceAndAllowanceResp, res2: GetBalanceAndAllowanceResp) => GetBalanceAndAllowanceResp()
-    case _ =>
+    case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) => GetBalancesResp()
+    case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) => GetAllowancesResp()
+    case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) => GetBalanceAndAllowanceResp()
+    case (_, Some(errorResp: ErrorResp)) => errorResp
   }
 }
