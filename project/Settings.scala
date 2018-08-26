@@ -11,6 +11,7 @@ object Settings {
     autoScalaLibrary := false,
     resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
     resolvers += "JFrog" at "https://oss.jfrog.org/libs-release/",
+    resolvers += "bintray" at "https://dl.bintray.com/ethereum/maven/",
     resolvers += Resolver.bintrayRepo("hseeberger", "maven"),
     javacOptions := Seq( //"-source", Globals.jvmVersion,
     ),

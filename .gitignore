@@ -9,3 +9,4 @@ project/project/
 .gradle/
 .idea/
 lib.iml
+logs
