@@ -25,38 +25,32 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.core.actors._
 
-object Routers {
+object Routers extends RouterMap {
   // // Router for management actors
-  def clusterManager = routers(ClusterManager.name)("")
+  def clusterManager = getRouterNamed(ClusterManager.name)
 
   // // Router for service actors
-  def ethereumAccessor = routers(EthereumAccessor.name)("")
-  def cacheObsoleter = routers(CacheObsoleter.name)("")
-  def blockchainEventExtractor = routers(BlockchainEventExtractor.name)("")
+  def ethereumAccessor = getRouterNamed(EthereumAccessor.name)
+  def cacheObsoleter = getRouterNamed(CacheObsoleter.name)
+  def blockchainEventExtractor = getRouterNamed(BlockchainEventExtractor.name)
 
-  def balanceCacher = routers(BalanceCacher.name)("")
-  def balanceManager = routers(BalanceManager.name)("")
-  def orderCacher = routers(OrderCacher.name)("")
-  def orderReadCoordinator = routers(OrderReadCoordinator.name)("")
-  def orderUpdateCoordinator = routers(OrderUpdateCoordinator.name)("")
-  def orderUpdater = routers(OrderUpdater.name)("")
+  def balanceCacher = getRouterNamed(BalanceCacher.name)
+  def balanceManager = getRouterNamed(BalanceManager.name)
+  def orderCacher = getRouterNamed(OrderCacher.name)
+  def orderReadCoordinator = getRouterNamed(OrderReadCoordinator.name)
+  def orderUpdateCoordinator = getRouterNamed(OrderUpdateCoordinator.name)
+  def orderUpdater = getRouterNamed(OrderUpdater.name)
 
-  def balanceReader = routers(BalanceReader.name)("")
-  def orderReader = routers(OrderReader.name)("")
-  def orderWriter = routers(OrderWriter.name)("")
+  def balanceReader = getRouterNamed(BalanceReader.name)
+  def orderReader = getRouterNamed(OrderReader.name)
+  def orderWriter = getRouterNamed(OrderWriter.name)
 
-  def orderAccessor = routers(OrderAccessor.name)("")
-  def orderDBAccessor = routers(OrderDBAccessor.name)("")
-  def orderManager = routers(OrderManager.name)("")
+  def orderAccessor = getRouterNamed(OrderAccessor.name)
+  def orderDBAccessor = getRouterNamed(OrderDBAccessor.name)
+  def orderManager = getRouterNamed(OrderManager.name)
 
-  def ringFinder(id: String) = routers(RingFinder.name)(id)
-  def orderBookManager(id: String) = routers(OrderBookManager.name)(id)
-  def orderBookReader(id: String) = routers(OrderBookReader.name)(id)
-  def ringMiner(address: String) = routers(RingMiner.name)(address)
-
-  private var routers: Map[String, Map[String, ActorRef]] = Map.empty
-
-  def setRouters(name: String, routerMap: Map[String, ActorRef]) {
-    routers = routers + (name -> routerMap)
-  }
+  def ringFinder(id: String) = getRouterNamed(RingFinder.name, id)
+  def orderBookManager(id: String) = getRouterNamed(OrderBookManager.name, id)
+  def orderBookReader(id: String) = getRouterNamed(OrderBookReader.name, id)
+  def ringMiner(address: String) = getRouterNamed(RingMiner.name, address)
 }
