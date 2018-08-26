@@ -54,7 +54,7 @@ trait JsonRpcSupport {
 
   implicit val format = JsonRpcRequestFormat
 
-  def httpGet[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
+  def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(
     params: Seq[Any])(
     implicit

@@ -42,55 +42,56 @@ case class DebugParams(
 class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
-    implicit val system: ActorSystem)
+  implicit
+  val system: ActorSystem)
   extends EthClient with JsonRpcSupport {
 
   val uri = s"http://${config.host}:${config.port}"
 
   // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =
-    httpGet[EthGetBalanceRes]("eth_getBalance") {
+    httpPost[EthGetBalanceRes]("eth_getBalance") {
       Seq(req.address, req.tag)
     }
 
   def getTransactionByHash(req: GetTransactionByHashReq) =
-    httpGet[GetTransactionByHashRes]("eth_getTransactionByHash") {
+    httpPost[GetTransactionByHashRes]("eth_getTransactionByHash") {
       Seq(req.hash)
     }
 
   def getTransactionReceipt(req: GetTransactionReceiptReq) =
-    httpGet[GetTransactionReceiptRes]("eth_getBlockByNumber") {
+    httpPost[GetTransactionReceiptRes]("eth_getBlockByNumber") {
       Seq(req.hash)
     }
 
   def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
-    httpGet[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
+    httpPost[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
       Seq(req.blockNumber, true)
     }
 
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
-    httpGet[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
+    httpPost[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
       Seq(req.blockNumber, true)
     }
 
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
-    httpGet[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
+    httpPost[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
       Seq(req.blockHash, true)
     }
 
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
-    httpGet[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
+    httpPost[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
       Seq(req.blockHash, true)
     }
 
   def traceTransaction(req: TraceTransactionReq) =
-    httpGet[TraceTransactionRes]("debug_traceTransaction") {
+    httpPost[TraceTransactionRes]("debug_traceTransaction") {
       val debugParams = DebugParams(DEBUG_TIMEOUT_STR, DEBUG_TRACER)
       Seq(req.txhash, debugParams)
     }
 
   def getBalance(req: GetBalanceReq) =
-    httpGet[GetBalanceRes](ETH_CALL) {
+    httpPost[GetBalanceRes](ETH_CALL) {
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
       val args = CallArgs().withTo(req.token).withData(data)
@@ -98,7 +99,7 @@ class EthClientImpl(
     }
 
   def getAllowance(req: GetAllowanceReq) =
-    httpGet[GetAllowanceRes](ETH_CALL) {
+    httpPost[GetAllowanceRes](ETH_CALL) {
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
       val args = CallArgs().withTo(req.token).withData(data)
