@@ -63,6 +63,7 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
         case infoFromCache: BalanceInfoFromCache => processInfoFromCache(infoFromCache)
       }
     } yield info
+
   }
 
   def processInfoFromCache(infoFromCache: BalanceInfoFromCache) = for {

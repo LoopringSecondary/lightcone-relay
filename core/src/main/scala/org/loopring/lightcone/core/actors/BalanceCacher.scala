@@ -33,19 +33,21 @@ object BalanceCacher
 }
 
 class BalanceCacher extends Actor {
+
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
 
     case m: GetBalancesReq =>
-      sender() ! GetBalancesResp()
+      sender() ! BalanceInfoFromCache().withGetBalancesResp(GetBalancesResp())
 
     case m: GetAllowancesReq =>
-      sender() ! GetAllowancesResp()
+      sender() ! BalanceInfoFromCache().withGetAllowancesResp(GetAllowancesResp())
 
     case m: GetBalanceAndAllowanceReq =>
-      sender() ! GetBalanceAndAllowanceResp()
+      sender() ! BalanceInfoFromCache().withGetBalanceAndAllowanceResp(GetBalanceAndAllowanceResp())
 
     case m: CacheBalanceInfo =>
       sender() ! CachedBalanceInfo()
+
   }
 }
