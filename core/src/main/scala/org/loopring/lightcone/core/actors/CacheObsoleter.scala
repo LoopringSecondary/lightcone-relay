@@ -18,11 +18,18 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.cluster._
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import akka.routing._
 import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
+import org.loopring.lightcone.core.actors.base.RepeatedJobActor
+import org.loopring.lightcone.proto.block_chain_event.{AddressBalanceChanged, Cutoff, HeartBeat}
+import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
+
+import scala.concurrent.Future
 
 object CacheObsoleter
   extends base.Deployable[CacheObsoleterSettings] {
@@ -35,9 +42,30 @@ object CacheObsoleter
     base.CommonSettings("", s.roles, 1)
 }
 
-class CacheObsoleter() extends Actor {
-  def receive: Receive = {
+class CacheObsoleter() extends RepeatedJobActor {
+  import context.dispatcher
+  var deadtime = 0l
+  var lastHeartBeatTime = 0l
+  val mediator = DistributedPubSub(context.system).mediator
+
+  override def receive: Receive = super.receive orElse {
     case settings: CacheObsoleterSettings =>
-    case _ =>
+      deadtime = settings.deadTime
+      initAndStartNextRound(settings.deadTime)
+
+    case ht: HeartBeat =>
+      lastHeartBeatTime = System.currentTimeMillis
+
+    case balanceChanged: AddressBalanceChanged =>
+      mediator ! Publish("cache_obsoleter", PurgeBalance(owner = balanceChanged.owner))
+    case cutoff: Cutoff =>
+      mediator ! Publish("cache_obsoleter", PurgeAllOrderForAddress())
+  }
+
+  override def handleRepeatedJob() = for {
+    deadtime1 <- Future.successful(System.currentTimeMillis - lastHeartBeatTime)
+  } yield {
+    if (deadtime1 > deadtime)
+      mediator ! Publish("cache_obsoleter", PurgeAll())
   }
 }

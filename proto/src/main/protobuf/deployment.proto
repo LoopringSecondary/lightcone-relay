@@ -50,6 +50,7 @@ message BlockchainEventExtractorSettings {
 
 message CacheObsoleterSettings {
     repeated string roles = 1;
+    int32 deadTime = 2;
 }
 
 message EthereumAccessorSettings {

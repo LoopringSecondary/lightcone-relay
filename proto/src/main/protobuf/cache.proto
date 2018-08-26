@@ -6,9 +6,25 @@ package com.loopring.lightcone.proto;
 
 import "balance.proto";
 
-message PurgeTokenBalancesForAddresses {}
-message PurgeAllOrdersAddresses {}
-message PurgeEverything {}
+message PurgeBalance {
+    bytes Owner = 1;
+}
+message PurgeOrder {
+    bytes OrderHash = 1;
+}
+message PurgeAllOrderForAddress {
+    bytes Owner = 1;
+    string Market = 2;
+    int32 Cutoff = 3;
+}
+message PurgeAllForAddresses {
+    bytes Owner = 1;
+}
+message PurgeAllAfterBlock {
+    bytes BlockNumber = 1;
+}
+message PurgeAll {}
+
 
 message GetOrdersFromCache {}
 message CachedMultiOrders {}
