@@ -17,8 +17,10 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import org.loopring.lightcone.proto.balance._
-import org.loopring.lightcone.proto.cache.{ CacheBalanceInfo, CachedBalanceInfo }
+import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 
 object BalanceCacher
@@ -34,20 +36,35 @@ object BalanceCacher
 
 class BalanceCacher extends Actor {
 
+  DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
+
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
 
     case m: GetBalancesReq =>
-      sender() ! BalanceInfoFromCache().withGetBalancesResp(GetBalancesResp())
+      val infoFromCache = BalanceInfoFromCache()
+        .withGetBalancesResp(GetBalancesResp())
+      sender() ! infoFromCache
 
     case m: GetAllowancesReq =>
-      sender() ! BalanceInfoFromCache().withGetAllowancesResp(GetAllowancesResp())
+      val infoFromCache = BalanceInfoFromCache()
+        .withGetAllowancesResp(GetAllowancesResp())
+      sender() ! infoFromCache
 
     case m: GetBalanceAndAllowanceReq =>
-      sender() ! BalanceInfoFromCache().withGetBalanceAndAllowanceResp(GetBalanceAndAllowanceResp())
+      val infoFromCache = BalanceInfoFromCache()
+        .withGetBalanceAndAllowanceResp(GetBalanceAndAllowanceResp())
+      sender() ! infoFromCache
 
     case m: CacheBalanceInfo =>
       sender() ! CachedBalanceInfo()
 
+    case purgeEvent: PurgeBalance =>
+
+    case purgeEvent: PurgeAllForAddresses =>
+
+    case purgeEvent: PurgeAllAfterBlock =>
+
+    case purgeEvent: PurgeAll =>
   }
 }

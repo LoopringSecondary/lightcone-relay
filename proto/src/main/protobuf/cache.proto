@@ -8,6 +8,12 @@ import "balance.proto";
 
 message PurgeBalance {
     bytes Owner = 1;
+    bytes Token = 2;
+}
+message PurgeAllowance {
+    bytes Owner = 1;
+    bytes Token = 2;
+    bytes DelegateAddress = 3;
 }
 message PurgeOrder {
     bytes OrderHash = 1;
@@ -18,7 +24,7 @@ message PurgeAllOrderForAddress {
     int32 Cutoff = 3;
 }
 message PurgeAllForAddresses {
-    bytes Owner = 1;
+    repeated bytes Addresses = 1;
 }
 message PurgeAllAfterBlock {
     bytes BlockNumber = 1;

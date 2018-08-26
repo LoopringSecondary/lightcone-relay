@@ -17,15 +17,10 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
-import org.loopring.lightcone.proto.block_chain_event.{AddressBalanceChanged, Cutoff, HeartBeat}
+import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 
@@ -36,13 +31,13 @@ object CacheObsoleter
   val name = "cache_obsoleter"
   val isSingleton = true
 
-  def props = Props(classOf[CacheObsoleter])
+  def props = Props(classOf[CacheObsoleter], name)
 
   def getCommon(s: CacheObsoleterSettings) =
     base.CommonSettings("", s.roles, 1)
 }
 
-class CacheObsoleter() extends RepeatedJobActor {
+class CacheObsoleter(name: String) extends RepeatedJobActor {
   import context.dispatcher
   var deadtime = 0l
   var lastHeartBeatTime = 0l
@@ -53,19 +48,49 @@ class CacheObsoleter() extends RepeatedJobActor {
       deadtime = settings.deadTime
       initAndStartNextRound(settings.deadTime)
 
+    case balanceChanged: AddressBalanceChanged =>
+      mediator ! Publish(name, PurgeBalance(owner = balanceChanged.owner))
+
+    case cutoff: Cutoff =>
+      val event = PurgeAllOrderForAddress()
+          .withOwner(cutoff.owner)
+          .withCutoff(cutoff.cutoff)
+      mediator ! Publish(name, event)
+
+    case cutoffPair:CutoffPair =>
+      val event = PurgeAllOrderForAddress()
+        .withOwner(cutoffPair.owner)
+        .withCutoff(cutoffPair.cutoff)
+        .withMarket(cutoffPair.market)
+      mediator ! Publish(name, event)
+
+    case forkEvent:ChainRolledBack =>
+      val event = PurgeAllAfterBlock()
+        .withBlockNumber(forkEvent.forkBlockNumber)
+      mediator ! Publish(name, event)
+
+    case orderCalceled:OrderCancelled =>
+      val event = PurgeOrder()
+        .withOrderHash(orderCalceled.orderhash)
+      mediator ! Publish(name, event)
+
+    case ringMined:RingMined =>
+      ringMined.fills foreach {
+        filled =>
+          val event = PurgeOrder()
+            .withOrderHash(filled.orderhash)
+          mediator ! Publish(name, event)
+      }
+
     case ht: HeartBeat =>
       lastHeartBeatTime = System.currentTimeMillis
 
-    case balanceChanged: AddressBalanceChanged =>
-      mediator ! Publish("cache_obsoleter", PurgeBalance(owner = balanceChanged.owner))
-    case cutoff: Cutoff =>
-      mediator ! Publish("cache_obsoleter", PurgeAllOrderForAddress())
   }
 
   override def handleRepeatedJob() = for {
     deadtime1 <- Future.successful(System.currentTimeMillis - lastHeartBeatTime)
   } yield {
     if (deadtime1 > deadtime)
-      mediator ! Publish("cache_obsoleter", PurgeAll())
+      mediator ! Publish(name, PurgeAll())
   }
 }

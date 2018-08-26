@@ -17,11 +17,9 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 
 object OrderCacher
@@ -36,8 +34,21 @@ object OrderCacher
 }
 
 class OrderCacher() extends Actor {
+  DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
+
   def receive: Receive = {
     case settings: OrderCacherSettings =>
+
+    case purgeEvent: PurgeOrder =>
+
+    case purgeEvent: PurgeAllOrderForAddress =>
+
+    case purgeEvent: PurgeAllForAddresses =>
+
+    case purgeEvent: PurgeAllAfterBlock =>
+
+    case purgeEvent: PurgeAll =>
+
     case _ =>
   }
 }
