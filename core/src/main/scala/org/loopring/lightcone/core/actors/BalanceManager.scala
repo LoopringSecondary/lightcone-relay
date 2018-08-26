@@ -31,7 +31,7 @@ import scala.concurrent.Future
 object BalanceManager
   extends base.Deployable[BalanceManagerSettings] {
   val name = "balance_manager"
-  val isSingleton = false
+  val isSingleton = true
 
   def props = Props(classOf[BalanceManager])
   def getCommon(s: BalanceManagerSettings) =
