@@ -43,50 +43,51 @@ class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
   implicit
-  val system: ActorSystem) extends EthClient with JsonRpcSupport {
+  val system: ActorSystem)
+  extends EthClient with JsonRpcSupport {
 
   val uri = s"http://${config.host}:${config.port.toString}"
 
   // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =
     httpGet[EthGetBalanceRes]("eth_getBalance") {
-      Seq[Any](req.address, req.tag)
+      Seq(req.address, req.tag)
     }
 
   def getTransactionByHash(req: GetTransactionByHashReq) =
     httpGet[GetTransactionByHashRes]("eth_getTransactionByHash") {
-      Seq[Any](req.hash)
+      Seq(req.hash)
     }
 
   def getTransactionReceipt(req: GetTransactionReceiptReq) =
     httpGet[GetTransactionReceiptRes]("eth_getBlockByNumber") {
-      Seq[Any](req.hash)
+      Seq(req.hash)
     }
 
   def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
     httpGet[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
-      Seq[Any](req.blockNumber, true)
+      Seq(req.blockNumber, true)
     }
 
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
     httpGet[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
-      Seq[Any](req.blockNumber, true)
+      Seq(req.blockNumber, true)
     }
 
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
     httpGet[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
-      Seq[Any](req.blockHash, true)
+      Seq(req.blockHash, true)
     }
 
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
     httpGet[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
-      Seq[Any](req.blockHash, true)
+      Seq(req.blockHash, true)
     }
 
   def traceTransaction(req: TraceTransactionReq) =
     httpGet[TraceTransactionRes]("debug_traceTransaction") {
       val debugParams = DebugParams(DEBUG_TIMEOUT_STR, DEBUG_TRACER)
-      Seq[Any](req.txhash, debugParams)
+      Seq(req.txhash, debugParams)
     }
 
   // erc20 contract requests
@@ -95,7 +96,7 @@ class EthClientImpl(
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
       val args = CallArgs().withTo(req.token).withData(data)
-      Seq[Any](args, req.tag)
+      Seq(args, req.tag)
     }
 
   def getAllowance(req: GetAllowanceReq) =
@@ -103,7 +104,7 @@ class EthClientImpl(
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
       val args = CallArgs().withTo(req.token).withData(data)
-      Seq[Any](args, req.tag)
+      Seq(args, req.tag)
     }
 
   // def getEstimatedGas() = ???
