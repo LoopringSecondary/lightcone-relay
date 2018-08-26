@@ -53,28 +53,28 @@ class CacheObsoleter(name: String) extends RepeatedJobActor {
 
     case cutoff: Cutoff =>
       val event = PurgeAllOrderForAddress()
-          .withOwner(cutoff.owner)
-          .withCutoff(cutoff.cutoff)
+        .withOwner(cutoff.owner)
+        .withCutoff(cutoff.cutoff)
       mediator ! Publish(name, event)
 
-    case cutoffPair:CutoffPair =>
+    case cutoffPair: CutoffPair =>
       val event = PurgeAllOrderForAddress()
         .withOwner(cutoffPair.owner)
         .withCutoff(cutoffPair.cutoff)
         .withMarket(cutoffPair.market)
       mediator ! Publish(name, event)
 
-    case forkEvent:ChainRolledBack =>
+    case forkEvent: ChainRolledBack =>
       val event = PurgeAllAfterBlock()
         .withBlockNumber(forkEvent.forkBlockNumber)
       mediator ! Publish(name, event)
 
-    case orderCalceled:OrderCancelled =>
+    case orderCalceled: OrderCancelled =>
       val event = PurgeOrder()
         .withOrderHash(orderCalceled.orderhash)
       mediator ! Publish(name, event)
 
-    case ringMined:RingMined =>
+    case ringMined: RingMined =>
       ringMined.fills foreach {
         filled =>
           val event = PurgeOrder()
