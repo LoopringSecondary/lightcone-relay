@@ -28,8 +28,7 @@ object Dependencies {
     "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(
-    "org.ethereum" % "ethereumj-core" % "1.8.0-RELEASE"
-  )
+    "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")
 
   lazy val akkaDenepdencies = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
