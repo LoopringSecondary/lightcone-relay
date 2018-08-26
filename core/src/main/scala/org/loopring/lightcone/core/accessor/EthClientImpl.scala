@@ -23,8 +23,7 @@ import org.spongycastle.util.encoders.Hex
 class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
-  implicit
-  val system: ActorSystem)
+    implicit val system: ActorSystem)
   extends EthClient with JsonRpcSupport {
 
   val uri = s"http://${config.host}:${config.port}"
@@ -92,5 +91,4 @@ class EthClientImpl(
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
 
   def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
-
 }

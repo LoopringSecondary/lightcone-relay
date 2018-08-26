@@ -47,9 +47,8 @@ trait JsonRpcSupport {
 
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(
-    params: Seq[Any])(
-    implicit
-    c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
+      params: Seq[Any])(
+        implicit c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
     val request = JsonRpcRequest(id, JSON_RPC_VERSION, method, params)
     val jsonReq = Serialization.write(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())

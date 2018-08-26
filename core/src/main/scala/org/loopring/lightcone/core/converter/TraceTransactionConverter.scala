@@ -16,24 +16,27 @@
 
 package org.loopring.lightcone.core.converter
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction => rTransaction }
-import org.loopring.lightcone.proto.eth.{ TraceTransaction => dTransaction, TraceCall => dCall, Hash, Big, Hex, Address }
+import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
+import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
-class TraceTransactionConverter()(implicit val traceCallConverter: TraceCallConverter) extends EthDataConverter[rTransaction, dTransaction] {
+class TraceTransactionConverter()(
+  implicit
+  val traceCallConverter: TraceCallConverter)
+  extends Converter[ethj.TraceTransaction, TraceTransaction] {
 
-  def convertDown(org: rTransaction): dTransaction = {
-    val tx = dCall()
-      .withFrom(Address().fromString(org.from))
-      .withTo(Address().fromString(org.to))
-      .withInput(Hex().fromString(org.input))
-      .withOutput(Hex().fromString(org.output))
-      .withGasUsed(Big().fromString(org.gasUsed))
-      .withValue(Big().fromString(org.value))
+  def convert(org: ethj.TraceTransaction): TraceTransaction = {
+    val tx = TraceCall()
+      .withFrom(Address(org.from))
+      .withTo(Address(org.to))
+      .withInput(Hex(org.input))
+      .withOutput(Hex(org.output))
+      .withGasUsed(Big(org.gasUsed))
+      .withValue(Big(org.value))
       .withType(org.`type`)
 
-    dTransaction()
+    TraceTransaction()
       .withTx(tx)
-      .withCalls(org.calls.map(x => traceCallConverter.convertDown(x)))
+      .withCalls(org.calls.map(traceCallConverter.convert))
   }
 }

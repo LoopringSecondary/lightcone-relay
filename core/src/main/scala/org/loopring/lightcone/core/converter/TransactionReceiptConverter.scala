@@ -16,29 +16,37 @@
 
 package org.loopring.lightcone.core.converter
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TransactionReceipt => rReceipt }
-import org.loopring.lightcone.proto.eth.{ TransactionReceipt => dReceipt, Hash, Big, Hex, Address }
+import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
+import org.loopring.lightcone.proto.eth._
 import org.loopring.lightcone.core._
 
-class TransactionReceiptConverter()(implicit val logConverter: ReceiptLogConverter) extends EthDataConverter[rReceipt, dReceipt] {
+class TransactionReceiptConverter()(
+  implicit
+  val logConverter: ReceiptLogConverter)
+  extends Converter[ethj.TransactionReceipt, TransactionReceipt] {
 
   // todo(fukun): 拜占庭分叉前status默认为0
-  def convertDown(org: rReceipt): dReceipt = {
-    var receipt = dReceipt()
-      .withBlockHash(Hash().fromString(org.blockHash))
-      .withBlockNumber(Big().fromString(org.blockNumber))
-      .withCumulativeGasUsed(Big().fromString(org.cumulativeGasUsed))
-      .withFrom(Address().fromString(org.from))
-      .withGasUsed(Big().fromString(org.gasUsed))
+  def convert(org: ethj.TransactionReceipt): TransactionReceipt = {
+    var receipt = TransactionReceipt()
+      .withBlockHash(Hash(org.blockHash))
+      .withBlockNumber(Big(org.blockNumber))
+      .withCumulativeGasUsed(Big(org.cumulativeGasUsed))
+      .withFrom(Address(org.from))
+      .withGasUsed(Big(org.gasUsed))
       .withLogsBloom(org.logsBloom)
-      .withTo(Address().fromString(org.to))
-      .withTransactionHash(Hash().fromString(org.transactionHash))
-      .withTransactionIndex(Big().fromString(org.transactionIndex).Int)
-      .withLogs(org.logs.map(x => logConverter.convertDown(x)))
+      .withTo(Address(org.to))
+      .withTransactionHash(Hash(org.transactionHash))
+      .withTransactionIndex(Big(org.transactionIndex).getIntValue)
+      .withLogs(org.logs.map(logConverter.convert))
 
-    if (!org.contractAddress.isEmpty) receipt = receipt.withContractAddress(Address().fromString(org.contractAddress))
-    if (!org.status.isEmpty) receipt = receipt.withStatus(Big().fromString(org.status).Int)
-    if (!org.root.isEmpty) receipt = receipt.withRoot(org.root)
+    if (!org.contractAddress.isEmpty)
+
+      receipt = receipt.withContractAddress(Address(org.contractAddress))
+    if (!org.status.isEmpty)
+
+      receipt = receipt.withStatus(Big(org.status).getIntValue)
+    if (!org.root.isEmpty)
+      receipt = receipt.withRoot(org.root)
 
     receipt
   }
