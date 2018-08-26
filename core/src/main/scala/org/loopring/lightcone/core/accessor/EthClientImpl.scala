@@ -42,11 +42,10 @@ case class DebugParams(
 class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
-  implicit
-  val system: ActorSystem)
+    implicit val system: ActorSystem)
   extends EthClient with JsonRpcSupport {
 
-  val uri = s"http://${config.host}:${config.port.toString}"
+  val uri = s"http://${config.host}:${config.port}"
 
   // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =
@@ -90,7 +89,6 @@ class EthClientImpl(
       Seq(req.txhash, debugParams)
     }
 
-  // erc20 contract requests
   def getBalance(req: GetBalanceReq) =
     httpGet[GetBalanceRes](ETH_CALL) {
       val function = findErc20Function("balanceOf")
