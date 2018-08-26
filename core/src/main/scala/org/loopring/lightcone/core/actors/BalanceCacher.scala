@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.proto.balance.{ BalanceInfo, GetBalanceInfo }
+import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.{ CacheBalanceInfo, CachedBalanceInfo }
 import org.loopring.lightcone.proto.deployment._
 
@@ -36,8 +36,14 @@ class BalanceCacher extends Actor {
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
 
-    case m: GetBalanceInfo =>
-      sender() ! BalanceInfo()
+    case m: GetBalancesReq =>
+      sender() ! GetBalancesResp()
+
+    case m: GetAllowancesReq =>
+      sender() ! GetAllowancesResp()
+
+    case m: GetBalanceAndAllowanceReq =>
+      sender() ! GetBalanceAndAllowanceResp()
 
     case m: CacheBalanceInfo =>
       sender() ! CachedBalanceInfo()
