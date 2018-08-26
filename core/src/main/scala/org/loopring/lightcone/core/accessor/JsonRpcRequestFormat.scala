@@ -30,18 +30,18 @@ import scalapb.json4s.JsonFormat
 import spray.json._
 import DefaultJsonProtocol._
 
-object JsonReqFormat extends JsonFormat[JsonRpcReq] {
-  override def write(request: JsonRpcReq): JsValue = JsObject(Map(
+object JsonRpcRequestFormat extends JsonFormat[JsonRpcRequest] {
+  override def write(request: JsonRpcRequest): JsValue = JsObject(Map(
     "id" -> JsNumber(request.id),
     "jsonrpc" -> JsString(request.jsonrpc),
     "method" -> JsString(request.method),
     "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
 
-  override def read(value: JsValue): JsonRpcReq = {
+  override def read(value: JsValue): JsonRpcRequest = {
     value.asJsObject.getFields("id", "jsonrpc", "method", "params") match {
       case Seq(JsNumber(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
-        JsonRpcReq(id.intValue(), jsonrpc, method, params)
-      case _ => throw new Exception("JsonRpcReq expected")
+        JsonRpcRequest(id.intValue(), jsonrpc, method, params)
+      case _ => throw new Exception("JsonRpcRequest expected")
     }
   }
 
