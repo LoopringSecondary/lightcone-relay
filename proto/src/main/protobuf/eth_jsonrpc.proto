@@ -1,25 +1,158 @@
+/*
+ * Copyright 2018 Loopring Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package com.loopring.lightcone.proto.eth_jsonrpc;
 
-message JsonRPCRequest {
-    string id = 1;
-    string jsonrpc = 2;
-    string method = 3;
-    repeated string params = 4;
+import "google/protobuf/any.proto";
+
+///////////////////////////////////////////
+//
+// ethereum original type
+//
+///////////////////////////////////////////
+
+message Transaction {
+    string hash = 1;
+    string nonce = 2;
+    string blockHash = 3;
+    string blockNumber = 4;
+    string transactionIndex = 5;
+    string from = 6;
+    string to =7;
+    string value = 8;
+    string gasPrice = 9 ;
+    string gas = 10;
+    string input = 11;
+    string r = 12;
+    string s = 13;
+    string v = 14;
 }
 
-message JsonRPCResponse {
-    string id = 1;
-    string jsonrpc = 2;
-    string result = 3;
+message Log {
+    string logIndex = 1;
+    string blockNumber = 2;
+    string blockHash = 3;
+    string transactionHash = 4;
+    string transactionIndex = 5;
+    string address = 6;
+    string data = 7;
+    repeated string topics = 8;
+    bool removed = 9;
 }
 
-message JsonRPCRequestSeq {
-    repeated JsonRPCRequest req = 1;
+message TransactionReceipt {
+    string blockHash = 1;
+    string blockNumber = 2;
+    string transactionHash = 3;
+    string transactionIndex = 4;
+    string from = 5;
+    string to = 6;
+    string contractAddress = 7;
+    string cumulativeGasUsed = 8;
+    string gasUsed = 9;
+    repeated Log logs = 10;
+    string logsBloom = 11;
+    string root = 12;
+    string status = 13;
 }
+
+message BlockWithTxHash {
+    string number = 1;
+    string hash = 2;
+    string parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    string miner = 10;
+    string difficulty = 11;
+    string totalDifficulty = 12;
+    string extraData = 13;
+    string size = 14;
+    string gasLimit = 15;
+    string gasUsed = 16;
+    string timestamp = 17;
+    repeated string transactions = 18;
+    repeated string uncles = 19;
+}
+
+message BlockWithTxObject {
+    string number = 1;
+    string hash = 2;
+    string parentHash = 3;
+    string nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    string miner = 10;
+    string difficulty = 11;
+    string totalDifficulty = 12;
+    string extraData = 13;
+    string size = 14;
+    string gasLimit = 15;
+    string gasUsed = 16;
+    string timestamp = 17;
+    repeated Transaction transactions = 18;
+    repeated string uncles = 19;
+}
+
+message TraceCall {
+    string from = 1;
+    string to = 2;
+    string input = 3;
+    string output = 4;
+    string gasUsed = 5;
+    string type = 6;
+    string value = 7;
+}
+
+message TraceTransaction {
+    string from = 1;
+    string to = 2;
+    string input = 3;
+    string output = 4;
+    string gasUsed = 5;
+    string type = 6;
+    string value = 7;
+    repeated TraceCall calls = 8;
+}
+
+message CallArgs {
+    string from = 1;
+    string to = 2;
+    string gas = 3;
+    string gasPrice = 4;
+    string value = 5;
+    string data = 6;
+}
+
+//message BlockWithTxAndReceipt {
+//    Block block = 1;
+//    repeated Transaction        transactions = 2;
+//    repeated TransactionReceipt receipts = 3;
+//}
+
 
 ///////////////////////////////////////////
 //
@@ -27,18 +160,120 @@ message JsonRPCRequestSeq {
 //
 ///////////////////////////////////////////
 
-enum Tag {
-    Latest = 0;
-    Pending = 1;
-    Earliest = 2;
-    Hex = 3;
-}
-
-message EthGetBalanceReq {
+// eth_getBalance
+message EthGetBalanceRequest {
     string address = 1;
     string tag = 2;
 }
-
 message EthGetBalanceResponse {
-    bytes amount = 1;
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+// eth_getTransactionByHash
+message GetTransactionByHashRequest {
+    string hash = 1;
+}
+message GetTransactionByHashResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    Transaction result = 3;
+}
+
+// eth_getTransactionReceipt
+message GetTransactionReceiptRequest {
+    string hash = 1;
+}
+message GetTransactionReceiptResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    TransactionReceipt result = 3;
+}
+
+// eth_getBlockByNumber
+message GetBlockWithTxHashByNumberRequest {
+    string blockNumber = 1;
+}
+message GetBlockWithTxHashByNumberResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    BlockWithTxHash result = 3;
+}
+
+message GetBlockWithTxObjectByNumberRequest {
+    string blockNumber = 1;
+}
+message GetBlockWithTxObjectByNumberResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    BlockWithTxObject result = 3;
+}
+
+// eth_getBlockByHash
+message GetBlockWithTxHashByHashRequest {
+    string blockHash = 1;
+}
+message GetBlockWithTxHashByHashResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    BlockWithTxHash result = 3;
+}
+
+message GetBlockWithTxObjectByHashRequest {
+    string blockHash = 1;
+}
+message GetBlockWithTxObjectByHashResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    BlockWithTxObject result = 3;
+}
+
+// debug_traceTransaction
+message TraceTransactionRequest {
+    string txhash = 1;
+}
+
+message TraceTransactionResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    TraceTransaction result = 3;
+}
+
+// erc20 balanceOf
+message BalanceOfRequest {
+    string token = 1;
+    string owner = 2;
+    string tag = 3;
+}
+
+message BalanceOfResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+// erc20 allowance
+message AllowanceRequest {
+    string owner = 1;
+    string spender = 2;
+    string token = 3;
+    string tag = 4;
+}
+
+message AllowanceResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
+// eth_estimateGas
+message EstimateGasRequest {
+
+}
+
+message EstimateGasResponse {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
 }

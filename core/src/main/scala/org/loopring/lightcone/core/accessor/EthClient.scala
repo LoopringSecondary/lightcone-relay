@@ -20,5 +20,20 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 import scala.concurrent._
 
 trait EthClient {
-  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse]
+  def request[R, P](req: R, method: String, params: Seq[Any]): Future[P]
+  def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse]
+  def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse]
+  def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse]
+  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberRequest): Future[GetBlockWithTxHashByNumberResponse]
+  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse]
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse]
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse]
+
+  // todo:数据量太大时报错,需要设置http entity size(akka.http.scaladsl.model.EntityStreamException: HTTP chunk size exceeds the configured limit of 1048576 bytes)
+  def traceTransaction(req: TraceTransactionRequest): Future[TraceTransactionResponse]
+  //def estimateGas()
+
+  // erc20
+  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse]
+  def allowance(req: AllowanceRequest): Future[AllowanceResponse]
 }
