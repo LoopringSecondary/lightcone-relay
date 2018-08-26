@@ -29,13 +29,22 @@ import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
 import spray.json._
 import DefaultJsonProtocol._
+
 case class GethClientConfig(
   host: String,
   port: Int,
   ssl: Boolean = false)
 
-case class JsonRpcRequest(id: Int, jsonrpc: String, method: String, params: Seq[Any])
-case class DebugParams(timeout: String, tracer: String)
+case class JsonRpcReq(
+  id: Int,
+  jsonrpc: String,
+  method: String,
+  params: Seq[Any])
+
+case class DebugParams(
+  timeout: String,
+  tracer: String)
+
 //case class CallArgs(from: String, to: String, gas: String, gasPrice: String, value: String, data: String)
 
 class EthClientImpl(
@@ -50,140 +59,90 @@ class EthClientImpl(
   implicit val erc20Abi = Abi.fromJson(abiStrMap("erc20"))
 
   private val id: Int = 1
-  private val jsonrpcversion = "2.0"
+  private val JSON_RPC_VERSION = "2.0"
+  private val DEBUG_TIMEOUT_STR = "5s"
+  private val DEBUG_TRACER = "callTracer"
+  private val ETH_CALL = "eth_call"
   private val post = HttpMethods.POST
   private val uri = s"http://${config.host}:${config.port.toString}"
-  private val jsonRpcRequestFormater = JsonRequestFormat
-  private val debugTimeoutStr = "5s"
-  private val debugTracerStr = "callTracer"
-  private val ethCall = "eth_call"
+  implicit val jsonRpcReqFormater = JsonReqFormat
 
-  // todo(fukun): 如何解决泛型在json解析时的实例化问题
-  def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
-  //  {
-  //    for {
-  //      json <- handleJsonRpcRequest(method, params)
-  //      resp = JsonFormat.parser.fromJsonString[P](json)
-  //    } yield resp
-  //  }
+  // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
 
   // eth actions
-  def ethGetBalance(req: EthGetBalanceRequest): Future[EthGetBalanceResponse] = {
-    val method = "eth_getBalance"
-    val params = Seq[Any](req.address, req.tag)
+  def ethGetBalance(req: EthGetBalanceReq) =
+    httpGet[EthGetBalanceRes]("eth_getBalance") {
+      Seq[Any](req.address, req.tag)
+    }
 
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[EthGetBalanceResponse](json)
-    } yield resp
-  }
+  def getTransactionByHash(req: GetTransactionByHashReq) =
+    httpGet[GetTransactionByHashRes]("eth_getTransactionByHash") {
+      Seq[Any](req.hash)
+    }
 
-  def getTransactionByHash(req: GetTransactionByHashRequest): Future[GetTransactionByHashResponse] = {
-    val method = "eth_getTransactionByHash"
-    val params = Seq[Any](req.hash)
+  def getTransactionReceipt(req: GetTransactionReceiptReq) =
+    httpGet[GetTransactionReceiptRes]("eth_getBlockByNumber") {
+      Seq[Any](req.hash)
+    }
 
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetTransactionByHashResponse](json)
-    } yield resp
-  }
+  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
+    httpGet[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
+      Seq[Any](req.blockNumber, true)
+    }
 
-  def getTransactionReceipt(req: GetTransactionReceiptRequest): Future[GetTransactionReceiptResponse] = {
-    val method = "eth_getTransactionReceipt"
-    val params = Seq[Any](req.hash)
+  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
+    httpGet[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
+      Seq[Any](req.blockNumber, true)
+    }
 
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetTransactionReceiptResponse](json)
-    } yield resp
-  }
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
+    httpGet[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
+      Seq[Any](req.blockHash, true)
+    }
 
-  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberRequest): Future[GetBlockWithTxHashByNumberResponse] = {
-    val method = "eth_getBlockByNumber"
-    val params = Seq[Any](req.blockNumber, false)
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
+    httpGet[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
+      Seq[Any](req.blockHash, true)
+    }
 
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByNumberResponse](json)
-    } yield resp
-  }
-
-  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberRequest): Future[GetBlockWithTxObjectByNumberResponse] = {
-    val method = "eth_getBlockByNumber"
-    val params = Seq[Any](req.blockNumber, true)
-
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByNumberResponse](json)
-    } yield resp
-  }
-
-  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashRequest): Future[GetBlockWithTxHashByHashResponse] = {
-    val method = "eth_getBlockByHash"
-    val params = Seq[Any](req.blockHash, false)
-
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxHashByHashResponse](json)
-    } yield resp
-  }
-
-  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashRequest): Future[GetBlockWithTxObjectByHashResponse] = {
-    val method = "eth_getBlockByHash"
-    val params = Seq[Any](req.blockHash, true)
-
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[GetBlockWithTxObjectByHashResponse](json)
-    } yield resp
-  }
-
-  def traceTransaction(req: TraceTransactionRequest): Future[TraceTransactionResponse] = {
-    val method = "debug_traceTransaction"
-    val debugParams = DebugParams(debugTimeoutStr, debugTracerStr)
-    val params = Seq[Any](req.txhash, debugParams)
-
-    for {
-      json <- handleRequest(method, params)
-      resp = JsonFormat.parser.fromJsonString[TraceTransactionResponse](json)
-    } yield resp
-  }
+  def traceTransaction(req: TraceTransactionReq) =
+    httpGet[TraceTransactionRes]("debug_traceTransaction") {
+      val debugParams = DebugParams(DEBUG_TIMEOUT_STR, DEBUG_TRACER)
+      Seq[Any](req.txhash, debugParams)
+    }
 
   // erc20 contract requests
-  def balanceOf(req: BalanceOfRequest): Future[BalanceOfResponse] = {
-    val function = findErc20Function("balanceOf")
-    val data = bytesToHex(function.encode(req.owner))
-    val args = CallArgs().withTo(req.token).withData(data)
-    val params = Seq[Any](args, req.tag)
+  def getBalance(req: GetBalanceReq) =
+    httpGet[GetBalanceRes](ETH_CALL) {
+      val function = findErc20Function("balanceOf")
+      val data = bytesToHex(function.encode(req.owner))
+      val args = CallArgs().withTo(req.token).withData(data)
+      Seq[Any](args, req.tag)
+    }
 
-    for {
-      json <- handleRequest(ethCall, params)
-      resp = JsonFormat.parser.fromJsonString[BalanceOfResponse](json)
-    } yield resp
-  }
+  def getAllowance(req: GetAllowanceReq) =
+    httpGet[GetAllowanceRes](ETH_CALL) {
+      val function = findErc20Function("balanceOf")
+      val data = bytesToHex(function.encode(req.owner))
+      val args = CallArgs().withTo(req.token).withData(data)
+      Seq[Any](args, req.tag)
+    }
 
-  def allowance(req: AllowanceRequest): Future[AllowanceResponse] = {
-    val function = findErc20Function("allowance")
-    val data = bytesToHex(function.encode(req.owner, req.spender))
-    val args = CallArgs().withTo(req.token).withData(data)
-    val params = Seq[Any](args, req.tag)
-
-    for {
-      json <- handleRequest(ethCall, params)
-      resp = JsonFormat.parser.fromJsonString[AllowanceResponse](json)
-    } yield resp
-  }
-
-  private def handleRequest(method: String, params: Seq[Any]): Future[String] = {
-    val request = JsonRpcRequest(id, jsonrpcversion, method, params)
-    val jsonReq = formatJsonRpcRequest(request)
+  private def httpGet[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
+    method: String)(
+    params: Seq[Any])(
+    implicit
+    c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
+    val request = JsonRpcReq(id, JSON_RPC_VERSION, method, params)
+    val jsonReq = formatJsonRpcReq(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
-    val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
+    val httpReq = HttpRequest.apply(method = post, uri = uri, entity = entity)
 
     for {
-      httpResp <- Http().singleRequest(httpRequest)
-      jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
-    } yield jsonResp
+      httpRes <- Http().singleRequest(httpReq)
+      jsonStr <- httpRes.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
+      resp = JsonFormat.parser.fromJsonString[R](jsonStr)
+    } yield resp
   }
 
   private def findErc20Function(name: String) = {
@@ -193,64 +152,6 @@ class EthClientImpl(
 
   private def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
 
-  ////////////////////////////////////////////////////////////////////
-  //
-  // JsonRpcRequest format and parse
-  //
-  ////////////////////////////////////////////////////////////////////
-  implicit object JsonRequestFormat extends JsonFormat[JsonRpcRequest] {
-    override def write(request: JsonRpcRequest): JsValue = JsObject(Map(
-      "id" -> JsNumber(request.id),
-      "jsonrpc" -> JsString(request.jsonrpc),
-      "method" -> JsString(request.method),
-      "params" -> JsArray(request.params.map(x => writeAny(x)): _*)))
-
-    override def read(value: JsValue): JsonRpcRequest = {
-      value.asJsObject.getFields("id", "jsonrpc", "method", "params") match {
-        case Seq(JsNumber(id), JsString(jsonrpc), JsString(method), JsArray(params)) =>
-          JsonRpcRequest(id.intValue(), jsonrpc, method, params)
-        case _ => throw new Exception("JsonRpcRequest expected")
-      }
-    }
-
-    private def writeAny(src: Any) = src match {
-      case n: Int => JsNumber(n)
-      case s: String => JsString(s)
-      case b: Boolean if b.equals(true) => JsTrue
-      case b: Boolean if b.equals(false) => JsFalse
-      case o: DebugParams => JsObject(Map(
-        "timeout" -> JsString(o.timeout),
-        "tracer" -> JsString(o.tracer)))
-      case o: CallArgs => {
-        var map: Map[String, JsValue] = Map()
-        if (!o.from.isEmpty) map += "from" -> JsString(o.from)
-        if (!o.to.isEmpty) map += "to" -> JsString(o.to)
-        if (!o.gas.isEmpty) map += "gas" -> JsString(o.gas)
-        if (!o.gasPrice.isEmpty) map += "gasPrice" -> JsString(o.gasPrice)
-        if (!o.value.isEmpty) map += "value" -> JsString(o.value)
-        if (!o.data.isEmpty) map += "data" -> JsString(o.data)
-        JsObject(map)
-      }
-      case _ => JsNull
-    }
-
-    private def readAny(value: JsValue) = value match {
-      case JsNumber(n) => n.intValue()
-      case JsString(s) => s
-      case JsTrue => true
-      case JsFalse => false
-      case o: JsObject if o.fields.size.equals(2) => o.getFields("timeout", "tracer") match {
-        case Seq(JsString(timeout), JsString(tracer)) => DebugParams(timeout, tracer)
-        case _ => null
-      }
-      case o: JsObject if o.fields.size.equals(5) => o.getFields("from", "to", "gas", "gasPrice", "value", "data") match {
-        case Seq(JsString(from), JsString(to), JsString(gas), JsString(gasPrice), JsString(v), JsString(data)) => CallArgs(from, to, gas, gasPrice, v, data)
-        case _ => null
-      }
-      case _ => null
-    }
-  }
-
-  def formatJsonRpcRequest(req: JsonRpcRequest): JsValue = req.toJson
-  def parseJsonRpcRequest(data: JsValue): JsonRpcRequest = data.convertTo[JsonRpcRequest]
+  def formatJsonRpcReq(req: JsonRpcReq): JsValue = req.toJson
+  def parseJsonRpcReq(data: JsValue): JsonRpcReq = data.convertTo[JsonRpcReq]
 }
