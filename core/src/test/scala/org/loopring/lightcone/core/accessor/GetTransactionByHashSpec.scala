@@ -29,12 +29,12 @@ class GetTransactionByHashSpec extends FlatSpec {
     val req = GetTransactionByHashRequest("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
       resp <- accessor.geth.getTransactionByHash(req)
-      result = accessor.txconverter.convertDown(resp.getResult)
+      result = accessor.txconverter.convert(resp.getResult)
     } yield result
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)
 
-    info(s"blockhash:${tx.getBlockHash.Hex()}")
-    info(s"transactionHash:${tx.getHash.Hex()}")
+    info(s"blockhash:${tx.getBlockHash.toString}")
+    info(s"transactionHash:${tx.getHash.toString}")
   }
 }

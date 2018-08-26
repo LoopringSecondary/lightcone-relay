@@ -29,7 +29,7 @@ class GetTransactionReceiptSpec extends FlatSpec {
     val req = GetTransactionReceiptRequest("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
       resp <- accessor.geth.getTransactionReceipt(req)
-      result = accessor.receiptconverter.convertDown(resp.getResult)
+      result = accessor.receiptconverter.convert(resp.getResult)
     } yield result
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)

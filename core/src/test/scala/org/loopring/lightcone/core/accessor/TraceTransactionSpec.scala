@@ -31,7 +31,7 @@ class TraceTransactionSpec extends FlatSpec {
     val req = TraceTransactionRequest("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
     val resultFuture = for {
       resp <- accessor.geth.traceTransaction(req)
-      result = accessor.traceTransactionConverter.convertDown(resp.getResult)
+      result = accessor.traceTransactionConverter.convert(resp.getResult)
     } yield result
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)

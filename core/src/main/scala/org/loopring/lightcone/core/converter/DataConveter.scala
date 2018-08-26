@@ -16,7 +16,6 @@
 
 package org.loopring.lightcone.core.converter
 
-trait EthDataConverter[UP, DOWN] {
-  // from rpc to data proto
-  def convertDown(src: UP): DOWN
+trait Converter[T, S] {
+  def convert(t: T): S
 }

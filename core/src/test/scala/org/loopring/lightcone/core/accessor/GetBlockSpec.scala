@@ -30,7 +30,7 @@ class GetBlockSpec extends FlatSpec {
     val req = GetBlockWithTxHashByNumberRequest("0xa8a0")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxHashByNumber(req)
-      result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
+      result = accessor.blockWithTxHashConverter.convert(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -41,7 +41,7 @@ class GetBlockSpec extends FlatSpec {
     val req = GetBlockWithTxObjectByNumberRequest("0xa8a0")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxObjectByNumber(req)
-      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
+      result = accessor.blockWithTxObjectConverter.convert(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -52,7 +52,7 @@ class GetBlockSpec extends FlatSpec {
     val req = GetBlockWithTxHashByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxHashByHash(req)
-      result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
+      result = accessor.blockWithTxHashConverter.convert(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -63,7 +63,7 @@ class GetBlockSpec extends FlatSpec {
     val req = GetBlockWithTxObjectByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxObjectByHash(req)
-      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
+      result = accessor.blockWithTxObjectConverter.convert(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
