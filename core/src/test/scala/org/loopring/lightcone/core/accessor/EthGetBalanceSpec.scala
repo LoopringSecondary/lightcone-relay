@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceRequest
+import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
 import org.loopring.lightcone.proto.eth.Big
 import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
@@ -28,7 +28,7 @@ class EthGetBalanceSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *EthGetBalanceSpec'] to test single spec of eth_getBalance")
 
   "eth balance" should "use accessor" in {
-    val req = EthGetBalanceRequest()
+    val req = EthGetBalanceReq()
       .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
       .withTag("latest")
     val respFuture = for {
@@ -37,6 +37,6 @@ class EthGetBalanceSpec extends FlatSpec {
     } yield result
 
     val amount = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getBalance amount is ${amount.String}")
+    info(s"geth eth_getBalance amount is ${amount.toString}")
   }
 }
