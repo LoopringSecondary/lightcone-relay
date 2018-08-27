@@ -161,118 +161,118 @@ message CallArgs {
 ///////////////////////////////////////////
 
 // eth_getBalance
-message EthGetBalanceRequest {
+message EthGetBalanceReq {
     string address = 1;
     string tag = 2;
 }
-message EthGetBalanceResponse {
+message EthGetBalanceRes {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
 }
 
 // eth_getTransactionByHash
-message GetTransactionByHashRequest {
+message GetTransactionByHashReq {
     string hash = 1;
 }
-message GetTransactionByHashResponse {
+message GetTransactionByHashRes {
     int32 id = 1;
     string jsonrpc = 2;
     Transaction result = 3;
 }
 
 // eth_getTransactionReceipt
-message GetTransactionReceiptRequest {
+message GetTransactionReceiptReq {
     string hash = 1;
 }
-message GetTransactionReceiptResponse {
+message GetTransactionReceiptRes {
     int32 id = 1;
     string jsonrpc = 2;
     TransactionReceipt result = 3;
 }
 
 // eth_getBlockByNumber
-message GetBlockWithTxHashByNumberRequest {
+message GetBlockWithTxHashByNumberReq {
     string blockNumber = 1;
 }
-message GetBlockWithTxHashByNumberResponse {
+message GetBlockWithTxHashByNumberRes {
     int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxHash result = 3;
 }
 
-message GetBlockWithTxObjectByNumberRequest {
+message GetBlockWithTxObjectByNumberReq {
     string blockNumber = 1;
 }
-message GetBlockWithTxObjectByNumberResponse {
+message GetBlockWithTxObjectByNumberRes {
     int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxObject result = 3;
 }
 
 // eth_getBlockByHash
-message GetBlockWithTxHashByHashRequest {
+message GetBlockWithTxHashByHashReq {
     string blockHash = 1;
 }
-message GetBlockWithTxHashByHashResponse {
+message GetBlockWithTxHashByHashRes {
     int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxHash result = 3;
 }
 
-message GetBlockWithTxObjectByHashRequest {
+message GetBlockWithTxObjectByHashReq {
     string blockHash = 1;
 }
-message GetBlockWithTxObjectByHashResponse {
+message GetBlockWithTxObjectByHashRes {
     int32 id = 1;
     string jsonrpc = 2;
     BlockWithTxObject result = 3;
 }
 
 // debug_traceTransaction
-message TraceTransactionRequest {
+message TraceTransactionReq {
     string txhash = 1;
 }
 
-message TraceTransactionResponse {
+message TraceTransactionRes {
     int32 id = 1;
     string jsonrpc = 2;
     TraceTransaction result = 3;
 }
 
 // erc20 balanceOf
-message BalanceOfRequest {
+message GetBalanceReq {
     string token = 1;
     string owner = 2;
     string tag = 3;
 }
 
-message BalanceOfResponse {
+message GetBalanceRes {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
 }
 
 // erc20 allowance
-message AllowanceRequest {
+message GetAllowanceReq {
     string owner = 1;
     string spender = 2;
     string token = 3;
     string tag = 4;
 }
 
-message AllowanceResponse {
+message GetAllowanceRes {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
 }
 
 // eth_estimateGas
-message EstimateGasRequest {
+message GetEstimatedGasReq {
 
 }
 
-message EstimateGasResponse {
+message GetEstimatedGasRes {
     int32 id = 1;
     string jsonrpc = 2;
     string result = 3;
