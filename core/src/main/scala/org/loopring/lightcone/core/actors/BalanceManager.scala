@@ -56,11 +56,13 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
     cachedInfoRes <- Routers.balanceCacher ? req
 
     (cachedResOpt, uncachedReqOpt) = cachedInfoRes match {
+      case e: ErrorResp => (None, Some(req))
+
       case cachedRes: GetBalancesResp =>
         var uncachedReqOpt: Option[GetBalancesReq] = None
         val r = req.asInstanceOf[GetBalancesReq]
-        val cachedTokens = cachedRes.balances.map(_.token).toSet
         val reqTokens = r.tokens.toSet
+        val cachedTokens = cachedRes.balances.map(_.token).toSet
         val uncachedTokens = reqTokens -- cachedTokens
         if (uncachedTokens.nonEmpty) {
           uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
@@ -70,8 +72,8 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
       case cachedRes: GetAllowancesResp =>
         var uncachedReqOpt: Option[GetAllowancesReq] = None
         val r = req.asInstanceOf[GetAllowancesReq]
-        val cachedTokens = cachedRes.allowances.flatMap(_.tokenAmounts.map(_.token)).toSet
         val reqTokens = r.tokens.toSet
+        val cachedTokens = cachedRes.allowances.flatMap(_.tokenAmounts.map(_.token)).toSet
         val uncachedTokens = reqTokens -- cachedTokens
         if (uncachedTokens.nonEmpty) {
           uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
@@ -81,9 +83,9 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
       case cachedRes: GetBalanceAndAllowanceResp =>
         var uncachedReqOpt: Option[GetBalanceAndAllowanceReq] = None
         val r = req.asInstanceOf[GetBalanceAndAllowanceReq]
+        val reqTokens = r.tokens.toSet
         val cachedAllowanceTokens = cachedRes.allowances.flatMap(_.tokenAmounts.map(_.token)).toSet
         val cachedBalanceTokens = cachedRes.balances.map(_.token).toSet
-        val reqTokens = r.tokens.toSet
         val uncachedAllowanceTokens = reqTokens -- cachedAllowanceTokens
         val uncachedBalanceTokens = reqTokens -- cachedBalanceTokens
         val uncachedTokens = uncachedAllowanceTokens ++ uncachedBalanceTokens
@@ -91,8 +93,6 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
           uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
         }
         (Some(cachedRes), uncachedReqOpt)
-
-      case e: ErrorResp => (None, Some(req))
 
       case _ => (None, Some(req))
     }
@@ -106,6 +106,7 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
           case info: GeneratedMessage =>
             Routers.balanceCacher ! CacheBalanceInfo
             Some(info)
+
           case _ => None
         }
       }
@@ -120,21 +121,21 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
       case (None, None) => None
       case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) =>
         val resp = GetBalancesResp()
-            .withAddress(res1.address)
-            .withBalances(res1.balances ++ res2.balances)
+          .withAddress(res1.address)
+          .withBalances(res1.balances ++ res2.balances)
         Some(resp)
 
       case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) =>
         val resp = GetAllowancesResp()
-            .withAddress(res1.address)
-            .withAllowances(res1.allowances ++ res2.allowances)
+          .withAddress(res1.address)
+          .withAllowances(res1.allowances ++ res2.allowances)
         Some(resp)
 
       case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) =>
         val resp = GetBalanceAndAllowanceResp()
-            .withAddress(res1.address)
-            .withAllowances(res1.allowances ++ res2.allowances)
-            .withBalances(res1.balances ++ res2.balances)
+          .withAddress(res1.address)
+          .withAllowances(res1.allowances ++ res2.allowances)
+          .withBalances(res1.balances ++ res2.balances)
         Some(resp)
 
       case (_, Some(errorResp: ErrorResp)) => Some(errorResp)

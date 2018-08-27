@@ -37,10 +37,12 @@ class BalanceReader()(implicit timeout: Timeout) extends Actor {
 
   def receive: Receive = {
     case settings: BalanceReaderSettings =>
-
-    case req @ (GetBalancesReq(_, _) |
-      GetAllowancesReq(_, _, _) |
-      GetBalanceAndAllowanceReq(_, _, _)) =>
+    case req: GetBalancesReq =>
       Routers.balanceManager forward req
+    case req: GetAllowancesReq =>
+      Routers.balanceManager forward req
+    case req: GetBalanceAndAllowanceReq =>
+      Routers.balanceManager forward req
+    case _ =>
   }
 }
