@@ -60,13 +60,13 @@ class EthClientImpl(
     }
 
   def getTransactionReceipt(req: GetTransactionReceiptReq) =
-    httpPost[GetTransactionReceiptRes]("eth_getBlockByNumber") {
+    httpPost[GetTransactionReceiptRes]("eth_getTransactionReceipt") {
       Seq(req.hash)
     }
 
   def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
     httpPost[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
-      Seq(req.blockNumber, true)
+      Seq(req.blockNumber, false)
     }
 
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
@@ -76,7 +76,7 @@ class EthClientImpl(
 
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
     httpPost[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
-      Seq(req.blockHash, true)
+      Seq(req.blockHash, false)
     }
 
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
