@@ -37,8 +37,9 @@ object CacheObsoleter
     base.CommonSettings("", s.roles, 1)
 }
 
-class CacheObsoleter(name: String) extends RepeatedJobActor {
+class CacheObsoleter() extends RepeatedJobActor {
   import context.dispatcher
+  val name = CacheObsoleter.name
   var deadtime = 0l
   var lastHeartBeatTime = 0l
   val mediator = DistributedPubSub(context.system).mediator
@@ -49,36 +50,35 @@ class CacheObsoleter(name: String) extends RepeatedJobActor {
       initAndStartNextRound(settings.deadTime)
 
     case balanceChanged: AddressBalanceChanged =>
-      mediator ! Publish(name, PurgeBalance(owner = balanceChanged.owner))
+      mediator ! Publish(name, Purge.Balance(address = balanceChanged.owner))
 
     case cutoff: Cutoff =>
-      val event = PurgeAllOrderForAddress()
-        .withOwner(cutoff.owner)
+      val event = Purge.AllOrderForAddress()
+        .withAddress(cutoff.owner)
         .withCutoff(cutoff.cutoff)
       mediator ! Publish(name, event)
 
     case cutoffPair: CutoffPair =>
-      val event = PurgeAllOrderForAddress()
-        .withOwner(cutoffPair.owner)
+      val event = Purge.AllOrderForAddress()
+        .withAddress(cutoffPair.owner)
         .withCutoff(cutoffPair.cutoff)
         .withMarket(cutoffPair.market)
       mediator ! Publish(name, event)
 
     case forkEvent: ChainRolledBack =>
-      val event = PurgeAllAfterBlock()
+      val event = Purge.AllAfterBlock()
         .withBlockNumber(forkEvent.forkBlockNumber)
       mediator ! Publish(name, event)
 
     case orderCalceled: OrderCancelled =>
-      val event = PurgeOrder()
-        .withOrderHash(orderCalceled.orderhash)
+      val event = Purge.Order()
+        .withOrderHash(orderCalceled.orderHash)
       mediator ! Publish(name, event)
 
     case ringMined: RingMined =>
       ringMined.fills foreach {
         filled =>
-          val event = PurgeOrder()
-            .withOrderHash(filled.orderhash)
+          val event = Purge.Order().withOrderHash(filled.orderHash)
           mediator ! Publish(name, event)
       }
 
@@ -91,6 +91,6 @@ class CacheObsoleter(name: String) extends RepeatedJobActor {
     deadtime1 <- Future.successful(System.currentTimeMillis - lastHeartBeatTime)
   } yield {
     if (deadtime1 > deadtime)
-      mediator ! Publish(name, PurgeAll())
+      mediator ! Publish(name, Purge.All())
   }
 }

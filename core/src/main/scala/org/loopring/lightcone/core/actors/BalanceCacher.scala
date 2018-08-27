@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import akka.util.Timeout
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import org.loopring.lightcone.proto.balance._
@@ -34,7 +35,7 @@ object BalanceCacher
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class BalanceCacher extends Actor {
+class BalanceCacher()(implicit timeout: Timeout) extends Actor {
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
@@ -59,12 +60,12 @@ class BalanceCacher extends Actor {
     case m: CacheBalanceInfo =>
       sender() ! CachedBalanceInfo()
 
-    case purgeEvent: PurgeBalance =>
+    case purgeEvent: Purge.Balance =>
 
-    case purgeEvent: PurgeAllForAddresses =>
+    case purgeEvent: Purge.AllForAddresses =>
 
-    case purgeEvent: PurgeAllAfterBlock =>
+    case purgeEvent: Purge.AllAfterBlock =>
 
-    case purgeEvent: PurgeAll =>
+    case purgeEvent: Purge.All =>
   }
 }
