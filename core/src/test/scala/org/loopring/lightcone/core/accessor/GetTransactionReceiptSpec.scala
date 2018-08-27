@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionReceiptReq
+import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionReceiptRequest
 import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
@@ -26,10 +26,10 @@ class GetTransactionReceiptSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *GetTransactionReceiptSpec'] to test single spec of eth_getTransactionReceipt")
 
   "receipt" should "contain logs" in {
-    val req = GetTransactionReceiptReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
+    val req = GetTransactionReceiptRequest("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
       resp <- accessor.geth.getTransactionReceipt(req)
-      result = accessor.receiptconverter.convert(resp.getResult)
+      result = accessor.receiptconverter.convertDown(resp.getResult)
     } yield result
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)
