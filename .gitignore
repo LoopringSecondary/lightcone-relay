@@ -4,9 +4,9 @@ project/project/
 
 **/.DS_Store
 **/log/
-logs
 
 .history
 .gradle/
 .idea/
 lib.iml
+logs

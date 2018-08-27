@@ -26,11 +26,11 @@ object Dependencies {
     "org.json4s" %% "json4s-ext" % json4sVersion,
     "redis.clients" % "jedis" % "2.9.0",
     "com.github.nscala-time" %% "nscala-time" % "2.20.0",
-  "org.scalatest" %% "scalatest" % "3.0.0" % Test)
+    "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+    "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(
-    "org.ethereum" % "ethereumj-core" % "1.8.0-RELEASE"
-  )
+    "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")
 
   lazy val akkaDenepdencies = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,

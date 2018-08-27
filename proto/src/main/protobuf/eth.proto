@@ -13,99 +13,135 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package com.loopring.lightcone.proto.eth;
+
+///////////////////////////////////////////
+//
+//
+//
+///////////////////////////////////////////
+
+message Address {
+    string content = 1;
+}
+
+message Hash {
+    string content = 1;
+}
+
+message Big {
+    string content = 1;
+}
+
+message Hex {
+    string content = 1;
+}
 
 message Transaction {
-    bytes hash = 1;
-    bytes nonce = 2;
-    bytes blockHash = 3;
-    bytes blockNumber = 4;
-    bytes transactionIndex = 5;
-    bytes from = 6;
-    bytes to =7;
-    bytes value = 8;
-    bytes gasPrice = 9 ;
-    bytes gas = 10;
-    bytes input = 11;
-    bytes r = 12;
-    bytes s = 13;
-    bytes v = 14;
+    Hash hash = 1;
+    Big nonce = 2;
+    Hash blockHash = 3;
+    Big blockNumber = 4;
+    Big transactionIndex = 5;
+    Address from = 6;
+    Address to =7;
+    Big value = 8;
+    Big gasPrice = 9 ;
+    Big gas = 10;
+    Hex input = 11;
+    Hex r = 12;
+    Hex s = 13;
+    Hex v = 14;
 }
 
 message Log {
-    bytes logIndex = 1;
-    bytes blockNumber = 2;
-    bytes blockHash = 3;
-    bytes transactionHash = 4;
-    bytes transactionIndex = 5;
-    bytes address = 6;
-    bytes data = 7;
-    repeated bytes topics = 8;
+    int32 logIndex = 1;
+    Big blockNumber = 2;
+    Hash blockHash = 3;
+    Hash transactionHash = 4;
+    int32 transactionIndex = 5;
+    Address address = 6;
+    Hex data = 7;
+    repeated Hex topics = 8;
     bool removed = 9;
 }
 
 message TransactionReceipt {
-    bytes blockHash = 1;
-    bytes blockNumber = 2;
-    bytes contractAddress = 3;
-    bytes cumulativeGasUsed = 4;
-    bytes from = 5;
-    bytes gasUsed = 6;
+    Hash blockHash = 1;
+    Big blockNumber = 2;
+    Address contractAddress = 3;
+    Big cumulativeGasUsed = 4;
+    Address from = 5;
+    Big gasUsed = 6;
     repeated Log logs = 7;
     string logsBloom = 8;
     string root = 9;
-    bytes status = 10;
-    bytes to = 11;
-    bytes transactionHash = 12;
-    bytes transactionIndex = 13;
+    int32 status = 10;
+    Address to = 11;
+    Hash transactionHash = 12;
+    int32 transactionIndex = 13;
 }
 
-message Block {
-    bytes number = 1;
-    bytes hash = 2;
-    bytes parentHash = 3;
-    string nonce = 4;
+message BlockWithTxHash {
+    Big number = 1;
+    Hash hash = 2;
+    Hash parentHash = 3;
+    Big nonce = 4;
     string sha3Uncles = 5;
     string logsBloom = 6;
     string transactionsRoot = 7;
     string stateRoot = 8;
-    string miner = 9;
-    bytes difficulty = 10;
-    bytes totalDifficulty = 11;
-    string extraData = 12;
-    bytes size = 13;
-    bytes gasLimit = 14;
-    bytes gasUsed = 15;
-    bytes timestamp = 16;
-    repeated string uncles = 17;
+    string receiptRoot = 9;
+    Address miner = 10;
+    Big difficulty = 11;
+    Big totalDifficulty = 12;
+    string extraData = 13;
+    Big size = 14;
+    Big gasLimit = 15;
+    Big gasUsed = 16;
+    Big timestamp = 17;
+    repeated Hash transactions = 18;
+    repeated Hash uncles = 19;
 }
 
 message BlockWithTxObject {
-    Block block = 1;
-    repeated Transaction transactions = 2;
+    Big number = 1;
+    Hash hash = 2;
+    Hash parentHash = 3;
+    Big nonce = 4;
+    string sha3Uncles = 5;
+    string logsBloom = 6;
+    string transactionsRoot = 7;
+    string stateRoot = 8;
+    string receiptRoot = 9;
+    Address miner = 10;
+    Big difficulty = 11;
+    Big totalDifficulty = 12;
+    string extraData = 13;
+    Big size = 14;
+    Big gasLimit = 15;
+    Big gasUsed = 16;
+    Big timestamp = 17;
+    repeated Transaction transactions = 18;
+    repeated Hash uncles = 19;
 }
 
-message BlockWithTxAndReceipt {
-    Block block = 1;
-    repeated Transaction        transactions = 2;
-    repeated TransactionReceipt receipts = 3;
+message TraceCall {
+    Address from = 1;
+    Address to = 2;
+    Hex input = 3;
+    Hex output = 4;
+    Big gasUsed = 5;
+    string type = 6;
+    Big value = 7;
 }
 
-message BlockWithTxHash {
-    Block block = 1;
-    repeated string transactions = 2;
-}
-
-message CallArgs {
-    string from = 1;
-    string to = 2;
-    bytes gas = 3;
-    bytes gasPrice = 4;
-    bytes value = 5;
-    string data = 6;
-    bytes nonce = 7;
+message TraceTransaction {
+    TraceCall tx = 1;
+    repeated TraceCall calls = 2;
 }
