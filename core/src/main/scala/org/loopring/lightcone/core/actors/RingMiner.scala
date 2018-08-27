@@ -63,4 +63,7 @@ class RingMiner(implicit timout: Timeout)
     NotifyRingSettlementDecisions()
   }
 
+  def evaluator(ring:Ring) = {
+  }
+
 }
