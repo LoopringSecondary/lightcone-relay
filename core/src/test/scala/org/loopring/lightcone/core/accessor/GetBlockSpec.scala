@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq, GetBlockWithTxObjectByHashReq, GetBlockWithTxObjectByNumberReq }
+import org.loopring.lightcone.proto.eth_jsonrpc.{ GetBlockWithTxHashByHashRequest, GetBlockWithTxHashByNumberRequest, GetBlockWithTxObjectByHashRequest, GetBlockWithTxObjectByNumberRequest }
 import org.scalatest.FlatSpec
 
 import scala.concurrent.Await
@@ -27,10 +27,10 @@ class GetBlockSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *GetBlockSpec'] to test eth get block by number and hash")
 
   "eth get block with hash by number" should "contain hash list" in {
-    val req = GetBlockWithTxHashByNumberReq("0xa8a0")
+    val req = GetBlockWithTxHashByNumberRequest("0xa8a0")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxHashByNumber(req)
-      result = accessor.blockWithTxHashConverter.convert(resp.getResult)
+      result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -38,10 +38,10 @@ class GetBlockSpec extends FlatSpec {
   }
 
   "eth get block with object by number" should "contain hash list" in {
-    val req = GetBlockWithTxObjectByNumberReq("0xa8a0")
+    val req = GetBlockWithTxObjectByNumberRequest("0xa8a0")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxObjectByNumber(req)
-      result = accessor.blockWithTxObjectConverter.convert(resp.getResult)
+      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -49,10 +49,10 @@ class GetBlockSpec extends FlatSpec {
   }
 
   "eth get block with hash by hash" should "contain hash list" in {
-    val req = GetBlockWithTxHashByHashReq("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
+    val req = GetBlockWithTxHashByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxHashByHash(req)
-      result = accessor.blockWithTxHashConverter.convert(resp.getResult)
+      result = accessor.blockWithTxHashConverter.convertDown(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)
@@ -60,10 +60,10 @@ class GetBlockSpec extends FlatSpec {
   }
 
   "eth get block with object by hash" should "contain hash list" in {
-    val req = GetBlockWithTxObjectByHashReq("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
+    val req = GetBlockWithTxObjectByHashRequest("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
       resp <- accessor.geth.getBlockWithTxObjectByHash(req)
-      result = accessor.blockWithTxObjectConverter.convert(resp.getResult)
+      result = accessor.blockWithTxObjectConverter.convertDown(resp.getResult)
     } yield result
 
     val block = Await.result(respFuture, accessor.timeout.duration)

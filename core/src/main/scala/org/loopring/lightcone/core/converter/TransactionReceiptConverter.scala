@@ -40,8 +40,10 @@ class TransactionReceiptConverter()(
       .withLogs(org.logs.map(logConverter.convert))
 
     if (!org.contractAddress.isEmpty)
+
       receipt = receipt.withContractAddress(Address(org.contractAddress))
     if (!org.status.isEmpty)
+
       receipt = receipt.withStatus(Big(org.status).getIntValue)
     if (!org.root.isEmpty)
       receipt = receipt.withRoot(org.root)
