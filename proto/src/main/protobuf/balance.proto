@@ -16,7 +16,7 @@ message Allowance {
 
 message GetBalancesReq {
     bytes address = 1;
-    repeated bytes Tokens = 2;
+    repeated bytes tokens = 2;
 }
 
 message GetBalancesResp {

@@ -46,9 +46,9 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
     case settings: BalanceManagerSettings =>
       id = settings.id
 
-    case req @ (GetBalancesReq
-      | GetAllowancesReq
-      | GetBalanceAndAllowanceReq
+    case req @ (GetBalancesReq(_, _)
+      | GetAllowancesReq(_, _, _)
+      | GetBalanceAndAllowanceReq(_, _, _)
       ) =>
       for {
         cachedInfoRes <- Routers.balanceCacher ? req
@@ -59,9 +59,9 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
           } yield {
             res match {
               case e: ErrorResp => e
-              case info @ (GetBalancesResp
-                | GetAllowancesResp
-                | GetBalanceAndAllowanceResp
+              case info @ (GetBalancesResp(_, _)
+                | GetAllowancesResp(_, _)
+                | GetBalanceAndAllowanceResp(_, _, _)
                 ) =>
                 Routers.balanceCacher ! CacheBalanceInfo
                 info
@@ -104,9 +104,9 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
   } yield {
     var mergedResp = mergeResp(cachedRes, uncachedRes)
     uncachedRes match {
-      case infoFromEth @ Some(GetBalancesResp
-        | GetAllowancesResp
-        | GetBalanceAndAllowanceResp
+      case infoFromEth @ Some(GetBalancesResp(_, _)
+        | GetAllowancesResp(_, _)
+        | GetBalanceAndAllowanceResp(_, _, _)
         ) =>
         Routers.balanceCacher ! CacheBalanceInfo
       case _ =>
@@ -121,5 +121,6 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
       case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) => GetAllowancesResp()
       case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) => GetBalanceAndAllowanceResp()
       case (_, Some(errorResp: ErrorResp)) => errorResp
+      case _ =>
     }
 }
