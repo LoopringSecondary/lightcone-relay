@@ -43,19 +43,13 @@ class BalanceCacher()(implicit timeout: Timeout) extends Actor {
     case settings: BalanceCacherSettings =>
 
     case m: GetBalancesReq =>
-      val infoFromCache = BalanceInfoFromCache()
-        .withGetBalancesResp(GetBalancesResp())
-      sender() ! infoFromCache
+      sender() ! GetBalancesResp()
 
     case m: GetAllowancesReq =>
-      val infoFromCache = BalanceInfoFromCache()
-        .withGetAllowancesResp(GetAllowancesResp())
-      sender() ! infoFromCache
+      sender() ! GetAllowancesResp()
 
     case m: GetBalanceAndAllowanceReq =>
-      val infoFromCache = BalanceInfoFromCache()
-        .withGetBalanceAndAllowanceResp(GetBalanceAndAllowanceResp())
-      sender() ! infoFromCache
+      sender() ! GetBalanceAndAllowanceResp()
 
     case m: CacheBalanceInfo =>
       sender() ! CachedBalanceInfo()

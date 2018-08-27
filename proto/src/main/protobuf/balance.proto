@@ -46,16 +46,3 @@ message GetBalanceAndAllowanceResp {
     repeated TokenAmount balances = 2;
     repeated Allowance allowances = 3;
 }
-
-message BalanceInfoFromCache {
-    oneof CachedInfo {
-         GetBalancesResp get_balances_resp = 1;
-         GetAllowancesResp get_allowances_resp = 2;
-         GetBalanceAndAllowanceResp get_balance_and_allowance_resp = 3;
-    }
-    oneof UnCachedInfo {
-         GetBalancesReq get_balances_req = 100;
-         GetAllowancesReq get_allowances_req = 101;
-         GetBalanceAndAllowanceReq get_balance_and_allowance_req = 102;
-    }
-}

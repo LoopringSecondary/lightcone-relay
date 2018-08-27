@@ -20,11 +20,11 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.proto.balance.BalanceInfoFromCache._
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
 import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
+import scalapb.GeneratedMessage
 
 import scala.concurrent.Future
 
@@ -46,81 +46,98 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
     case settings: BalanceManagerSettings =>
       id = settings.id
 
-    case req @ (GetBalancesReq(_, _)
-      | GetAllowancesReq(_, _, _)
-      | GetBalanceAndAllowanceReq(_, _, _)
-      ) =>
-      for {
-        cachedInfoRes <- Routers.balanceCacher ? req
-        info <- cachedInfoRes match {
-          case m: BalanceInfoFromCache => processInfoFromCache(m)
-          case e: ErrorResp => for {
-            res <- Routers.ethereumAccessor ? req
-          } yield {
-            res match {
-              case e: ErrorResp => e
-              case info @ (GetBalancesResp(_, _)
-                | GetAllowancesResp(_, _)
-                | GetBalanceAndAllowanceResp(_, _, _)
-                ) =>
-                Routers.balanceCacher ! CacheBalanceInfo
-                info
-            }
-          }
-        }
-      } yield info
+    case req: GetBalancesReq => handleInfoReq(req)
+    case req: GetAllowancesReq => handleInfoReq(req)
+    case req: GetBalanceAndAllowanceReq => handleInfoReq(req)
 
   }
 
-  def processInfoFromCache(infoFromCache: BalanceInfoFromCache) = for {
-    uncachedRes <- infoFromCache.unCachedInfo match {
-      case UnCachedInfo
-        .GetBalancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
-        for {
-          res1 <- Routers.ethereumAccessor ? uncachedReq
-        } yield Some(res1)
+  def handleInfoReq(req: GeneratedMessage) = for {
+    cachedInfoRes <- Routers.balanceCacher ? req
 
-      case UnCachedInfo
-        .GetAllowancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
-        for {
-          res1 <- Routers.ethereumAccessor ? uncachedReq
-        } yield Some(res1)
+    (cachedResOpt, uncachedReqOpt) = cachedInfoRes match {
+      case cachedRes: GetBalancesResp =>
+        var uncachedReqOpt: Option[GetBalancesReq] = None
+        val r = req.asInstanceOf[GetBalancesReq]
+        val cachedTokens = cachedRes.balances.map(_.token).toSet
+        val reqTokens = r.tokens.toSet
+        val uncachedTokens = reqTokens -- cachedTokens
+        if (uncachedTokens.nonEmpty) {
+          uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
+        }
+        (Some(cachedRes), uncachedReqOpt)
 
-      case UnCachedInfo
-        .GetBalanceAndAllowanceReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
-        for {
-          res1 <- Routers.ethereumAccessor ? uncachedReq
-        } yield Some(res1)
+      case cachedRes: GetAllowancesResp =>
+        var uncachedReqOpt: Option[GetAllowancesReq] = None
+        val r = req.asInstanceOf[GetAllowancesReq]
+        val cachedTokens = cachedRes.allowances.flatMap(_.tokenAmounts.map(_.token)).toSet
+        val reqTokens = r.tokens.toSet
+        val uncachedTokens = reqTokens -- cachedTokens
+        if (uncachedTokens.nonEmpty) {
+          uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
+        }
+        (Some(cachedRes), uncachedReqOpt)
 
-      case _ => Future.successful(None)
+      case cachedRes: GetBalanceAndAllowanceResp =>
+        var uncachedReqOpt: Option[GetBalanceAndAllowanceReq] = None
+        val r = req.asInstanceOf[GetBalanceAndAllowanceReq]
+        val cachedAllowanceTokens = cachedRes.allowances.flatMap(_.tokenAmounts.map(_.token)).toSet
+        val cachedBalanceTokens = cachedRes.balances.map(_.token).toSet
+        val reqTokens = r.tokens.toSet
+        val uncachedAllowanceTokens = reqTokens -- cachedAllowanceTokens
+        val uncachedBalanceTokens = reqTokens -- cachedBalanceTokens
+        val uncachedTokens = uncachedAllowanceTokens ++ uncachedBalanceTokens
+        if (uncachedTokens.nonEmpty) {
+          uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
+        }
+        (Some(cachedRes), uncachedReqOpt)
+
+      case e: ErrorResp => (None, Some(req))
+
+      case _ => (None, Some(req))
     }
 
-    cachedRes = infoFromCache.cachedInfo match {
-      case CachedInfo.GetAllowancesResp(value) => Some(value)
-      case CachedInfo.GetBalancesResp(value) => Some(value)
-      case CachedInfo.GetBalanceAndAllowanceResp(value) => Some(value)
-      case CachedInfo.Empty => None
+    uncachedResOpt <- uncachedReqOpt match {
+      case None => Future.successful(None)
+      case Some(uncachedReq) => for {
+        res <- Routers.ethereumAccessor ? uncachedReq
+      } yield {
+        res match {
+          case info: GeneratedMessage =>
+            Routers.balanceCacher ! CacheBalanceInfo
+            Some(info)
+          case _ => None
+        }
+      }
     }
   } yield {
-    var mergedResp = mergeResp(cachedRes, uncachedRes)
-    uncachedRes match {
-      case infoFromEth @ Some(GetBalancesResp(_, _)
-        | GetAllowancesResp(_, _)
-        | GetBalanceAndAllowanceResp(_, _, _)
-        ) =>
-        Routers.balanceCacher ! CacheBalanceInfo
-      case _ =>
-    }
-    mergedResp
+    val mergedResp = mergeResp(cachedResOpt, uncachedResOpt)
+    sender() ! mergedResp
   }
 
-  def mergeResp(cachedRes: Any, uncachedRes: Any) =
+  def mergeResp(cachedRes: Option[GeneratedMessage], uncachedRes: Option[GeneratedMessage]): Option[GeneratedMessage] =
     (cachedRes, uncachedRes) match {
-      case (None, None) =>
-      case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) => GetBalancesResp()
-      case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) => GetAllowancesResp()
-      case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) => GetBalanceAndAllowanceResp()
-      case (_, Some(errorResp: ErrorResp)) => errorResp
-      case _ =>
+      case (None, None) => None
+      case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) =>
+        val resp = GetBalancesResp()
+            .withAddress(res1.address)
+            .withBalances(res1.balances ++ res2.balances)
+        Some(resp)
+
+      case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) =>
+        val resp = GetAllowancesResp()
+            .withAddress(res1.address)
+            .withAllowances(res1.allowances ++ res2.allowances)
+        Some(resp)
+
+      case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) =>
+        val resp = GetBalanceAndAllowanceResp()
+            .withAddress(res1.address)
+            .withAllowances(res1.allowances ++ res2.allowances)
+            .withBalances(res1.balances ++ res2.balances)
+        Some(resp)
+
+      case (_, Some(errorResp: ErrorResp)) => Some(errorResp)
+      case _ => None
     }
 }
