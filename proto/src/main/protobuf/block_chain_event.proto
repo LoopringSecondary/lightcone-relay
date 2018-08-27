@@ -26,27 +26,27 @@ message AddressBalanceChanged {
 
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
-    bytes txhash = 1;
-    bytes ringhash = 2;
-    repeated bytes orderhash = 3;
+    bytes tx_hash = 1;
+    bytes ring_hash = 2;
+    repeated bytes order_hash = 3;
 }
 
 message OrderFilled {
-    bytes ringIndex = 1;
-    bytes ringhash = 2;
-    bytes preOrderhash = 3;
-    bytes orderhash = 4;
-    bytes nextOrderhash = 5;
+    bytes ring_index = 1;
+    bytes ring_hash = 2;
+    bytes pre_order_hash = 3;
+    bytes order_hash = 4;
+    bytes next_order_hash = 5;
     bytes owner = 6;
-    bytes tokenS = 7;
-    bytes tokenB = 8;
-    bytes amountS = 9;
-    bytes amountB = 10;
-    bytes lrcReward = 11;
-    bytes lrcFee = 12;
-    bytes splitS = 13;
-    bytes splitB = 14;
-    int32 fillIndex = 15;
+    bytes token_s = 7;
+    bytes token_b = 8;
+    bytes amount_s = 9;
+    bytes amount_b = 10;
+    bytes lrc_reward = 11;
+    bytes lrc_fee = 12;
+    bytes split_s = 13;
+    bytes split_b = 14;
+    int32 fill_index = 15;
 }
 
 message RingMined {
@@ -55,7 +55,7 @@ message RingMined {
 }
 
 message OrderCancelled {
-    bytes orderhash = 1;
+    bytes order_hash = 1;
     bytes amount = 2;
 }
 
@@ -71,12 +71,12 @@ message CutoffPair {
 }
 
 message ChainRolledBack {
-    bytes detectedBlockNumber = 1;
-    bytes delectedBlockhash = 2;
-    bytes forkBlockNumber = 3;
-    bytes forkBlockhash = 4;
+    bytes detected_block_number = 1;
+    bytes delected_block_hash = 2;
+    bytes fork_block_number = 3;
+    bytes fork_block_hash = 4;
 }
 
 message HeartBeat {
-    bytes blockNumber = 1;
+    bytes block_number = 1;
 }

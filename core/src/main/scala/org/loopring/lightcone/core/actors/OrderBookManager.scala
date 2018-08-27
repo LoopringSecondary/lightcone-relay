@@ -39,15 +39,15 @@ class OrderBookManager() extends Actor {
   def receive: Receive = {
     case settings: OrderBookManagerSettings =>
 
-    case purgeEvent: PurgeOrder =>
+    case m: Purge.Order =>
 
-    case purgeEvent: PurgeAllOrderForAddress =>
+    case m: Purge.AllOrderForAddress =>
 
-    case purgeEvent: PurgeAllForAddresses =>
+    case m: Purge.AllForAddresses =>
 
-    case purgeEvent: PurgeAllAfterBlock =>
+    case m: Purge.AllAfterBlock =>
 
-    case purgeEvent: PurgeAll =>
+    case m: Purge.All =>
 
     case _ =>
   }

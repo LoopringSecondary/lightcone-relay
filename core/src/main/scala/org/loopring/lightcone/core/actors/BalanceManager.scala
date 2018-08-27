@@ -20,7 +20,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.proto.balance.BalanceInfoFromCache.{CachedInfo, UnCachedInfo}
+import org.loopring.lightcone.proto.balance.BalanceInfoFromCache._
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
 import org.loopring.lightcone.proto.common.ErrorResp
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 object BalanceManager
   extends base.Deployable[BalanceManagerSettings] {
   val name = "balance_manager"
-  val isSingleton = true   //按照分片id，应当是singleton的
+  val isSingleton = true //按照分片id，应当是singleton的
 
   def props = Props(classOf[BalanceManager])
   def getCommon(s: BalanceManagerSettings) =
@@ -46,41 +46,53 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
     case settings: BalanceManagerSettings =>
       id = settings.id
 
-    case req @ (GetBalancesReq(_, _) | GetAllowancesReq(_, _, _) | GetBalanceAndAllowanceReq(_, _, _)) => for {
-      cachedInfoRes <- Routers.balanceCacher ? req
-      info <- cachedInfoRes match {
-        case err: ErrorResp => for {
-          ethRes <- Routers.ethereumAccessor ? req
-        } yield {
-          ethRes match {
-            case err: ErrorResp => err
-            case info @ (GetBalancesResp(_, _) | GetAllowancesResp(_, _) | GetBalanceAndAllowanceResp(_, _, _)) =>
-              Routers.balanceCacher ! CacheBalanceInfo
-              info
+    case req @ (GetBalancesReq
+      | GetAllowancesReq
+      | GetBalanceAndAllowanceReq
+      ) =>
+      for {
+        cachedInfoRes <- Routers.balanceCacher ? req
+        info <- cachedInfoRes match {
+          case m: BalanceInfoFromCache => processInfoFromCache(m)
+          case e: ErrorResp => for {
+            res <- Routers.ethereumAccessor ? req
+          } yield {
+            res match {
+              case e: ErrorResp => e
+              case info @ (GetBalancesResp
+                | GetAllowancesResp
+                | GetBalanceAndAllowanceResp
+                ) =>
+                Routers.balanceCacher ! CacheBalanceInfo
+                info
+            }
           }
         }
-        case infoFromCache: BalanceInfoFromCache => processInfoFromCache(infoFromCache)
-      }
-    } yield info
+      } yield info
 
   }
 
   def processInfoFromCache(infoFromCache: BalanceInfoFromCache) = for {
     uncachedRes <- infoFromCache.unCachedInfo match {
-      case UnCachedInfo.GetBalancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty => for {
-        res1 <- Routers.ethereumAccessor ? uncachedReq
-      } yield Some(res1)
+      case UnCachedInfo
+        .GetBalancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
+        for {
+          res1 <- Routers.ethereumAccessor ? uncachedReq
+        } yield Some(res1)
 
-      case UnCachedInfo.GetAllowancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty => for {
-        res1 <- Routers.ethereumAccessor ? uncachedReq
-      } yield Some(res1)
+      case UnCachedInfo
+        .GetAllowancesReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
+        for {
+          res1 <- Routers.ethereumAccessor ? uncachedReq
+        } yield Some(res1)
 
-      case UnCachedInfo.GetBalanceAndAllowanceReq(uncachedReq) if uncachedReq.tokens.nonEmpty => for {
-        res1 <- Routers.ethereumAccessor ? uncachedReq
-      } yield Some(res1)
+      case UnCachedInfo
+        .GetBalanceAndAllowanceReq(uncachedReq) if uncachedReq.tokens.nonEmpty =>
+        for {
+          res1 <- Routers.ethereumAccessor ? uncachedReq
+        } yield Some(res1)
 
-      case _ =>
-        Future.successful(None)
+      case _ => Future.successful(None)
     }
 
     cachedRes = infoFromCache.cachedInfo match {
@@ -92,18 +104,22 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
   } yield {
     var mergedResp = mergeResp(cachedRes, uncachedRes)
     uncachedRes match {
-      case infoFromEth @ Some(GetBalancesResp(_, _) | GetAllowancesResp(_, _) | GetBalanceAndAllowanceResp(_, _, _)) =>
+      case infoFromEth @ Some(GetBalancesResp
+        | GetAllowancesResp
+        | GetBalanceAndAllowanceResp
+        ) =>
         Routers.balanceCacher ! CacheBalanceInfo
       case _ =>
     }
     mergedResp
   }
 
-  def mergeResp(cachedRes: Any, uncachedRes: Any) = (cachedRes, uncachedRes) match {
-    case (None, None) =>
-    case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) => GetBalancesResp()
-    case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) => GetAllowancesResp()
-    case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) => GetBalanceAndAllowanceResp()
-    case (_, Some(errorResp: ErrorResp)) => errorResp
-  }
+  def mergeResp(cachedRes: Any, uncachedRes: Any) =
+    (cachedRes, uncachedRes) match {
+      case (None, None) =>
+      case (Some(res1: GetBalancesResp), Some(res2: GetBalancesResp)) => GetBalancesResp()
+      case (Some(res1: GetAllowancesResp), Some(res2: GetAllowancesResp)) => GetAllowancesResp()
+      case (Some(res1: GetBalanceAndAllowanceResp), Some(res2: GetBalanceAndAllowanceResp)) => GetBalanceAndAllowanceResp()
+      case (_, Some(errorResp: ErrorResp)) => errorResp
+    }
 }

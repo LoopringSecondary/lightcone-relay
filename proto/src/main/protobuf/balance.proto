@@ -5,57 +5,57 @@ option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
 message TokenAmount {
-    bytes Token = 1;
-    bytes Amount = 2;
+    bytes token = 1;
+    bytes amount = 2;
 }
 
 message Allowance {
-    bytes DelegateAddress = 1;
-    repeated TokenAmount TokenAmounts = 2;
+    bytes delegate = 1;
+    repeated TokenAmount token_amounts = 2;
 }
 
 message GetBalancesReq {
-    bytes Owner = 1;
+    bytes address = 1;
     repeated bytes Tokens = 2;
 }
 
 message GetBalancesResp {
-    bytes Owner = 1;
-    repeated TokenAmount Balances = 2;
+    bytes address = 1;
+    repeated TokenAmount balances = 2;
 }
 
 message GetAllowancesReq {
-    bytes Owner = 1;
-    repeated bytes Tokens = 2;
-    repeated bytes DelegateAddress = 3;
+    bytes address = 1;
+    repeated bytes tokens = 2;
+    repeated bytes delegates = 3;
 }
 
 message GetAllowancesResp {
-    bytes Owner = 1;
-    repeated Allowance Allowances = 2;
+    bytes address = 1;
+    repeated Allowance allowances = 2;
 }
 
 message GetBalanceAndAllowanceReq {
-    bytes Owner = 1;
-    repeated bytes Tokens = 2;
-    repeated bytes DelegateAddress = 3;
+    bytes address = 1;
+    repeated bytes tokens = 2;
+    repeated bytes delegates = 3;
 }
 
 message GetBalanceAndAllowanceResp {
-    bytes Owner = 1;
-    repeated TokenAmount Balances = 2;
-    repeated Allowance Allowances = 3;
+    bytes address = 1;
+    repeated TokenAmount balances = 2;
+    repeated Allowance allowances = 3;
 }
 
 message BalanceInfoFromCache {
     oneof CachedInfo {
-         GetBalancesResp GetBalancesResp = 1;
-         GetAllowancesResp GetAllowancesResp = 2;
-         GetBalanceAndAllowanceResp GetBalanceAndAllowanceResp = 3;
+         GetBalancesResp get_balances_resp = 1;
+         GetAllowancesResp get_allowances_resp = 2;
+         GetBalanceAndAllowanceResp get_balance_and_allowance_resp = 3;
     }
     oneof UnCachedInfo {
-         GetBalancesReq GetBalancesReq = 100;
-         GetAllowancesReq GetAllowancesReq = 101;
-         GetBalanceAndAllowanceReq GetBalanceAndAllowanceReq = 102;
+         GetBalancesReq get_balances_req = 100;
+         GetAllowancesReq get_allowances_req = 101;
+         GetBalanceAndAllowanceReq get_balance_and_allowance_req = 102;
     }
 }
