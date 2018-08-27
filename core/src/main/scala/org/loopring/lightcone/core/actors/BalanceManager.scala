@@ -74,11 +74,6 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
       case Some(uncachedReq) => getFromEthAndCacheRes(uncachedReq)
     }
   } yield {
-    val errorFunction: PartialFunction[Any, ErrorResp] = {
-      case Some(err: ErrorResp) => err
-      case _ => ErrorResp()
-    }
-
     val mergedResp = cachedResOpt match {
       case Some(resp1: GetBalancesResp) =>
         uncachedResOpt match {
@@ -86,7 +81,7 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
             GetBalancesResp()
               .withAddress(resp1.address)
               .withBalances(resp1.balances ++ resp2.balances)
-          case _ => errorFunction(_)
+          case _ => resp1
         }
       case Some(resp1: GetAllowancesResp) =>
         uncachedResOpt match {
@@ -94,7 +89,7 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
             GetAllowancesResp()
               .withAddress(resp1.address)
               .withAllowances(resp1.allowances ++ resp2.allowances)
-          case _ => errorFunction(_)
+          case _ => resp1
         }
       case Some(resp1: GetBalanceAndAllowanceResp) =>
         uncachedResOpt match {
@@ -102,7 +97,7 @@ class BalanceManager()(implicit timeout: Timeout) extends Actor {
             GetAllowancesResp()
               .withAddress(resp1.address)
               .withAllowances(resp1.allowances ++ resp2.allowances)
-          case _ => errorFunction(_)
+          case _ => resp1
         }
       case _ => uncachedResOpt match {
         case Some(resp2: GeneratedMessage) => resp2
