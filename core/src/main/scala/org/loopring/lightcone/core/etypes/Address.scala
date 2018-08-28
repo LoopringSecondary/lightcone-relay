@@ -22,7 +22,7 @@ object Address {
   val ADDRESS_LENGTH = 42
 }
 
-case class Address(bytes: Array[Byte]) {
+case class Address(val bytes: Array[Byte]) {
   lazy val isValid: Boolean =
     bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
 

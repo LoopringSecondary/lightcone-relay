@@ -20,7 +20,7 @@ object Hash {
   val HASH_LENGTH = 42
 }
 
-case class Hash(bytes: Array[Byte]) {
+case class Hash(val bytes: Array[Byte]) {
   lazy val isValid: Boolean =
     bytes != null && bytes.length.equals(Hash.HASH_LENGTH)
 
