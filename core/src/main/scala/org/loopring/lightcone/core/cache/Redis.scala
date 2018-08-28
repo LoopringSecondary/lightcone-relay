@@ -18,11 +18,11 @@ package org.loopring.lightcone.core.cache
 
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
-import redis.{RedisCluster, RedisServer}
+import redis.{ RedisCluster, RedisServer }
 
 object Redis {
 
-  def initRedisConn(implicit system : ActorSystem,  config : Config) : RedisCluster = {
+  def initRedisConn(implicit system: ActorSystem, config: Config): RedisCluster = {
     val server = RedisServer(config.getString("redis.host"), config.getInt("redis.port"), Some(config.getString("redis.password")))
     RedisCluster(Seq(server))
   }

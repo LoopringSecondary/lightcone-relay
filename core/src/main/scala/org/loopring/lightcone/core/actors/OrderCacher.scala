@@ -18,13 +18,13 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.util.ByteString
-import org.loopring.lightcone.proto.cache.{CachedMultiOrders, GetOrdersFromCache}
+import org.loopring.lightcone.proto.cache.{ CachedMultiOrders, GetOrdersFromCache }
 import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
-import redis.{ByteStringDeserializer, ByteStringSerializer, RedisClientPool}
+import redis.{ ByteStringDeserializer, ByteStringSerializer, RedisClientPool }
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 object OrderCacher
   extends base.Deployable[OrderCacherSettings] {
