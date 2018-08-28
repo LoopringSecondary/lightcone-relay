@@ -16,59 +16,63 @@
 
 package org.loopring.lightcone.lib.math
 
-import java.math.{MathContext, RoundingMode}
+import java.math.{ MathContext, RoundingMode }
 
-import scala.math.{Ordered, ScalaNumber, ScalaNumericConversions}
+import scala.math.{ Ordered, ScalaNumber, ScalaNumericConversions }
 
-final class Rational(num:BigInt, denom:BigInt)
+final class Rational(numerator: BigInt, denominator: BigInt)
   extends ScalaNumber with ScalaNumericConversions with Serializable with Ordered[Rational] {
-  require( denom.signum != 0)
+  require(denominator.signum != 0)
+  private val gcd = if (numerator.signum == 0) BigInt(1) else numerator gcd denominator
+  val num: BigInt = numerator / gcd
+  val denom: BigInt = denominator / gcd
 
   val defaultMathContext = MathContext.DECIMAL128
 
-  def +(that:Rational) = {
-    new Rational(num = this.num+that.num, denom=this.denom+that.denom)
+  def +(that: Rational) = {
+    new Rational(numerator = this.num + that.num, denominator = this.denom + that.denom)
   }
 
-  def -(that:Rational) = {
-    new Rational(num = (this.num*that.denom)-(this.denom*that.num), denom=this.denom*that.denom)
+  def -(that: Rational) = {
+    new Rational(numerator = (this.num * that.denom) - (this.denom * that.num), denominator = this.denom * that.denom)
   }
 
-  def /(that:Rational) = {
-    new Rational(num = this.num*that.denom, denom=this.denom*that.num)
+  def /(that: Rational) = {
+    new Rational(numerator = this.num * that.denom, denominator = this.denom * that.num)
   }
 
-  def *(that:Rational) = {
-    new Rational(num = this.num*that.num, denom=this.denom*that.denom)
+  def *(that: Rational) = {
+    new Rational(numerator = this.num * that.num, denominator = this.denom * that.denom)
   }
 
   override def underlying(): AnyRef = this
 
-  override def compare(that: Rational): Int = this.num*that.denom compareTo this.denom*that.num
+  override def compare(that: Rational): Int = this.num * that.denom compareTo this.denom * that.num
 
   override def isWhole(): Boolean = true
 
   override def intValue(): Int = {
-    (this.num/this.denom).intValue()
+    (this.num / this.denom).intValue()
   }
 
   override def longValue(): Long = {
-    (BigDecimal(this.num)/BigDecimal(this.denom)).longValue()
+    (BigDecimal(this.num) / BigDecimal(this.denom)).longValue()
   }
 
   override def floatValue(): Float = {
-    (BigDecimal(this.num)/BigDecimal(this.denom)).floatValue()
+    (BigDecimal(this.num) / BigDecimal(this.denom)).floatValue()
   }
 
   override def doubleValue(): Double = {
-    (BigDecimal(this.num)/BigDecimal(this.denom)).doubleValue()
+    (BigDecimal(this.num) / BigDecimal(this.denom)).doubleValue()
   }
 
-  override def toString: String = s"numerator:${this.num.toString()}, denominator:${this.denom.toString()}"
+  override def toString: String = s"${this.num.toString()}/${this.denom.toString()}"
 
-  def floatString(precision:Int): String = {
+  def floatString(precision: Int): String = {
     val mc = new MathContext(precision, RoundingMode.HALF_EVEN)
-    (BigDecimal(this.num, mc)/BigDecimal(this.denom, mc)).toString()
+    (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
+
 }
 
