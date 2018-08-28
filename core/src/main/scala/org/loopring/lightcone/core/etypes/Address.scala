@@ -22,9 +22,9 @@ object Address {
   val ADDRESS_LENGTH = 42
 }
 
-case class Address(val bytes: Array[Byte]) {
-  lazy val isValid: Boolean =
+case class Address(bytes: Array[Byte]) {
+  def isValid: Boolean =
     bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
 
-  override lazy val toString: String = new String(bytes)
+  override def toString: String = new String(bytes)
 }
