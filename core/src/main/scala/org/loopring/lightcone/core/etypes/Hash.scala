@@ -21,7 +21,8 @@ object Hash {
 }
 
 case class Hash(bytes: Array[Byte]) {
-  def isValid(): Boolean = bytes.length.equals(Hash.HASH_LENGTH)
+  lazy val isValid: Boolean =
+    bytes != null && bytes.length.equals(Hash.HASH_LENGTH)
 
   override lazy val toString: String = new String(bytes)
 }
