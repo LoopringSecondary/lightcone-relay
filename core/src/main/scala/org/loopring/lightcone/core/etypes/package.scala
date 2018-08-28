@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.converter
+package org.loopring.lightcone.core
 
-trait Converter[T, S] {
-  def convert(t: T): S
+package object etypes {
+
+  implicit class RichByteArray(bytes: Array[Byte]) {
+    def asAddress: Address = Address(bytes)
+    def asHash: Hash = Hash(bytes)
+  }
+
 }

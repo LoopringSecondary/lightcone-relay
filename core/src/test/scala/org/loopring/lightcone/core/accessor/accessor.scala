@@ -19,7 +19,6 @@ package org.loopring.lightcone.core.accessor
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import scala.concurrent.duration._
-import org.loopring.lightcone.core.converter._
 
 package object accessor {
   implicit val system = ActorSystem()
@@ -35,13 +34,6 @@ package object accessor {
   val config = GethClientConfig.apply(host = "localhost", port = 8080, ssl = false)
   val geth = new EthClientImpl(config, abimap)(system)
   val timeout = Timeout(5 seconds)
-  val txconverter = new TransactionConverter()
-  val logConverter = new ReceiptLogConverter()
-  val receiptconverter = new TransactionReceiptConverter()(logConverter)
-  val blockWithTxHashConverter = new BlockWithTxHashConverter()
-  val blockWithTxObjectConverter = new BlockWithTxObjectConverter()(txconverter)
-  val traceCallConverter = new TraceCallConverter()
-  val traceTransactionConverter = new TraceTransactionConverter()(traceCallConverter)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"
   val lrc = "0xcd36128815ebe0b44d0374649bad2721b8751bef"

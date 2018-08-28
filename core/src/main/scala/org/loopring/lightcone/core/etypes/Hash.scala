@@ -14,29 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core.etypes
 
-import org.loopring.lightcone.proto.eth._
+case class Hash(bytes: Array[Byte]) {
 
-package object core {
+  val HASH_LENGTH = 42
 
-  implicit class RichBig(big: Big) {
-    def fromString(str: String) = big.withContent(str)
-
-    def toBigInt = BigInt(getHexString, 16)
-
-    def getBitIntString = toBigInt.toString()
-
-    def getIntValue = toBigInt.intValue()
-
-    def getHexString = {
-      if (big.content.startsWith("0x")) {
-        big.content.substring(2)
-      } else {
-        big.content
-      }
-    }
-  }
-
+  def valid(): Boolean = bytes.length.equals(HASH_LENGTH)
 }
-

@@ -17,10 +17,9 @@
 package org.loopring.lightcone.core.accessor
 
 import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
-import org.loopring.lightcone.proto.eth.Big
-import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
+import org.loopring.lightcone.core.etypes._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EthGetBalanceSpec extends FlatSpec {
@@ -33,10 +32,10 @@ class EthGetBalanceSpec extends FlatSpec {
       .withTag("latest")
     val respFuture = for {
       resp <- accessor.geth.ethGetBalance(req)
-      result = Big().fromString(resp.result)
-    } yield result
+    } yield resp.result
 
-    val amount = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getBalance amount is ${amount.toString}")
+    val result = Await.result(respFuture, accessor.timeout.duration)
+    val amount = Big(result.getBytes()).toString()
+    info(s"geth eth_getBalance amount is $amount")
   }
 }
