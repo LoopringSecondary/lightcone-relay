@@ -16,9 +16,10 @@
 
 package org.loopring.lightcone.core.accessor
 
+import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionByHashReq
-import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,12 +30,13 @@ class GetTransactionByHashSpec extends FlatSpec {
     val req = GetTransactionByHashReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
       resp <- accessor.geth.getTransactionByHash(req)
-      result = accessor.txconverter.convert(resp.getResult)
-    } yield result
+    } yield resp.result
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration)
+    val tx = Await.result(resultFuture, accessor.timeout.duration).get
 
-    info(s"blockhash:${tx.getBlockHash.toString}")
-    info(s"transactionHash:${tx.getHash.toString}")
+    info(tx.toString)
+    info(tx.from.getBytes().asAddress.toString)
+    info(tx.hash.getBytes().asHash.toString)
+    info(tx.value.getBytes().asBig.toString)
   }
 }

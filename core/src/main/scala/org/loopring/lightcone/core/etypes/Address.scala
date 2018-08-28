@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core.etypes
 
-import org.loopring.lightcone.proto.eth._
+import org.spongycastle.util.encoders.Hex
 
-package object core {
+case class Address(bytes: Array[Byte]) {
 
-  implicit class RichBig(big: Big) {
-    def fromString(str: String) = big.withContent(str)
+  val ADDRESS_LENGTH = 42
 
-    def toBigInt = BigInt(getHexString, 16)
+  def valid(): Boolean = bytes.length.equals(ADDRESS_LENGTH)
 
-    def getBitIntString = toBigInt.toString()
-
-    def getIntValue = toBigInt.intValue()
-
-    def getHexString = {
-      if (big.content.startsWith("0x")) {
-        big.content.substring(2)
-      } else {
-        big.content
-      }
-    }
-  }
-
+  override def toString: String = new String(bytes)
 }
-

@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.converter
+package org.loopring.lightcone.core.etypes
 
-trait Converter[T, S] {
-  def convert(t: T): S
+case class Hash(bytes: Array[Byte]) {
+
+  val HASH_LENGTH = 42
+
+  def valid(): Boolean = bytes.length.equals(HASH_LENGTH)
+
+  override def toString: String = new String(bytes)
 }

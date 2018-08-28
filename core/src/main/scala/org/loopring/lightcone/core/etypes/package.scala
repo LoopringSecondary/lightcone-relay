@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.converter
+package org.loopring.lightcone.core
 
-import org.loopring.lightcone.proto.{ eth_jsonrpc => ethj }
-import org.loopring.lightcone.proto.eth._
-import org.loopring.lightcone.core._
+package object etypes {
 
-class TraceCallConverter
-  extends Converter[ethj.TraceCall, TraceCall] {
+  implicit class RichByteArray(bytes: Array[Byte]) {
+    def asAddress: Address = Address(bytes)
+    def asHash: Hash = Hash(bytes)
+    def asBig: Big = Big(bytes)
+  }
 
-  def convert(org: ethj.TraceCall) = TraceCall()
-    .withFrom(Address(org.from))
-    .withTo(Address(org.to))
-    .withInput(Hex(org.input))
-    .withOutput(Hex(org.output))
-    .withGasUsed(Big(org.gasUsed))
-    .withValue(Big(org.value))
-    .withType(org.`type`)
 }
