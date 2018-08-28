@@ -16,27 +16,26 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
-import org.loopring.lightcone.proto.eth.Big
-import org.loopring.lightcone.core._
+import org.loopring.lightcone.proto.eth_jsonrpc.GetBalanceReq
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EthGetBalanceSpec extends FlatSpec {
+class BalanceOfSpec extends FlatSpec {
+  info("execute cmd [sbt core/'testOnly *BalanceOfSpec'] to get balance of erc20 token")
 
-  info("execute cmd [sbt core/'testOnly *EthGetBalanceSpec'] to test single spec of eth_getBalance")
-
-  "eth balance" should "use accessor" in {
-    val req = EthGetBalanceReq()
-      .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
+  "balance" should "encode params and return amount of big number" in {
+    val req = GetBalanceReq()
+      .withOwner(accessor.owner)
+      .withToken(accessor.lrc)
       .withTag("latest")
-    val respFuture = for {
-      resp <- accessor.geth.ethGetBalance(req)
-      result = Big().fromString(resp.result)
-    } yield result
 
-    val amount = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getBalance amount is ${amount.toString}")
+    val resultFuture = for {
+      resp <- accessor.geth.getBalance(req)
+    } yield resp
+
+    val tx = Await.result(resultFuture, accessor.timeout.duration)
+
+    info(tx.result)
   }
 }

@@ -17,11 +17,11 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.util.Timeout
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 
 object BalanceCacher
@@ -35,9 +35,31 @@ object BalanceCacher
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class BalanceCacher extends Actor {
+class BalanceCacher()(implicit timeout: Timeout) extends Actor {
+
+  DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
+
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
-    case _ =>
+
+    case m: GetBalancesReq =>
+      sender() ! GetBalancesResp()
+
+    case m: GetAllowancesReq =>
+      sender() ! GetAllowancesResp()
+
+    case m: GetBalanceAndAllowanceReq =>
+      sender() ! GetBalanceAndAllowanceResp()
+
+    case m: CacheBalanceInfo =>
+      sender() ! CachedBalanceInfo()
+
+    case purgeEvent: Purge.Balance =>
+
+    case purgeEvent: Purge.AllForAddresses =>
+
+    case purgeEvent: Purge.AllAfterBlock =>
+
+    case purgeEvent: Purge.All =>
   }
 }

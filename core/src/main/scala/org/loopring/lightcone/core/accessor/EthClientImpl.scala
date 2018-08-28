@@ -20,52 +20,94 @@ import akka.actor._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
-import com.google.protobuf.ByteString
+import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.lib.solidity.Abi
+import org.spongycastle.util.encoders.Hex
+
 import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scalapb.json4s.JsonFormat
+import spray.json._
+import DefaultJsonProtocol._
 
 case class GethClientConfig(
   host: String,
   port: Int,
   ssl: Boolean = false)
 
+case class DebugParams(
+  timeout: String,
+  tracer: String)
+
 class EthClientImpl(
-  val config: GethClientConfig)(
+  val config: GethClientConfig,
+  val abiStrMap: Map[String, String])(
   implicit
-  val system: ActorSystem,
-  implicit val materializer: ActorMaterializer,
-  implicit val executionContex: ExecutionContextExecutor) extends EthClient {
+  val system: ActorSystem)
+  extends EthClient with JsonRpcSupport {
 
-  private val id = "1"
-  private val jsonrpcversion = "2.0"
-  private val post = HttpMethods.POST
-  private val uri = "http://" + config.host + ":" + config.port.toString + "/"
+  val uri = s"http://${config.host}:${config.port}"
 
-  def ethGetBalance(address: String, tag: String): Future[EthGetBalanceResponse] = {
-    val method = "eth_getBalance"
-    val params = Seq[String](address, tag)
-    for {
-      resp <- handleRequest(method, params)
-      amount = ByteString.copyFrom(resp.result.getBytes())
-    } yield EthGetBalanceResponse().withAmount(amount)
-  }
+  // eth actions
+  def ethGetBalance(req: EthGetBalanceReq) =
+    httpPost[EthGetBalanceRes]("eth_getBalance") {
+      Seq(req.address, req.tag)
+    }
 
-  private def handleRequest(method: String, params: Seq[String]): Future[JsonRPCResponse] = {
-    val request = JsonRPCRequest()
-      .withId(id)
-      .withJsonrpc(jsonrpcversion)
-      .withMethod(method)
-      .withParams(params)
+  def getTransactionByHash(req: GetTransactionByHashReq) =
+    httpPost[GetTransactionByHashRes]("eth_getTransactionByHash") {
+      Seq(req.hash)
+    }
 
-    val jsonReq = JsonFormat.toJsonString(request)
-    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
-    val httpRequest = HttpRequest.apply(method = post, uri = uri, entity = entity)
+  def getTransactionReceipt(req: GetTransactionReceiptReq) =
+    httpPost[GetTransactionReceiptRes]("eth_getTransactionReceipt") {
+      Seq(req.hash)
+    }
 
-    for {
-      httpResp <- Http().singleRequest(httpRequest)
-      jsonResp <- httpResp.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
-      body = JsonFormat.parser.fromJsonString[JsonRPCResponse](jsonResp)
-    } yield body
-  }
+  def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
+    httpPost[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
+      Seq(req.blockNumber, false)
+    }
+
+  def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
+    httpPost[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
+      Seq(req.blockNumber, true)
+    }
+
+  def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
+    httpPost[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
+      Seq(req.blockHash, false)
+    }
+
+  def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
+    httpPost[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
+      Seq(req.blockHash, true)
+    }
+
+  def traceTransaction(req: TraceTransactionReq) =
+    httpPost[TraceTransactionRes]("debug_traceTransaction") {
+      val debugParams = DebugParams(DEBUG_TIMEOUT_STR, DEBUG_TRACER)
+      Seq(req.txhash, debugParams)
+    }
+
+  def getBalance(req: GetBalanceReq) =
+    httpPost[GetBalanceRes](ETH_CALL) {
+      val function = findErc20Function("balanceOf")
+      val data = bytesToHex(function.encode(req.owner))
+      val args = CallArgs().withTo(req.token).withData(data)
+      Seq(args, req.tag)
+    }
+
+  def getAllowance(req: GetAllowanceReq) =
+    httpPost[GetAllowanceRes](ETH_CALL) {
+      val function = findErc20Function("balanceOf")
+      val data = bytesToHex(function.encode(req.owner))
+      val args = CallArgs().withTo(req.token).withData(data)
+      Seq(args, req.tag)
+    }
+
+  // def getEstimatedGas() = ???
+
+  // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
+
 }

@@ -16,27 +16,24 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
-import org.loopring.lightcone.proto.eth.Big
+import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionReceiptReq
 import org.loopring.lightcone.core._
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EthGetBalanceSpec extends FlatSpec {
+class GetTransactionReceiptSpec extends FlatSpec {
+  info("execute cmd [sbt core/'testOnly *GetTransactionReceiptSpec'] to test single spec of eth_getTransactionReceipt")
 
-  info("execute cmd [sbt core/'testOnly *EthGetBalanceSpec'] to test single spec of eth_getBalance")
-
-  "eth balance" should "use accessor" in {
-    val req = EthGetBalanceReq()
-      .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
-      .withTag("latest")
-    val respFuture = for {
-      resp <- accessor.geth.ethGetBalance(req)
-      result = Big().fromString(resp.result)
+  "receipt" should "contain logs" in {
+    val req = GetTransactionReceiptReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
+    val resultFuture = for {
+      resp <- accessor.geth.getTransactionReceipt(req)
+      result = accessor.receiptconverter.convert(resp.getResult)
     } yield result
 
-    val amount = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getBalance amount is ${amount.toString}")
+    val tx = Await.result(resultFuture, accessor.timeout.duration)
+
+    info(tx.toString)
   }
 }
