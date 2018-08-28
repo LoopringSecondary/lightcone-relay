@@ -21,4 +21,6 @@ case class Hash(bytes: Array[Byte]) {
   val HASH_LENGTH = 42
 
   def valid(): Boolean = bytes.length.equals(HASH_LENGTH)
+
+  override def toString: String = new String(bytes)
 }

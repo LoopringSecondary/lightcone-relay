@@ -18,6 +18,8 @@ package org.loopring.lightcone.core.etypes
 
 import java.math.BigInteger
 
+import org.spongycastle.util.encoders.Hex
+
 case class Big(bytes: Array[Byte]) {
 
   val number: BigInteger = {
@@ -28,7 +30,7 @@ case class Big(bytes: Array[Byte]) {
     }
   }
 
-  override def toString: String = number.toString()
+  override def toString: String = number.toString
 
   // 0为等于，1为大于，-1为小于
   def cmp(n: Big): Int = number.compareTo(n.number)
@@ -40,4 +42,5 @@ case class Big(bytes: Array[Byte]) {
     val bigDecY = BigDecimal.apply(n.number).bigDecimal
     bigDecX.divide(bigDecY)
   }
+
 }

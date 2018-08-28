@@ -21,6 +21,7 @@ package object etypes {
   implicit class RichByteArray(bytes: Array[Byte]) {
     def asAddress: Address = Address(bytes)
     def asHash: Hash = Hash(bytes)
+    def asBig: Big = Big(bytes)
   }
 
 }
