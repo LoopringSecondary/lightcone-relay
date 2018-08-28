@@ -136,6 +136,11 @@ message RingMinerSettings {
     int64 scheduleDelay = 4;
 }
 
+// todo
+message TokenRegistrySettings {
+
+}
+
 message DynamicSettings {
     BalanceCacherSettings balance_cacher_settings = 2;
     BalanceManagerSettings balance_manager_settings = 3;
