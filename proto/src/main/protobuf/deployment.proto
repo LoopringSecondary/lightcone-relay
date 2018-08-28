@@ -105,15 +105,15 @@ message OrderUpdaterSettings {
 message OrderWriterSettings {
     repeated string roles = 1;
     int32 instances = 2;
-    OrderCheckSettings order_check_settings = 3;
+    OrderValidationSettings order_validation_settings = 3;
 }
 
-message OrderCheckSettings {
+message OrderValidationSettings {
     bytes min_lrc_fee = 1;
     bytes min_lrc_hold = 2;
     bytes max_price = 3;
     map<string, bytes> min_token_s_amount = 4;
-    double min_token_usd_amount = 5;
+    double min_token_fiat_amount = 5;
     int64 max_valid_since_interval = 6;
     bytes pow_difficulty = 7;
 }

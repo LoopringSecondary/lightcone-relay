@@ -8,7 +8,9 @@ message PurgeTokenBalancesForAddresses {}
 message PurgeAllOrdersAddresses {}
 message PurgeEverything {}
 
-message GetOrdersFromCache {}
+message GetOrdersFromCache {
+    repeated string order_hashes = 1;
+}
 message CachedMultiOrders {}
 
 message CacheAddressBalanceInfo {}

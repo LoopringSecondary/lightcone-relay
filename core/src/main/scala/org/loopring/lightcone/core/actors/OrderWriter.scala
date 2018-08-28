@@ -82,6 +82,6 @@ class OrderWriter() extends Actor {
 
 }
 
-object OrderChecker {
+object OrderValidator {
 
 }
