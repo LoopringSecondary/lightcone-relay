@@ -20,6 +20,7 @@ import akka.actor._
 import org.loopring.lightcone.proto.block_chain_event.OrderCancelled
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.core.etypes._
 
 object OrderManager
   extends base.Deployable[OrderManagerSettings] {
@@ -35,6 +36,11 @@ object OrderManager
 class OrderManager() extends Actor {
   def receive: Receive = {
     case settings: OrderManagerSettings =>
+
+      // deployment
+
+      val bytes: Array[Byte] = ???
+      val addr: EAddress = bytes.asAddress
     case OrdersSaved =>
     case OrdersSoftCancelled =>
     case OrderCancelled =>
