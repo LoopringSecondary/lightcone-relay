@@ -18,4 +18,6 @@ package org.loopring.lightcone.core.etypes
 
 case class EAddress(val bytes: Array[Byte]) {
   def someMethod() = Unit
+
+  override def toString = s"<address>${new String(bytes)}"
 }

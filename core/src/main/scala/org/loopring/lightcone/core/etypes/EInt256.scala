@@ -18,4 +18,6 @@ package org.loopring.lightcone.core.etypes
 
 case class EInt256(val bytes: Array[Byte]) {
   def someMethod() = Unit
+
+  override def toString = s"<int256>${new String(bytes)}"
 }
