@@ -18,11 +18,12 @@ package org.loopring.lightcone.core.etypes
 
 import org.spongycastle.util.encoders.Hex
 
-case class Address(bytes: Array[Byte]) {
-
+object Address {
   val ADDRESS_LENGTH = 42
+}
 
-  def valid(): Boolean = bytes.length.equals(ADDRESS_LENGTH)
+case class Address(bytes: Array[Byte]) {
+  def isValid(): Boolean = bytes.length.equals(Address.ADDRESS_LENGTH)
 
-  override def toString: String = new String(bytes)
+  override lazy val toString: String = new String(bytes)
 }
