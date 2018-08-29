@@ -27,13 +27,15 @@ package object etypes {
     def asHash(): Hash = Hash(bytes)
 
     def asBigInt(): BigInt = {
-      if (!bytes.toString.startsWith("0x")) BigInt(bytes)
-      else BigInt(bytes.toString.substring(2))
+      val str = new String(bytes).toLowerCase
+      if (!str.startsWith("0x")) BigInt(bytes)
+      else BigInt(str.substring(2))
     }
 
     def asBigInteger(): BigInteger = {
-      if (!bytes.toString.startsWith("0x")) new BigInteger(bytes)
-      else new BigInteger(bytes.toString.substring(2))
+      val str = new String(bytes).toLowerCase
+      if (!str.startsWith("0x")) new BigInteger(bytes)
+      else new BigInteger(str.substring(2))
     }
   }
 
