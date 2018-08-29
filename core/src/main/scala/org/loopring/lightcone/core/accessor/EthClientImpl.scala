@@ -17,27 +17,8 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
-import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
-
-import scala.concurrent.{ ExecutionContextExecutor, Future }
-import scalapb.json4s.JsonFormat
-import spray.json._
-import DefaultJsonProtocol._
-
-case class GethClientConfig(
-  host: String,
-  port: Int,
-  ssl: Boolean = false)
-
-case class DebugParams(
-  timeout: String,
-  tracer: String)
 
 class EthClientImpl(
   val config: GethClientConfig,
@@ -94,7 +75,7 @@ class EthClientImpl(
     httpPost[GetBalanceRes](ETH_CALL) {
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
-      val args = CallArgs().withTo(req.token).withData(data)
+      val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
     }
 
@@ -102,7 +83,7 @@ class EthClientImpl(
     httpPost[GetAllowanceRes](ETH_CALL) {
       val function = findErc20Function("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
-      val args = CallArgs().withTo(req.token).withData(data)
+      val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
     }
 
@@ -110,4 +91,5 @@ class EthClientImpl(
 
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
 
+  def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
 }

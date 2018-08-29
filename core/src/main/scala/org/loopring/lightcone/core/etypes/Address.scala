@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.converter
+package org.loopring.lightcone.core.etypes
 
-trait Converter[T, S] {
-  def convert(t: T): S
+import org.spongycastle.util.encoders.Hex
+
+case class Address(bytes: Array[Byte]) {
+
+  val ADDRESS_LENGTH = 42
+
+  def valid(): Boolean = bytes.length.equals(ADDRESS_LENGTH)
+
+  override def toString: String = new String(bytes)
 }
