@@ -26,18 +26,15 @@ import akka.pattern.ask
 import akka.util.Timeout
 import org.loopring.lightcone.proto.common.ErrorResp
 
-import scala.concurrent.{ Await, ExecutionContext }
-import scala.util.{ Failure, Success }
+import scala.concurrent._
+import scala.util._
 
 object OrderReader
   extends base.Deployable[OrderReaderSettings] {
   val name = "order_reader"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderReader])
 
   def getCommon(s: OrderReaderSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 
 }
 

@@ -27,10 +27,7 @@ import org.loopring.lightcone.proto.deployment._
 
 object ClusterManager extends base.NullConfigDeployable {
   val name = "cluster_manager"
-  val isSingleton = true
-
-  def props = Props(classOf[ClusterManager])
-
+  override val isSingleton = true
 }
 
 class ClusterManager() extends Actor {

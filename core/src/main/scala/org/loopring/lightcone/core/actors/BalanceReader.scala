@@ -25,12 +25,9 @@ import org.loopring.lightcone.proto.deployment._
 object BalanceReader
   extends base.Deployable[BalanceReaderSettings] {
   val name = "balance_reader"
-  val isSingleton = false
-
-  def props = Props(classOf[BalanceReader])
 
   def getCommon(s: BalanceReaderSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class BalanceReader()(implicit timeout: Timeout) extends Actor {

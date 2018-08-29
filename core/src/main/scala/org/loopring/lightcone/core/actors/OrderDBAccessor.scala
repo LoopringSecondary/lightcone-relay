@@ -26,18 +26,14 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent._
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
   val name = "order_db_accessor"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderDBAccessor])
 
   def getCommon(s: OrderDBAccessorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderDBAccessor() extends Actor {

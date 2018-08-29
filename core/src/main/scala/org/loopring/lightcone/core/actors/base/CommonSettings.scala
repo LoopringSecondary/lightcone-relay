@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.actors.base
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
-import akka.actor._
-
-object ActorUtil {
-  implicit class ActorInjector(injector: Injector) {
-    def getActor(name: String): ActorRef = {
-      injector.getInstance(Key.get(classOf[ActorRef], Names.named(name)))
-    }
-
-    def getProps(name: String): Props = {
-      injector.getInstance(Key.get(classOf[Props], Names.named(name)))
-    }
-  }
-}
+case class CommonSettings(
+  id: Option[String],
+  roles: Seq[String],
+  instances: Int)

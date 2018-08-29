@@ -24,6 +24,8 @@ import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core.actors._
 import com.typesafe.config.Config
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -37,16 +39,143 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[ActorSystem].toInstance(system)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(materializer)
+    bind[Timeout].toInstance(Timeout(2 seconds))
   }
 
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(config: Config)(implicit
+  def getNodeManager(injector: Injector, config: Config)(implicit
     cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
-      Props(new managing.NodeManager(config)), "node_manager")
+      Props(new managing.NodeManager(injector, config)), "node_manager")
+  }
+
+  @Provides
+  @Named("balance_cacher")
+  def getBalanceCacherProps()(implicit timeout: Timeout) = {
+    Props(new BalanceCacher()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("balance_manager")
+  def getBalanceManagerProps()(implicit timeout: Timeout) = {
+    Props(new BalanceManager()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("balance_reader")
+  def getBalanceReaderProps()(implicit timeout: Timeout) = {
+    Props(new BalanceReader()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("block_event_extractor")
+  def getBlockchainEventExtractorProps()(implicit timeout: Timeout) = {
+    Props(new BlockchainEventExtractor()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("cache_obsoleter")
+  def getCacheObsoleterProps()(implicit timeout: Timeout) = {
+    Props(new CacheObsoleter()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("cluster_manager")
+  def getClusterManagerProps()(implicit timeout: Timeout) = {
+    Props(new ClusterManager()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("ethereum_accessor")
+  def getEthereumAccessorProps()(implicit timeout: Timeout) = {
+    Props(new EthereumAccessor()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_accessor")
+  def getOrderAccessorProps()(implicit timeout: Timeout) = {
+    Props(new OrderAccessor()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_book_manager")
+  def getOrderBookManagerProps()(implicit timeout: Timeout) = {
+    Props(new OrderBookManager()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_book_reader")
+  def getOrderBookReaderProps()(implicit timeout: Timeout) = {
+    Props(new OrderBookReader()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_cacher")
+  def getOrderCacherProps()(implicit timeout: Timeout) = {
+    Props(new OrderCacher()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_change_log_writer")
+  def getOrderChangeLogWriterProps()(implicit timeout: Timeout) = {
+    Props(new OrderChangeLogWriter()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_db_accessor")
+  def getOrderDBAccessorProps()(implicit timeout: Timeout) = {
+    Props(new OrderDBAccessor()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_manager")
+  def getOrderManagerProps()(implicit timeout: Timeout) = {
+    Props(new OrderManager()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_read_coordinator")
+  def getOrderReadCoordinatorProps()(implicit timeout: Timeout) = {
+    Props(new OrderReadCoordinator()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_reader")
+  def getOrderReaderProps()(implicit timeout: Timeout) = {
+    Props(new OrderReader()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_update_coordinator")
+  def getOrderUpdateCoordinatorProps()(implicit timeout: Timeout) = {
+    Props(new OrderUpdateCoordinator()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_updater")
+  def getOrderUpdaterProps()(implicit timeout: Timeout) = {
+    Props(new OrderUpdater()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("order_writer")
+  def getOrderWriterProps()(implicit timeout: Timeout) = {
+    Props(new OrderWriter()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("ring_finder")
+  def getRingFinderProps()(implicit timeout: Timeout) = {
+    Props(new RingFinder()).withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("ring_miner")
+  def getRingMinerProps()(implicit timeout: Timeout) = {
+    Props(new RingMiner()).withDispatcher("ring-dispatcher")
   }
 }

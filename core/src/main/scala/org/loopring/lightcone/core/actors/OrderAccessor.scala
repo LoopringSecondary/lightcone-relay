@@ -32,12 +32,9 @@ import org.loopring.lightcone.proto.order.{ SaveOrders, SoftCancelOrders }
 object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
   val name = "order_accessor"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderAccessor])
 
   def getCommon(s: OrderAccessorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderAccessor() extends Actor {
