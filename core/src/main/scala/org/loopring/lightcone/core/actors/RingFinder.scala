@@ -27,26 +27,26 @@ import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
 import org.loopring.lightcone.proto.ring._
-
-import scala.concurrent.Future
+import com.google.inject._
+import scala.concurrent._
 
 object RingFinder
   extends base.Deployable[RingFinderSettings] {
   val name = "ring_finder"
-  val isSingleton = true
-
-  def props = Props(classOf[RingFinder]).withDispatcher("ring-dispatcher")
+  override val isSingleton = true
 
   def getCommon(s: RingFinderSettings) =
-    base.CommonSettings(s.id, s.roles, 1)
+    base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class RingFinder(val id: String)(implicit timeout: Timeout)
+class RingFinder()(implicit timeout: Timeout)
   extends RepeatedJobActor
   with ActorLogging {
 
   import context.dispatcher
-  var settingsOpt: Option[RingFinderSettings] = None
+  var settings: RingFinderSettings = null
+
+  lazy val id = settings.id
   lazy val orderBookManager: ActorRef = Routers.orderBookManager(id)
   lazy val orderManager: ActorRef = Routers.orderManager
 
@@ -54,7 +54,7 @@ class RingFinder(val id: String)(implicit timeout: Timeout)
 
   override def receive: Receive = super.receive orElse {
     case settings: RingFinderSettings =>
-      settingsOpt = Some(settings)
+      this.settings = settings
       initAndStartNextRound(settings.scheduleDelay)
 
     case m: NotifyRingSettlementDecisions =>

@@ -23,16 +23,14 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import com.google.inject._
 
 object OrderUpdateCoordinator
   extends base.Deployable[OrderUpdateCoordinatorSettings] {
   val name = "order_update_coordinator"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderUpdateCoordinator])
 
   def getCommon(s: OrderUpdateCoordinatorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderUpdateCoordinator() extends Actor {

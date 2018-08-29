@@ -27,20 +27,19 @@ import org.loopring.lightcone.proto.deployment._
 object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
   val name = "balance_cacher"
-  val isSingleton = false
-
-  def props = Props(classOf[BalanceCacher])
 
   def getCommon(s: BalanceCacherSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class BalanceCacher()(implicit timeout: Timeout) extends Actor {
+  var settings: BalanceCacherSettings = null
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
+      this.settings = settings
 
     case m: GetBalancesReq =>
       sender() ! GetBalancesResp()

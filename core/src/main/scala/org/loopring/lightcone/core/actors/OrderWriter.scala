@@ -27,17 +27,14 @@ import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.order._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util._
 
 object OrderWriter
   extends base.Deployable[OrderWriterSettings] {
   val name = "order_writer"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderWriter])
 
   def getCommon(s: OrderWriterSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderWriter() extends Actor {

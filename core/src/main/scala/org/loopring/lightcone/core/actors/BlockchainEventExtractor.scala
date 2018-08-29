@@ -27,12 +27,10 @@ import org.loopring.lightcone.proto.deployment._
 object BlockchainEventExtractor
   extends base.Deployable[BlockchainEventExtractorSettings] {
   val name = "block_event_extractor"
-  val isSingleton = true
-
-  def props = Props(classOf[BlockchainEventExtractor])
+  override val isSingleton = true
 
   def getCommon(s: BlockchainEventExtractorSettings) =
-    base.CommonSettings("", s.roles, 1)
+    base.CommonSettings(None, s.roles, 1)
 }
 
 class BlockchainEventExtractor() extends Actor {

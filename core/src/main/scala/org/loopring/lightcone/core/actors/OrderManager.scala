@@ -24,12 +24,9 @@ import org.loopring.lightcone.proto.order._
 object OrderManager
   extends base.Deployable[OrderManagerSettings] {
   val name = "order_manager"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderManager])
 
   def getCommon(s: OrderManagerSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderManager() extends Actor {

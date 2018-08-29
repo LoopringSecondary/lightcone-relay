@@ -27,12 +27,9 @@ import org.loopring.lightcone.proto.deployment._
 object OrderBookReader
   extends base.Deployable[OrderBookReaderSettings] {
   val name = "order_book_reader"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderBookReader])
 
   def getCommon(s: OrderBookReaderSettings) =
-    base.CommonSettings(s.id, s.roles, s.instances)
+    base.CommonSettings(Option(s.id), s.roles, s.instances)
 }
 
 class OrderBookReader() extends Actor {

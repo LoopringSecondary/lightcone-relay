@@ -23,7 +23,6 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.core.routing._
 
 object NodeData {
-  var config: Config = null
   var dynamicSettings: DynamicSettings = DynamicSettings()
 
   def getMarketConfigById(id: String): MarketConfig = {

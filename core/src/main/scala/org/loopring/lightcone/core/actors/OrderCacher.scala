@@ -29,12 +29,9 @@ import scala.util.{ Failure, Success }
 object OrderCacher
   extends base.Deployable[OrderCacherSettings] {
   val name = "order_cacher"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderCacher])
 
   def getCommon(s: OrderCacherSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderCacher(implicit val redis: RedisClientPool) extends Actor {

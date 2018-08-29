@@ -28,12 +28,9 @@ import org.loopring.lightcone.proto.order.{ CalculateOrdersStatus, UpdateOrders 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
   val name = "order_updater"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderUpdater])
 
   def getCommon(s: OrderUpdaterSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
 class OrderUpdater() extends Actor {
