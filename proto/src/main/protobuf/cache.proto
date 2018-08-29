@@ -33,7 +33,9 @@ message Purge {
     message All {}
 }
 
-message GetOrdersFromCache {}
+message GetOrdersFromCache {
+    repeated string order_hashes = 1;
+}
 message CachedMultiOrders {}
 
 message CacheBalanceInfo {
