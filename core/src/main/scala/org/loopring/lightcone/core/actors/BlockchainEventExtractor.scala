@@ -65,18 +65,14 @@ class BlockchainEventExtractor(
     case settings: BlockchainEventExtractorSettings =>
   }
 
-  override def handleRepeatedJob(): Future[Unit] = {
-    // get block transactions receipts
-    // fork detecting
-    // decode methods and events
-    // send data
-    _
-  }
+  // get block transactions receipts
+  // fork detecting
+  // decode methods and events
+  // send data
+  override def handleRepeatedJob(): Future[Unit] = ???
 
   // todo
-  def handleSingleTransaction() = {
-
-  }
+  def handleSingleTransaction() = ???
 
   // todo: decode input or event data and convert to onchain event
   def unpack(): AnyRef = ???

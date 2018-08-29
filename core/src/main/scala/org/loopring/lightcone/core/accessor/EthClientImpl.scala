@@ -81,7 +81,7 @@ class EthClientImpl(
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = findErc20Function("balanceOf")
+      val function = findErc20Function("allowance")
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
