@@ -41,11 +41,10 @@ object BlockchainEventExtractor
     base.CommonSettings("", s.roles, 1)
 }
 
-case class MinedTransaction(receipt: TransactionReceipt, trace: TraceTransaction)
-
-class BlockchainEventExtractor(
+class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
-  val abiStrMap: Map[String, String])(implicit val accessor: EthClient) extends RepeatedJobActor {
+  val abiStrMap: Map[String, String],
+  val accessor: EthClient) extends RepeatedJobActor {
 
   val (abiFunctions: Map[String, Abi.Function], abiEvents: Map[String, Abi.Event]) = {
     var fmap: Map[String, Abi.Function] = Map()

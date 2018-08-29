@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction, TransactionReceipt }
 
-class ExtractorSpec extends FlatSpec with Matchers {
+package object actors {
 
-  info("execute cmd [sbt core/'testOnly *ExtractorSpec'] to run extractor as a service")
+  case class MinedTransaction(
+    receipt: TransactionReceipt,
+    trace: TraceTransaction)
 
-  "handle mined transaction" should "" in {
-
-    actors.extractor.wait()
-  }
 }
