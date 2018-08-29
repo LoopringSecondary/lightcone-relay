@@ -6,7 +6,6 @@ package com.loopring.lightcone.proto;
 
 import "google/protobuf/any.proto";
 
-
 message Msg {
     string name = 1;
 }

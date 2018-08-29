@@ -31,8 +31,7 @@ import org.loopring.lightcone.core.ActorUtil._
 abstract class Deployable[S <: AnyRef] {
   val name: String
   val isSingleton = false
-  def props(injector: Injector) =
-    injector.getProps(name)
+  def props(injector: Injector) = injector.getProps(name)
 
   def getCommon(s: S): CommonSettings
 
@@ -63,14 +62,12 @@ abstract class Deployable[S <: AnyRef] {
   }
 
   def deploy(injector: Injector, settings: Option[S])(
-    implicit
-    cluster: Cluster): Map[String, ActorRef] = {
+    implicit cluster: Cluster): Map[String, ActorRef] = {
     deploy(injector, settings.toSeq)
   }
 
   def deploy(injector: Injector, settingsSeq: Seq[S])(
-    implicit
-    cluster: Cluster): Map[String, ActorRef] = {
+    implicit cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
     settingsMap = settingsSeq.map { s =>
@@ -92,8 +89,8 @@ abstract class Deployable[S <: AnyRef] {
     cluster.system.actorSelection(s"/user/r_${name}_*") ! PoisonPill
 
     // Deploy routers
-    settingsMap.map {
-      case (id, wrapper) =>
+    settingsMap.keys.map {
+      id =>
         val actor =
           if (isSingleton) {
             cluster.system.actorOf(

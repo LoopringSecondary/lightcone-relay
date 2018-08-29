@@ -34,7 +34,7 @@ object BalanceManager
   override val isSingleton = true //按照分片id，应当是singleton的
 
   def getCommon(s: BalanceManagerSettings) =
-    base.CommonSettings(Option(s.id), s.roles, s.instances)
+    base.CommonSettings(Some(s.id), s.roles, s.instances)
 }
 
 class BalanceManager()(implicit timeout: Timeout) extends Actor {

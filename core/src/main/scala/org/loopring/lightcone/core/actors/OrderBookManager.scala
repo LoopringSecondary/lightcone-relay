@@ -28,7 +28,7 @@ object OrderBookManager
   override val isSingleton = true
 
   def getCommon(s: OrderBookManagerSettings) =
-    base.CommonSettings(Option(s.id), s.roles, 1)
+    base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
 class OrderBookManager() extends Actor {
