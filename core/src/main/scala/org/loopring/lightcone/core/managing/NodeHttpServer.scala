@@ -37,13 +37,17 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
 import com.google.protobuf.any.Any
 
-class NodeHttpServer(nodeManager: ActorRef)(implicit val cluster: Cluster)
+class NodeHttpServer(
+  config: Config,
+  nodeManager: ActorRef)(
+  implicit
+  val cluster: Cluster,
+  implicit val materializer: ActorMaterializer)
   extends Directives
   with Json4sSupport {
 
   implicit val system = cluster.system
-  implicit val materializer = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
+  implicit val context = system.dispatcher
   implicit val serialization = jackson.Serialization
   implicit val formats = DefaultFormats
   implicit val timeout = Timeout(1 seconds)
@@ -74,5 +78,5 @@ class NodeHttpServer(nodeManager: ActorRef)(implicit val cluster: Cluster)
     }
 
   Http().bindAndHandle(route, "localhost",
-    NodeData.config.getInt("node-manager.http.port"))
+    config.getInt("node-manager.http.port"))
 }

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.managing
+package org.loopring.lightcone.core
 
+import com.google.inject._
+import net.codingwell.scalaguice._
+import com.google.inject.name._
 import akka.actor._
-import scala.concurrent.duration._
-import com.typesafe.config.Config
-import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.core.routing._
 
-object NodeData {
-  var dynamicSettings: DynamicSettings = DynamicSettings()
-
-  def getMarketConfigById(id: String): MarketConfig = {
-    dynamicSettings.marketsSettings(id)
+object ActorUtil {
+  implicit class ActorInjector(injector: Injector) {
+    def getActor(name: String): ActorRef = {
+      injector.getInstance(Key.get(classOf[ActorRef], Names.named(name)))
+    }
   }
 }

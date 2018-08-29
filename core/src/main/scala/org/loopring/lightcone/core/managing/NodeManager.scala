@@ -41,8 +41,14 @@ import org.loopring.lightcone.proto.deployment._
 import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
 import com.google.protobuf.any.Any
+import com.google.inject._
+import net.codingwell.scalaguice._
+import com.google.inject.name._
 
-class NodeManager()(implicit val cluster: Cluster)
+@Singleton
+class NodeManager(config: Config)(implicit
+  val cluster: Cluster,
+  val materializer: ActorMaterializer)
   extends Actor
   with ActorLogging
   with Timers {
@@ -53,7 +59,7 @@ class NodeManager()(implicit val cluster: Cluster)
 
   Routers.setRouters("cluster_manager", ClusterManager.deploy())
 
-  val http = new NodeHttpServer(self)
+  val http = new NodeHttpServer(config, self)
 
   val mediator = DistributedPubSub(system).mediator
   mediator ! Subscribe("cluster_manager", self)
