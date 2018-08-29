@@ -25,7 +25,9 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.solidity._
+import org.loopring.lightcone.core.etypes._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object BlockchainEventExtractor
@@ -62,6 +64,8 @@ class BlockchainEventExtractor(
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.map(x => safeAddress(x.protocol))
 
+  var currentBlockNumber: Big = Big("0".getBytes())
+
   override def receive: Receive = {
     case settings: BlockchainEventExtractorSettings =>
   }
@@ -70,32 +74,54 @@ class BlockchainEventExtractor(
   // 从block里获取对应的transaction hash
   // 获取transactionReceipt以及对应的trace数据
   // 解析后将数据打包成多个完整的transaction发送出去
+  // todo: find roll back
   override def handleRepeatedJob() = for {
-    currentBlockNumber <- getCurrentBlock()
-    blockReq = GetBlockWithTxHashByNumberReq(currentBlockNumber)
-    block <- accessor.getBlockWithTxHashByNumber(blockReq)
-    minedTxs <- getMinedTransactions(block.getResult.transactions)
-    _ <- minedTxs.map(handleMinedTransaction(_))
-    // handlePendingTransaction()
-  } yield None
-
-  def handleMinedTransaction(tx: MinedTransaction) = {
-    val list = unpackMinedTransaction(tx)
-    list.map(route(_))
+    _ <- setCurrentBlock()
+    forkseq <- handleForkEvent()
+  } yield if (forkseq.size > 0)
+    forkseq.map(route(_))
+  else {
+    for { list <- handleUnforkEvent() } yield list.map(route(_))
   }
 
-  def handlePendingTransaction() = ???
+  def handleForkEvent(): Future[Seq[Any]] = for {
+    forkevt <- getForkBlock()
+  } yield forkevt match {
+    case f: ChainRolledBack if f.delectedBlockHash.toByteArray.asHash.valid() => Seq(f)
+    case _ => Seq()
+  }
+
+  def handleUnforkEvent(): Future[Seq[Any]] = for {
+    _ <- Future {}
+    blockReq = GetBlockWithTxHashByNumberReq(currentBlockNumber.toString)
+    block <- accessor.getBlockWithTxHashByNumber(blockReq)
+
+    minedTxs <- getMinedTransactions(block.getResult.transactions)
+    minedSeq = minedTxs.map(unpackMinedTransaction(_))
+
+    pendingTxs <- getPendingTransactions(block.getResult.transactions)
+    pendingSeq = pendingTxs.map(unpackPendingTransaction(_))
+
+    list = minedSeq ++ pendingSeq
+  } yield list
 
   def getMinedTransactions(hashseq: Seq[String]): Future[Seq[MinedTransaction]] = Future.sequence(
     hashseq.map(txhash =>
-    for {
-      receipt <- accessor.getTransactionReceipt(GetTransactionReceiptReq(txhash))
-      trace <- accessor.traceTransaction(TraceTransactionReq(txhash))
-    } yield MinedTransaction(receipt.getResult, trace.getResult)
-  ))
+      for {
+        receipt <- accessor.getTransactionReceipt(GetTransactionReceiptReq(txhash))
+        trace <- accessor.traceTransaction(TraceTransactionReq(txhash))
+      } yield MinedTransaction(receipt.getResult, trace.getResult)))
 
-  def getPendingTransactions(hashSeq: Seq[String]): Future[Seq[Transaction]] = ???
-  
+  // todo
+  def getPendingTransactions(hashSeq: Seq[String]): Future[Seq[Transaction]] = for {
+    _ <- Future {}
+  } yield Seq()
+
+  // todo
+  def getForkBlock(): Future[Any] = for {
+    _ <- Future {}
+  } yield ChainRolledBack()
+
   // todo: 解析receipt, trace等并转换成blockChainEvent
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = ???
 
@@ -103,7 +129,7 @@ class BlockchainEventExtractor(
 
   def route(onchainEvent: Any) = onchainEvent match {
     case balance: SubmitRingFunction =>
-    case ring : RingDetectedInMemPoll =>
+    case ring: RingDetectedInMemPoll =>
     case ringMined: RingMined =>
     case cancel: OrderCancelled =>
     case cutoff: Cutoff =>
@@ -122,10 +148,10 @@ class BlockchainEventExtractor(
     abiEvents.contains(eventId)
   }
 
-// todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
-  private def  getCurrentBlock(): Future[String] = for {
-    _ <- Future{}
-  } yield "0x32"
+  // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
+  private def setCurrentBlock(): Future[Big] = for {
+    _ <- Future {}
+  } yield Big("0x32".getBytes())
 
   private def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
 
