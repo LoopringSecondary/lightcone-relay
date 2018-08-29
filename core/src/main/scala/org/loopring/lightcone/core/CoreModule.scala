@@ -25,21 +25,24 @@ import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core.actors._
 import com.typesafe.config.Config
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import redis._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   override def configure(): Unit = {
     implicit val system = ActorSystem("Lightcone", config)
     implicit val cluster = Cluster(system)
-    val materializer = ActorMaterializer()
-    val context = system.dispatcher
 
     bind[Config].toInstance(config)
     bind[ActorSystem].toInstance(system)
+    bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
-    bind[ActorMaterializer].toInstance(materializer)
+    bind[ActorMaterializer].toInstance(ActorMaterializer())
     bind[Timeout].toInstance(Timeout(2 seconds))
+
+    bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
   }
 
   @Provides
@@ -115,7 +118,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_cacher")
-  def getOrderCacherProps()(implicit timeout: Timeout) = {
+  def getOrderCacherProps()(implicit
+    redisCluster: RedisCluster,
+    context: ExecutionContext,
+    timeout: Timeout) = {
     Props(new OrderCacher()).withDispatcher("ring-dispatcher")
   }
 

@@ -16,15 +16,27 @@
 
 package org.loopring.lightcone.core.cache
 
+import collection.JavaConverters._
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
-import redis.{ RedisCluster, RedisServer }
+import redis._
+import com.google.inject._
 
-object Redis {
+class RedisClusterProvider @Inject() (config: Config)(
+  implicit
+  system: ActorSystem) extends Provider[RedisCluster] {
+  def get(): RedisCluster = {
 
-  def initRedisConn(implicit system: ActorSystem, config: Config): RedisCluster = {
-    val server = RedisServer(config.getString("redis.host"), config.getInt("redis.port"), Some(config.getString("redis.password")))
-    RedisCluster(Seq(server))
+    val servers = config.getObjectList("redis.servers").asScala
+      .map { item =>
+        val c = item.toConfig
+        val host = c.getString("host")
+        val port = c.getInt("port")
+        val password = Some(c.getString("redis.password"))
+        RedisServer(host, port, password)
+      }
+
+    RedisCluster(servers)
   }
 }
 
