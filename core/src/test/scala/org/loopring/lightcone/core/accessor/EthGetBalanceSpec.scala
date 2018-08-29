@@ -16,11 +16,10 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceRequest
-import org.loopring.lightcone.proto.eth.Big
-import org.loopring.lightcone.core._
+import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
+import org.loopring.lightcone.core.etypes._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EthGetBalanceSpec extends FlatSpec {
@@ -28,15 +27,15 @@ class EthGetBalanceSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *EthGetBalanceSpec'] to test single spec of eth_getBalance")
 
   "eth balance" should "use accessor" in {
-    val req = EthGetBalanceRequest()
+    val req = EthGetBalanceReq()
       .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
       .withTag("latest")
     val respFuture = for {
       resp <- accessor.geth.ethGetBalance(req)
-      result = Big().fromString(resp.result)
-    } yield result
+    } yield resp.result
 
-    val amount = Await.result(respFuture, accessor.timeout.duration)
-    info(s"geth eth_getBalance amount is ${amount.String}")
+    val result = Await.result(respFuture, accessor.timeout.duration)
+    val amount = Big(result.getBytes()).toString()
+    info(s"geth eth_getBalance amount is $amount")
   }
 }

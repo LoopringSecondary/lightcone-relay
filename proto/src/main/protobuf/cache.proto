@@ -4,15 +4,41 @@ option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
-message PurgeTokenBalancesForAddresses {}
-message PurgeAllOrdersAddresses {}
-message PurgeEverything {}
+import "balance.proto";
+
+message Purge {
+    message Balance {
+        bytes address = 1;
+        bytes Token = 2;
+    }
+    message Allowance {
+        bytes address = 1;
+        bytes Token = 2;
+        bytes delegate = 3;
+    }
+    message Order {
+        bytes order_hash = 1;
+    }
+    message AllOrderForAddress {
+        bytes address = 1;
+        string market = 2;
+        int32 cutoff = 3;
+    }
+    message AllForAddresses {
+        repeated bytes addresses = 1;
+    }
+    message AllAfterBlock {
+        bytes block_number = 1;
+    }
+    message All {}
+}
 
 message GetOrdersFromCache {}
 message CachedMultiOrders {}
 
-message CacheAddressBalanceInfo {}
-message CachedAddressBalanceInfo {}
-
-
-
+message CacheBalanceInfo {
+    bytes address = 1;
+    repeated TokenAmount balances = 2;
+    repeated Allowance allowances = 3;
+}
+message CachedBalanceInfo {}

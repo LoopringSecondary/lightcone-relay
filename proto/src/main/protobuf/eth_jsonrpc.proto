@@ -138,7 +138,7 @@ message TraceTransaction {
     repeated TraceCall calls = 8;
 }
 
-message CallArgs {
+message TransactionParam {
     string from = 1;
     string to = 2;
     string gas = 3;
