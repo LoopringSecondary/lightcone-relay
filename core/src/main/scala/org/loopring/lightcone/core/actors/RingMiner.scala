@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern._
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.actors.base._
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
@@ -35,7 +36,7 @@ object RingMiner
     base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner(implicit timout: Timeout)
+class RingMiner()(implicit timout: Timeout)
   extends RepeatedJobActor {
 
   import context.dispatcher

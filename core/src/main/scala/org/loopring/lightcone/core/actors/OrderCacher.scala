@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.util.ByteString
 import org.loopring.lightcone.proto.cache.{ CachedMultiOrders, GetOrdersFromCache, Purge }
@@ -23,7 +25,7 @@ import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
 import redis._
 import com.google.inject._
-import scala.concurrent.ExecutionContext
+
 import scala.util.{ Failure, Success }
 
 object OrderCacher
@@ -36,7 +38,8 @@ object OrderCacher
 
 class OrderCacher(redis: RedisCluster)(
   implicit
-  context: ExecutionContext) extends Actor {
+  ec: ExecutionContext,
+  timeout: Timeout) extends Actor {
 
   implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {
     def serialize(data: CachedMultiOrders): ByteString = {

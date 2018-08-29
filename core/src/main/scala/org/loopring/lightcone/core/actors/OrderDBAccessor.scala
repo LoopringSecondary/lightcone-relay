@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -36,8 +38,11 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor() extends Actor {
-  implicit val executor = ExecutionContext.global
+class OrderDBAccessor()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>

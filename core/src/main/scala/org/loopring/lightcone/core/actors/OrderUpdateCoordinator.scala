@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -33,7 +35,11 @@ object OrderUpdateCoordinator
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderUpdateCoordinator() extends Actor {
+class OrderUpdateCoordinator()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderUpdateCoordinatorSettings =>
     case _ =>

@@ -22,7 +22,8 @@ import com.typesafe.config.Config
 import redis._
 import com.google.inject._
 
-class RedisClusterProvider @Inject() (config: Config)(
+class RedisClusterProvider @Inject() (
+  config: Config)(
   implicit
   system: ActorSystem) extends Provider[RedisCluster] {
   def get(): RedisCluster = {

@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import org.loopring.lightcone.core.actors.base.CommonSettings
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
@@ -31,8 +33,11 @@ object OrderChangeLogWriter
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderChangeLogWriter() extends Actor {
-  implicit val executor = ExecutionContext.global
+class OrderChangeLogWriter()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>

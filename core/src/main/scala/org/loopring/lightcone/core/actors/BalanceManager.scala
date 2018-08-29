@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
@@ -37,13 +38,18 @@ object BalanceManager
     base.CommonSettings(Some(s.id), s.roles, s.instances)
 }
 
-class BalanceManager()(implicit timeout: Timeout) extends Actor {
-  import context.dispatcher
-  var id = ""
+class BalanceManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
+  var settings: BalanceManagerSettings = null
+  def id = settings.id
 
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
-      id = settings.id
+      this.settings = settings
+
     case req: GetBalancesReq => handleInfoReq(req)
     case req: GetAllowancesReq => handleInfoReq(req)
     case req: GetBalanceAndAllowanceReq => handleInfoReq(req)

@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import org.loopring.lightcone.proto.block_chain_event.OrderCancelled
 import org.loopring.lightcone.proto.deployment._
@@ -29,7 +31,11 @@ object OrderManager
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderManager() extends Actor {
+class OrderManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderManagerSettings =>
     case OrdersSaved =>

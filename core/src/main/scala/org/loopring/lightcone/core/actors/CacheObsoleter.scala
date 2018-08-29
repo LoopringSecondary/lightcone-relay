@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
@@ -35,7 +37,11 @@ object CacheObsoleter
     base.CommonSettings(None, s.roles, 1)
 }
 
-class CacheObsoleter() extends RepeatedJobActor {
+class CacheObsoleter()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends RepeatedJobActor {
+
   import context.dispatcher
   val name = CacheObsoleter.name
   var deadtime = 0l
