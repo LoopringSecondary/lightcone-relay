@@ -83,3 +83,6 @@ Tp see the  global dynamic settings, visit:
 
 Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
+## TEST
+
+How to run test?
