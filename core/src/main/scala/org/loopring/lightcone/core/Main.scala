@@ -27,6 +27,8 @@ import org.loopring.lightcone.core._
 
 import com.google.inject._
 
+import com.google.inject._
+
 object Main {
 
   case class CmdOptions(

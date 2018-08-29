@@ -40,7 +40,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
-    bind[Timeout].toInstance(Timeout(2 seconds))
+    bind[Timeout].toInstance(new Timeout(2 seconds))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
   }
@@ -48,8 +48,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(injector: Injector, config: Config)(implicit
-    cluster: Cluster,
+  def getNodeManager(injector: Injector, config: Config)(implicit cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
@@ -118,8 +117,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_cacher")
-  def getOrderCacherProps()(implicit
-    redisCluster: RedisCluster,
+  def getOrderCacherProps()(implicit redisCluster: RedisCluster,
     context: ExecutionContext,
     timeout: Timeout) = {
     Props(new OrderCacher()).withDispatcher("ring-dispatcher")
