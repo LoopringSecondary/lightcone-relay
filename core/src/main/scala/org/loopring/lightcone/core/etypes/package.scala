@@ -14,29 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core
 
-import org.loopring.lightcone.proto.eth._
+package object etypes {
 
-package object core {
-
-  implicit class RichBig(big: Big) {
-    def fromString(str: String) = big.withContent(str)
-
-    def toBigInt = BigInt(getHexString, 16)
-
-    def getBitIntString = toBigInt.toString()
-
-    def getIntValue = toBigInt.intValue()
-
-    def getHexString = {
-      if (big.content.startsWith("0x")) {
-        big.content.substring(2)
-      } else {
-        big.content
-      }
-    }
+  implicit class RichByteArray(bytes: Array[Byte]) {
+    def asAddress: Address = Address(bytes)
+    def asHash: Hash = Hash(bytes)
+    def asBig: Big = Big(bytes)
   }
 
 }
-

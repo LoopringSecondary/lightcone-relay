@@ -59,5 +59,14 @@ class OrderCacher(implicit val redis: RedisClientPool) extends Actor {
         sender ! CachedMultiOrders.defaultInstance
       case Failure(_) => ErrorResp()
     }
+    case m: Purge.Order =>
+
+    case m: Purge.AllOrderForAddress =>
+
+    case m: Purge.AllForAddresses =>
+
+    case m: Purge.AllAfterBlock =>
+
+    case m: Purge.All =>
   }
 }
