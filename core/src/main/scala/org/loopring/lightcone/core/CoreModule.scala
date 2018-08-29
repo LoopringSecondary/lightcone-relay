@@ -48,7 +48,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(injector: Injector, config: Config)(implicit cluster: Cluster,
+  def getNodeManager(injector: Injector, config: Config)(implicit
+    cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
@@ -117,10 +118,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_cacher")
-  def getOrderCacherProps()(implicit redisCluster: RedisCluster,
+  def getOrderCacherProps(redisCluster: RedisCluster)(implicit
     context: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderCacher()).withDispatcher("ring-dispatcher")
+    Props(new OrderCacher(redisCluster)).withDispatcher("ring-dispatcher")
   }
 
   @Provides

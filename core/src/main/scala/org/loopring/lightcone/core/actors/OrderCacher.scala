@@ -34,8 +34,8 @@ object OrderCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderCacher()(implicit
-  redis: RedisCluster,
+class OrderCacher(redis: RedisCluster)(
+  implicit
   context: ExecutionContext) extends Actor {
 
   implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {

@@ -62,12 +62,14 @@ abstract class Deployable[S <: AnyRef] {
   }
 
   def deploy(injector: Injector, settings: Option[S])(
-    implicit cluster: Cluster): Map[String, ActorRef] = {
+    implicit
+    cluster: Cluster): Map[String, ActorRef] = {
     deploy(injector, settings.toSeq)
   }
 
   def deploy(injector: Injector, settingsSeq: Seq[S])(
-    implicit cluster: Cluster): Map[String, ActorRef] = {
+    implicit
+    cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
     settingsMap = settingsSeq.map { s =>
