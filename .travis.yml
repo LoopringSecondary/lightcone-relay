@@ -1,0 +1,11 @@
+dist: trusty
+language: scala
+jdk: oraclejdk8
+
+scala:
+   - 2.12.6
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt

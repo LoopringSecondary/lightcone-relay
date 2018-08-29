@@ -1,5 +1,8 @@
 ## lightcone-relay
 
+[![Build Status](https://travis-ci.com/Loopring/lightcone-relay.svg?token=LFU5xhzys581aWFBPai3&branch=master)](https://travis-ci.com/Loopring/lightcone-relay)
+
+
 ## Compile
 ```
 sbt compile

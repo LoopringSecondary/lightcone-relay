@@ -17,12 +17,14 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.util.ByteString
+import org.loopring.lightcone.proto.cache.{ CachedMultiOrders, GetOrdersFromCache, Purge }
+import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
+import redis.{ ByteStringDeserializer, ByteStringSerializer, RedisClientPool }
+
+import scala.concurrent.ExecutionContext
+import scala.util.{ Failure, Success }
 
 object OrderCacher
   extends base.Deployable[OrderCacherSettings] {
@@ -35,9 +37,36 @@ object OrderCacher
     base.CommonSettings("", s.roles, s.instances)
 }
 
-class OrderCacher() extends Actor {
+class OrderCacher(implicit val redis: RedisClientPool) extends Actor {
+  implicit val executor = ExecutionContext.global
+
+  implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {
+    def serialize(data: CachedMultiOrders): ByteString = {
+      ByteString.fromArray(data.toByteArray)
+    }
+  }
+
+  implicit val byteStringDeserializer = new ByteStringDeserializer[CachedMultiOrders] {
+    def deserialize(data: ByteString): CachedMultiOrders = {
+      CachedMultiOrders.parseFrom(data.toArray)
+    }
+  }
+
   def receive: Receive = {
     case settings: OrderCacherSettings =>
-    case _ =>
+    case req: GetOrdersFromCache => redis.get(req.orderHashes.head) onComplete {
+      case Success(_) =>
+        sender ! CachedMultiOrders.defaultInstance
+      case Failure(_) => ErrorResp()
+    }
+    case m: Purge.Order =>
+
+    case m: Purge.AllOrderForAddress =>
+
+    case m: Purge.AllForAddresses =>
+
+    case m: Purge.AllAfterBlock =>
+
+    case m: Purge.All =>
   }
 }

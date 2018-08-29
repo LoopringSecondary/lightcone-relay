@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone
+package org.loopring.lightcone.core.cache
 
-import org.loopring.lightcone.proto.eth._
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+import redis.{ RedisCluster, RedisServer }
 
-package object core {
+object Redis {
 
-  implicit class RichBig(big: Big) {
-    def fromString(str: String) = big.withContent(str)
-
-    def toBigInt = BigInt(getHexString, 16)
-
-    def getBitIntString = toBigInt.toString()
-
-    def getIntValue = toBigInt.intValue()
-
-    def getHexString = {
-      if (big.content.startsWith("0x")) {
-        big.content.substring(2)
-      } else {
-        big.content
-      }
-    }
+  def initRedisConn(implicit system: ActorSystem, config: Config): RedisCluster = {
+    val server = RedisServer(config.getString("redis.host"), config.getInt("redis.port"), Some(config.getString("redis.password")))
+    RedisCluster(Seq(server))
   }
-
 }
 
