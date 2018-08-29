@@ -24,6 +24,7 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
+import org.loopring.lightcone.core.cache.Redis
 
 import com.google.inject._
 
@@ -104,6 +105,7 @@ object Main {
             akka.cluster.seed-nodes=$seedNodes
             """)
           .withFallback(fallback)
+
 
         // Deploying NodeManager
         import ActorUtil._

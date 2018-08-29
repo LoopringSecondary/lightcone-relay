@@ -78,3 +78,7 @@ class OrderWriter() extends Actor {
   def softCancelSignCheck(sign: Option[SoftCancelSign]) = true
 
 }
+
+object OrderValidator {
+
+}

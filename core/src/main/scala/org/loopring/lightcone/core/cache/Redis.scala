@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.etypes
+package org.loopring.lightcone.core.cache
 
-import org.spongycastle.util.encoders.Hex
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+import redis.{ RedisCluster, RedisServer }
 
-object Address {
-  val ADDRESS_LENGTH = 42
+object Redis {
+
+  def initRedisConn(implicit system: ActorSystem, config: Config): RedisCluster = {
+    val server = RedisServer(config.getString("redis.host"), config.getInt("redis.port"), Some(config.getString("redis.password")))
+    RedisCluster(Seq(server))
+  }
 }
 
-case class Address(val bytes: Array[Byte]) {
-  def isValid: Boolean =
-    bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
-
-  override def toString: String = new String(bytes)
-}

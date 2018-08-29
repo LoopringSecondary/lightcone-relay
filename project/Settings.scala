@@ -10,6 +10,7 @@ object Settings {
     scalaVersion := Globals.scalaVersion,
     autoScalaLibrary := false,
     resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
+    resolvers += "ethereumlibrepository" at "https://dl.bintray.com/ethereum/maven/",
     resolvers += "JFrog" at "https://oss.jfrog.org/libs-release/",
     resolvers += "bintray" at "https://dl.bintray.com/ethereum/maven/",
     resolvers += Resolver.bintrayRepo("hseeberger", "maven"),
