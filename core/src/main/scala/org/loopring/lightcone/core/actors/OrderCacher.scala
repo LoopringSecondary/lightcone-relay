@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.util.ByteString
-import org.loopring.lightcone.proto.cache.{ CachedMultiOrders, GetOrdersFromCache }
+import org.loopring.lightcone.proto.cache.{ CachedMultiOrders, GetOrdersFromCache, Purge }
 import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
 import redis.{ ByteStringDeserializer, ByteStringSerializer, RedisClientPool }
