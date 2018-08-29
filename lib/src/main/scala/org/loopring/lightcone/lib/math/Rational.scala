@@ -29,7 +29,6 @@ final class Rational(numerator: BigInt, denominator: BigInt)
 
   val defaultMathContext = MathContext.DECIMAL128
 
-
   def +(that: Rational) = {
     new Rational(
       numerator = this.num + that.num,
@@ -57,6 +56,8 @@ final class Rational(numerator: BigInt, denominator: BigInt)
   def pow(exp: Rational) = {
     math.pow(this.doubleValue(), exp.doubleValue())
   }
+
+  def signum: Int = this.num.signum * this.denom.signum
 
   override def underlying(): AnyRef = this
 
@@ -98,5 +99,11 @@ object Rational {
   def apply(value: Double) = new Rational(
     (MaxDoubleValue * BigDecimal(value)).toBigInt(),
     MaxDoubleValue.toBigInt())
+
+  def apply(numberator: BigInt) = new Rational(numberator, BigInt(1))
+
+  def apply(numberator: Int, denominator: Int) = new Rational(BigInt(numberator), BigInt(denominator))
+
+  def apply(numberator: Int) = new Rational(BigInt(numberator), BigInt(1))
 
 }

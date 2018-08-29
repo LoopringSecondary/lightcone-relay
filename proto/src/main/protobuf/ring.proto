@@ -8,7 +8,7 @@ import "order.proto";
 
 message Ring {
     repeated Order orders = 1;
-    byte v = 2;
+    int32 v = 2;
     bytes r = 3;
     bytes s = 4;
     bytes hash = 5;
