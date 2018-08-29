@@ -24,6 +24,7 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
+import org.loopring.lightcone.core.cache.Redis
 
 object Main {
 
@@ -109,6 +110,8 @@ object Main {
         implicit val cluster = Cluster(system)
         implicit val materializer = ActorMaterializer()
         implicit val executionContext = system.dispatcher
+
+        implicit val redis = Redis.initRedisConn(system, config)
 
         // Deploying NodeManager
         system.actorOf(

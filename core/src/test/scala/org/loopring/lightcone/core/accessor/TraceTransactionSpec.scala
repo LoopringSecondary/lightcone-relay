@@ -16,8 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.TraceTransactionRequest
-import org.loopring.lightcone.core._
+import org.loopring.lightcone.proto.eth_jsonrpc.TraceTransactionReq
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,11 +27,10 @@ class TraceTransactionSpec extends FlatSpec {
   // curl localhost:8545 -X POST --header 'Content-type: application/json' --data '{"method":"debug_traceTransaction", "params":["0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49", {"tracer":"callTracer", "timeout":"5s"}], "id":1}'
 
   "debug trace transaction" should "contain list of calls" in {
-    val req = TraceTransactionRequest("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
+    val req = TraceTransactionReq("0x4eeb4d51d7190dcad0186ed88654297cbe573c69a0ad2e42147ed003589d0c49")
     val resultFuture = for {
       resp <- accessor.geth.traceTransaction(req)
-      result = accessor.traceTransactionConverter.convertDown(resp.getResult)
-    } yield result
+    } yield resp.getResult
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)
 

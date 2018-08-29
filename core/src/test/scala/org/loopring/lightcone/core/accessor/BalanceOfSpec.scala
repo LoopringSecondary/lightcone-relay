@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.BalanceOfRequest
+import org.loopring.lightcone.proto.eth_jsonrpc.GetBalanceReq
 import org.scalatest.FlatSpec
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,13 +25,13 @@ class BalanceOfSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *BalanceOfSpec'] to get balance of erc20 token")
 
   "balance" should "encode params and return amount of big number" in {
-    val req = BalanceOfRequest()
+    val req = GetBalanceReq()
       .withOwner(accessor.owner)
       .withToken(accessor.lrc)
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- accessor.geth.balanceOf(req)
+      resp <- accessor.geth.getBalance(req)
     } yield resp
 
     val tx = Await.result(resultFuture, accessor.timeout.duration)
