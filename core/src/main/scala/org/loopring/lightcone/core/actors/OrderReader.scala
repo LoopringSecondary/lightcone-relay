@@ -17,13 +17,13 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-
 import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import akka.pattern.ask
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.proto.common.ErrorResp
 
 import scala.concurrent._
@@ -38,12 +38,14 @@ object OrderReader
 
 }
 
-class OrderReader() extends Actor {
-  implicit val timeout = Timeout(2 seconds)
-  implicit val executor = ExecutionContext.global
+class OrderReader()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
 
   def receive: Receive = {
     case settings: OrderReaderSettings =>
+
     case req: GetOrderReq =>
       val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
       oneOrderResult.mapTo[OneOrder] onComplete {

@@ -18,6 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import org.loopring.lightcone.proto.balance._
@@ -32,7 +33,11 @@ object BalanceCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceCacher()(implicit timeout: Timeout) extends Actor {
+class BalanceCacher()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   var settings: BalanceCacherSettings = null
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)

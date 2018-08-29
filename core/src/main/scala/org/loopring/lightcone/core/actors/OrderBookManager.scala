@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
@@ -31,7 +33,11 @@ object OrderBookManager
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class OrderBookManager() extends Actor {
+class OrderBookManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {

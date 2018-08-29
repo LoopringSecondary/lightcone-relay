@@ -19,14 +19,13 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
-
 import scala.concurrent.duration._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.order._
 
-import scala.concurrent.ExecutionContext
 import scala.util._
 
 object OrderWriter
@@ -37,10 +36,10 @@ object OrderWriter
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderWriter() extends Actor {
-
-  implicit val timeout = Timeout(2 seconds)
-  implicit val executor = ExecutionContext.global
+class OrderWriter()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
 
   def receive: Receive = {
     case settings: OrderWriterSettings =>

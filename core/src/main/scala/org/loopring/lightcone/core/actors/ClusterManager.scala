@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import org.loopring.lightcone.core.routing.Routers
 import akka.cluster.pubsub._
@@ -30,7 +32,10 @@ object ClusterManager extends base.NullConfigDeployable {
   override val isSingleton = true
 }
 
-class ClusterManager() extends Actor {
+class ClusterManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
   def receive: Receive = {

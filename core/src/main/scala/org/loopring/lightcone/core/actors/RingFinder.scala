@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.{ AskTimeoutException, ask }
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.core.managing.NodeData
 import org.loopring.lightcone.core.routing.Routers
@@ -39,11 +40,12 @@ object RingFinder
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class RingFinder()(implicit timeout: Timeout)
+class RingFinder()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
   extends RepeatedJobActor
   with ActorLogging {
 
-  import context.dispatcher
   var settings: RingFinderSettings = null
 
   lazy val id = settings.id
