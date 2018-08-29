@@ -18,9 +18,13 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.proto.token._
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.lib.solidity.Abi
+
+import scala.concurrent.Future
 
 object BlockchainEventExtractor
   extends base.Deployable[BlockchainEventExtractorSettings] {
@@ -34,19 +38,14 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor(
-                                val tokenList:Seq[Token],
-                                val abiStrMap: Map[String, String])(implicit val accessor: EthClient) extends Actor {
+  val tokenList: Seq[Token],
+  val abiStrMap: Map[String, String])(implicit val accessor: EthClient) extends RepeatedJobActor {
 
-  def receive: Receive = {
-    case settings: BlockchainEventExtractorSettings =>
-    case _ =>
-  }
-
-  val (abiFunctions:Map[String, Abi.Function], abiEvents: Map[String, Abi.Event]) = {
+  val (abiFunctions: Map[String, Abi.Function], abiEvents: Map[String, Abi.Event]) = {
     var fmap: Map[String, Abi.Function] = Map()
     var emap: Map[String, Abi.Event] = Map()
 
-    val abimap = abiStrMap.map(x => {x._1.toLowerCase() -> Abi.fromJson(x._2)})
+    val abimap = abiStrMap.map(x => { x._1.toLowerCase() -> Abi.fromJson(x._2) })
 
     abimap.map(x => x._2.iterator.next() match {
       case f: Abi.Function => fmap += f.encodeSignature().toString.toUpperCase() -> f
@@ -58,6 +57,29 @@ class BlockchainEventExtractor(
 
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.map(x => safeAddress(x.protocol))
+
+  // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
+  val currentBlock: BigInt = ???
+
+  override def receive: Receive = {
+    case settings: BlockchainEventExtractorSettings =>
+  }
+
+  override def handleRepeatedJob(): Future[Unit] = {
+    // get block transactions receipts
+    // fork detecting
+    // decode methods and events
+    // send data
+    _
+  }
+
+  // todo
+  def handleSingleTransaction() = {
+
+  }
+
+  // todo: decode input or event data and convert to onchain event
+  def unpack(): AnyRef = ???
 
   def isSupportedFunction(txTo: String, txInput: String): Boolean = {
     require(isProtocolSupported(txTo))
@@ -71,11 +93,11 @@ class BlockchainEventExtractor(
     abiEvents.contains(eventId)
   }
 
-  def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
+  private def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
 
-  def getFunctionId(txInput: String): String = txInput.substring(0, 4).toUpperCase
-  def getEventId(firstTopic: String): String = firstTopic.toUpperCase()
+  private def getFunctionId(txInput: String): String = txInput.substring(0, 4).toUpperCase
+  private def getEventId(firstTopic: String): String = firstTopic.toUpperCase()
 
   // todo: other validate
-  def safeAddress(address: String): String = address.toUpperCase()
+  private def safeAddress(address: String): String = address.toUpperCase()
 }
