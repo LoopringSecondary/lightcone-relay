@@ -52,12 +52,12 @@ class RingMiner()(implicit
     resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
       .mapTo[Seq[RingCandidates]]
     ringCandidates = RingCandidates(resps.flatMap(_.rings))
-    ringsToSettle <- Routers.ringEvaluator ? ringCandidates
+    ringToSettleSeq <- Routers.ringEvaluator ? ringCandidates
   } yield {
-    ringsToSettle match {
-      case r: RingCandidates =>
-        Routers.ringSubmitter ! ringCandidates
-        val decisions = decideRingCandidates(ringCandidates.rings, r.rings)
+    ringToSettleSeq match {
+      case r: RingToSettleSeq =>
+        Routers.ringSubmitter ! r
+        val decisions = decideRingCandidates(ringCandidates.rings, r.rings.flatMap(_.ring))
         decisions foreach { decision =>
           val finderId = "" //todo:
           Routers.ringFinder(finderId) ! decision
