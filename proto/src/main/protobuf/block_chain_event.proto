@@ -75,6 +75,7 @@ message ChainRolledBack {
     bytes delected_block_hash = 2;
     bytes fork_block_number = 3;
     bytes fork_block_hash = 4;
+    bool fork = 5;
 }
 
 message HeartBeat {

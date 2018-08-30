@@ -75,18 +75,17 @@ class BlockchainEventExtractor()(implicit
 
   var currentBlockNumber: BigInt = BigInt(0)
 
-  // todo: validate fork
   def handleForkEvent(): Future[Seq[Any]] = for {
     forkevt <- getForkBlock()
   } yield forkevt match {
-    case f: ChainRolledBack if f.delectedBlockHash.toString().nonEmpty => Seq(f)
+    case f: ChainRolledBack if f.fork.equals(true) => Seq(f)
     case _ => Seq()
   }
 
   def handleUnforkEvent(): Future[Seq[Any]] = for {
-    _ <- Future { println(s"-----current block is ${currentBlockNumber.toString()}") }
-    block = "0x" + Hex.toHexString(currentBlockNumber.toByteArray)
-    _ <- Future { println(s"---- block hex is ${block}") }
+    _ <- Future{}
+
+    block = safeBlockHex(currentBlockNumber)
     blockReq = GetBlockWithTxHashByNumberReq(block)
     block <- accessor.getBlockWithTxHashByNumber(blockReq)
 
@@ -114,7 +113,7 @@ class BlockchainEventExtractor()(implicit
   // todo
   def getForkBlock(): Future[Any] = for {
     _ <- Future {}
-  } yield ChainRolledBack()
+  } yield ChainRolledBack().withFork(false)
 
   // todo: 解析receipt, trace等并转换成blockChainEvent
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = ???
@@ -128,6 +127,11 @@ class BlockchainEventExtractor()(implicit
     case cancel: OrderCancelled =>
     case cutoff: Cutoff =>
     case cutoffPair: CutoffPair =>
+  }
+
+  // todo: 使用Hex.toHexString会导致多出一些0,而现有的方式为转为int后toHexString
+  private def safeBlockHex(blockNumber: BigInt): String = {
+    "0x" + blockNumber.intValue().toHexString
   }
 
   // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
