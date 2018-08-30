@@ -15,40 +15,53 @@
  */
 
 package org.loopring.lightcone.core.actors
-//
-//import akka.actor.{ActorSystem, Props}
-//import akka.testkit.{ImplicitSender, TestActors, TestKit, TestProbe}
-//import org.loopring.lightcone.core.accessor.{EthClientImpl, GethClientConfig}
-//import org.loopring.lightcone.lib.solidity.Abi
-//import org.loopring.lightcone.proto.common.StartNewRound
-//import org.loopring.lightcone.proto.token.Token
-//import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
-//import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-//import org.spongycastle.util.encoders.Hex
-//
-//class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
-//  with WordSpecLike with Matchers with BeforeAndAfterAll {
-//
-//  override def afterAll: Unit = {
-//    TestKit.shutdownActorSystem(system)
-//  }
-//
-//  val gethconfig = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
-//  val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
-//  val round = StartNewRound
-//
-//  //implicit val accessor = new EthClientImpl(gethconfig, abimap)
-//  //val actor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
-//  // val probe = TestProbe()
-//  // val testActor = TestActors
-//  // val sender = system.actorOf(Props.empty)
-//
-//  "extractor actor" must {
-//
-//    "start single round" in {
-//      //actor ! round
-//      // sender() ! round
-//      //Thread.sleep(300)
-//    }
-//  }
-//}
+
+import akka.actor.{ ActorSystem, Props }
+import akka.testkit.{ ImplicitSender, TestActors, TestKit, TestProbe }
+import org.loopring.lightcone.core.accessor.{ EthClientImpl, GethClientConfig }
+import org.loopring.lightcone.proto.common.StartNewRound
+import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.loopring.lightcone.proto.token.Token
+
+class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
+  with WordSpecLike with Matchers with BeforeAndAfterAll {
+
+  info("execute cmd [sbt core/'testOnly *ExtractorSpec'] test extractor worker")
+
+  override def afterAll: Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
+
+  implicit val tokenlist = Seq[Token](
+    Token(
+      protocol = "0xcd36128815ebe0b44d0374649bad2721b8751bef",
+      symbol = "LRC",
+      decimal = 18,
+      source = "loopring",
+      deny = false,
+      market = false),
+
+    Token(
+      protocol = "0xf079E0612E869197c5F4c7D0a95DF570B163232b",
+      symbol = "WETH",
+      decimal = 18,
+      source = "ethereum",
+      deny = false,
+      market = true))
+
+  val gethconfig = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
+  val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
+  val round = StartNewRound()
+
+  implicit val accessor = new EthClientImpl(gethconfig)
+  val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
+
+  "extractor actor" must {
+
+    "start single round" in {
+      extractor ! round
+      Thread.sleep(300)
+    }
+  }
+}

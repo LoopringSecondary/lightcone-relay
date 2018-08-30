@@ -51,11 +51,10 @@ class BlockchainEventExtractor()(implicit
   override def receive: Receive = {
     case settings: BlockchainEventExtractorSettings =>
       settingsOpt = Some(settings)
-      println("-----11111")
       initAndStartNextRound(settings.scheduleDelay)
     case newRound: StartNewRound =>
-      println("-----22222")
       handleRepeatedJob()
+    case _ => throw new Exception("message invalid")
   }
 
   // 每次处理一个块,
@@ -64,7 +63,6 @@ class BlockchainEventExtractor()(implicit
   // 解析后将数据打包成多个完整的transaction发送出去
   // todo: find roll back
   override def handleRepeatedJob() = for {
-    _ <- Future { println("------get into repeated job") }
     _ <- setCurrentBlock()
     forkseq <- handleForkEvent()
   } yield if (forkseq.size > 0)
