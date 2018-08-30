@@ -25,9 +25,8 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.ring._
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.balance.GetAddressBalanceInfo
-import org.loopring.lightcone.proto.order.{Order, RawOrder}
-
+import org.loopring.lightcone.proto.order.{ Order, RawOrder }
+import org.loopring.lightcone.core.etypes._
 import scala.collection.mutable.Map
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -43,7 +42,7 @@ object RingMiner
     base.CommonSettings(s.address, s.roles, 1)
 }
 
-class RingMiner(implicit val timout: Timeout)
+class RingMiner()(implicit val timeout: Timeout)
   extends RepeatedJobActor {
 
   import context.dispatcher
@@ -64,7 +63,7 @@ class RingMiner(implicit val timout: Timeout)
     val evaluator = new Evaluator()
 
     val rings = resps.map(_.rings).flatten
-    val ringCandidate = rings.map(generateRingCandidate)
+    val ringCandidate = rings.map(evaluator.generateRingCandidate)
   }
 
   def decideRingCandidates(ring: Seq[Ring]): NotifyRingSettlementDecisions = {
@@ -72,14 +71,14 @@ class RingMiner(implicit val timout: Timeout)
   }
 
   case class OrderFill(
-                        rawOrder: RawOrder,
-                        sPrice: Rational,
-                        rateAmountS: Rational,
-                        fillAmountS: Rational,
-                        fillAmountB: Rational,
-                        reduceRate: Rational,
-                        receivedFiat: Rational,
-                        feeSelection: Byte)
+    rawOrder: RawOrder,
+    sPrice: Rational,
+    rateAmountS: Rational,
+    fillAmountS: Rational,
+    fillAmountB: Rational,
+    reduceRate: Rational,
+    receivedFiat: Rational,
+    feeSelection: Byte)
 
   case class RingCandidate(ringCandidate: Ring, receivedFiat: Rational, submitter: ByteString, orderFills: immutable.Map[ByteString, OrderFill])
 
@@ -105,12 +104,12 @@ class RingMiner(implicit val timout: Timeout)
       val priceMul = ring.orders.map { order =>
         val rawOrder = order.rawOrder.get
         //todo:
-        Rational(BigInt(10), BigInt(2))
+        Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
       }.reduceLeft(_ * _)
 
-      val root = priceMul.pow(Rational(BigInt(2), BigInt(1)))
+      val root = priceMul.pow(Rational(2))
       val reduceRate = Rational(root)
-      Rational(BigInt(1), BigInt(1)) / reduceRate
+      Rational(1) / reduceRate
     }
 
     private def checkRing(ring: Ring) = {
@@ -126,7 +125,7 @@ class RingMiner(implicit val timout: Timeout)
       val reduceRate = priceReduceRate(ring)
       var orderFills = ring.orders.map { order =>
         val rawOrder = order.rawOrder.get
-        val amountS = BigInt(rawOrder.amountS.toByteArray)
+        val amountS = rawOrder.amountS.asBigInt
         val rateAmountS = Rational(amountS) * reduceRate
         val (fillAmountS, fillAmountB, sPrice) = computeFillAmountStep1(rawOrder, reduceRate)
         OrderFill(rawOrder, sPrice, rateAmountS, fillAmountS, fillAmountB, reduceRate, Rational(1), 0.toByte)
@@ -179,7 +178,7 @@ class RingMiner(implicit val timout: Timeout)
     }
 
     private def computeFeeOfOrder(orderFill: OrderFill) = {
-      val feeReceiptLrcAmount = getAvailableAmount(ByteString.EMPTY)(ByteString.EMPTY) //todo:
+      //      val feeReceiptLrcAmount = getAvailableAmount(orderFill.rawOrder.delegateAddress.toByteArray)(ByteString.EMPTY) //todo:
       val splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
         Rational(1)
       } else {
@@ -187,14 +186,14 @@ class RingMiner(implicit val timout: Timeout)
       }
       val savingFiatReceived = if (orderFill.rawOrder.buyNoMoreThanAmountB) {
         var savingAmountS = orderFill.fillAmountB * orderFill.sPrice - orderFill.fillAmountS
-        splitPercentage * savingAmountS //todo:transfer to fait amount
+        splitPercentage * savingAmountS //todo:transfer to fiat amount
       } else {
         var savingAmountB = orderFill.fillAmountB - orderFill.fillAmountB * orderFill.reduceRate
         splitPercentage * savingAmountB //todo:
       }
       val fillRate = orderFill.fillAmountS / Rational(1) //todo:Rational(orderFill.rawOrder.amountS)
       val lrcFee = fillRate * Rational(1) //todo:orderFill.rawOrder.lrcFee
-      val lrcFiatReceived = lrcFee //todo:transfer to fait amount
+      val lrcFiatReceived = lrcFee //todo:transfer to fiat amount
 
       val gasFiat = Rational(1) //todo:
       val (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 || lrcFiatReceived * Rational(2) < savingFiatReceived) {

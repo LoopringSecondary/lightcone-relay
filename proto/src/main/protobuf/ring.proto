@@ -11,7 +11,7 @@ message Ring {
     int32 v = 2;
     bytes r = 3;
     bytes s = 4;
-    bytes hash = 5;
+    string hash = 5;
 }
 
 message GetRingsReq {}
