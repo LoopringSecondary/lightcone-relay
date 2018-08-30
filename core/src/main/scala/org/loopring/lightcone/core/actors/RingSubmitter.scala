@@ -20,6 +20,7 @@ import java.math.BigInteger
 
 import akka.actor.Actor
 import akka.util.Timeout
+import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.proto.deployment.RingSubmitterSettings
 import org.loopring.lightcone.proto.ring.RingCandidates
 import org.web3j.crypto.{ Credentials, RawTransaction, TransactionEncoder, WalletUtils }
@@ -42,7 +43,7 @@ object RingSubmitter
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class RingSubmitter()(implicit
+class RingSubmitter(ethClient: EthClient)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
@@ -71,7 +72,7 @@ class RingSubmitter()(implicit
         inputData)
       val signedMessage = signTransaction(rawTransaction, submitterCredentials(""))
 
-
+      ethClient
   }
 
   def signTransaction(rawTransaction: RawTransaction, credentials: Credentials) = {

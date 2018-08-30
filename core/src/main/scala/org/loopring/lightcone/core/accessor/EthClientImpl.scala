@@ -20,6 +20,8 @@ import akka.actor._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 
+import scala.concurrent.Future
+
 class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
@@ -87,6 +89,10 @@ class EthClientImpl(
       Seq(args, req.tag)
     }
 
+  def sendRawTransaction(req: String): Future[String] =
+    httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
+      Seq(req.data)
+    }
   // def getEstimatedGas() = ???
 
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???

@@ -37,4 +37,7 @@ trait EthClient {
   // erc20
   def getBalance(req: GetBalanceReq): Future[GetBalanceRes]
   def getAllowance(req: GetAllowanceReq): Future[GetAllowanceRes]
+
+  def sendRawTransaction(req: String): Future[String]
+
 }
