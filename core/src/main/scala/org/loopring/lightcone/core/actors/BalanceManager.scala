@@ -225,14 +225,14 @@ class BalanceManager()(implicit
     case settings: BalanceManagerSettings =>
       this.settings = settings
     case req: GetBalancesReq =>
-      val sender = sender()
-      handleInfoReq(req, sender)
+      val sender1 = sender()
+      handleInfoReq(req, sender1)
     case req: GetAllowancesReq =>
-      val sender = sender()
-      handleInfoReq(req, sender)
+      val sender1 = sender()
+      handleInfoReq(req, sender1)
     case req: GetBalanceAndAllowanceReq =>
-      val sender = sender()
-      handleInfoReq(req, sender)
+      val sender1 = sender()
+      handleInfoReq(req, sender1)
   }
 
   def handleInfoReq[T, R](req: T, sender: ActorRef)(implicit s: HandleReqTrait[T, R]): Future[Unit] = for {
