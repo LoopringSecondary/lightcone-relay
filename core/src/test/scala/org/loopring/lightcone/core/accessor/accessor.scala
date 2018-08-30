@@ -23,8 +23,8 @@ import scala.concurrent.duration._
 package object accessor {
   implicit val system = ActorSystem()
 
-  val config = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
-  val geth = new EthClientImpl(config)
+  implicit val config = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
+  val geth = new EthClientImpl()
   val timeout = Timeout(5 seconds)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"

@@ -50,11 +50,11 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       deny = false,
       market = true))
 
-  val gethconfig = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
+  implicit val gethconfig = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
   val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
   val round = StartNewRound()
 
-  implicit val accessor = new EthClientImpl(gethconfig)
+  implicit val accessor = new EthClientImpl()
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
 
   "extractor actor" must {
