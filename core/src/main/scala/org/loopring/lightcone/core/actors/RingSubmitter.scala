@@ -48,7 +48,8 @@ class RingSubmitter()(implicit
   extends Actor {
 
   var submitterCredentials = Map[String, Credentials]()
-  var chainId = 7107171.toByte
+  var chainId = 1.toByte
+
   var contract = ""
   override def receive: Receive = {
     case settings: RingSubmitterSettings =>
@@ -56,6 +57,8 @@ class RingSubmitter()(implicit
         val credential = WalletUtils.loadCredentials(k.password, k.file)
         (credential.getAddress, credential)
       }.toMap
+      contract = settings.contract
+      chainId = settings.chainId
 
     case ringToSettle: RingCandidates =>
       val inputData = ""
@@ -67,6 +70,8 @@ class RingSubmitter()(implicit
         BigInt(0).bigInteger,
         inputData)
       val signedMessage = signTransaction(rawTransaction, submitterCredentials(""))
+
+
   }
 
   def signTransaction(rawTransaction: RawTransaction, credentials: Credentials) = {

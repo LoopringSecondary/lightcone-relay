@@ -165,6 +165,7 @@ message RingSubmitterSettings {
     repeated string roles = 2;
     repeated KeyStore keystore_files = 3;
     string contract = 4; //合约地址
+    int32 chain_id = 5;
 }
 
 message DynamicSettings {
