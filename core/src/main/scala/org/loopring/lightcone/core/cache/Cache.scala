@@ -34,9 +34,6 @@ trait Cache[K, V] {
 trait ByteArrayCache
   extends Cache[Array[Byte], Array[Byte]]
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
-
 trait ProtoCache[K, V <: scalapb.GeneratedMessage with scalapb.Message[V]]
   extends Cache[K, V] {
   implicit val ex: ExecutionContext

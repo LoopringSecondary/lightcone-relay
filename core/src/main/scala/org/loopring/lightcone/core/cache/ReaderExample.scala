@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.cache
 import scala.concurrent._
 import org.loopring.lightcone.proto.example._
 
-object ReaderExample {
+private object ReaderExample {
   class Example1Reader extends Reader[Example1Req, Example1Resp] {
     def read(req: Example1Req) = ??? // read from ethereum
     def read(reqs: Seq[Example1Req]) = ??? // read from ethereum
