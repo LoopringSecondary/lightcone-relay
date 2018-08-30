@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor.Actor
 import akka.util.Timeout
 import org.loopring.lightcone.proto.deployment.RingSubmitterSettings
+import org.web3j.crypto.{Credentials, WalletUtils}
 
 import scala.concurrent.ExecutionContext
 
@@ -35,8 +36,16 @@ class RingSubmitter()(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
+
+  var submitterCredentials = Map[String, Credentials]()
+
   override def receive: Receive = {
     case settings: RingSubmitterSettings =>
+      submitterCredentials = settings.keystoreFiles.map { k =>
+        val credential = WalletUtils.loadCredentials(k.password, k.file)
+        (credential.getAddress, credential)
+      }.toMap
+
     case _ =>
   }
 }
