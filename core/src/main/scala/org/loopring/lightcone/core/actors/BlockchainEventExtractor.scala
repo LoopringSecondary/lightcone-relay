@@ -44,7 +44,6 @@ object BlockchainEventExtractor
 
 class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
-  val abimap: Map[String, String],
   val accessor: EthClient) extends RepeatedJobActor with AbiSupport {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None

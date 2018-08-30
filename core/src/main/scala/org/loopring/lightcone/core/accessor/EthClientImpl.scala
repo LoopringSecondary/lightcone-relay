@@ -22,9 +22,7 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 
 class EthClientImpl(
-  val config: GethClientConfig)(implicit
-  val system: ActorSystem,
-  val abimap: Map[String, String])
+  val config: GethClientConfig)(implicit val system: ActorSystem)
   extends EthClient with JsonRpcSupport with AbiSupport {
 
   val uri = s"http://${config.host}:${config.port}"
