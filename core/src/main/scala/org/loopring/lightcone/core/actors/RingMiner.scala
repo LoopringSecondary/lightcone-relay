@@ -56,7 +56,7 @@ class RingMiner()(implicit
   } yield {
     ringsToSettle match {
       case r: RingCandidates =>
-        Routers.ringSubmitter ! ringCandidates
+        Routers.ringSubmitter ! r
         val decisions = decideRingCandidates(ringCandidates.rings, r.rings)
         decisions foreach { decision =>
           val finderId = "" //todo:
