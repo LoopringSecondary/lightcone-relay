@@ -55,6 +55,81 @@ class BalanceManager()(implicit
     case req: GetBalanceAndAllowanceReq => handleInfoReq(req)
   }
 
+  def handleInfoReq[T,R](req:T)(implicit s: HandleReq[T,R]):Future[R] = for {
+    res <- s.getFromCache(req)
+    uncachedReq <- s.generateUncachedReq(req, res)
+
+  } yield {
+
+  }
+
+  trait HandleReq[T,R] {
+    def generateUncachedReq(req:T, cachedRes:Option[R]):Option[T]
+
+    def getFromCache(req:T):Future[Option[R]] = for {
+      res <- Routers.balanceCacher ? req
+    } yield {
+      res match {
+        case info:R => Some(info)
+        case _ => None
+      }
+    }
+
+    def getFromEthAndCacheIt(req:T):Future[Option[R]] = for {
+      res <- Routers.ethereumAccessor ? req
+    } yield {
+      res match {
+        case info:R => Some(info)
+        case err:ErrorResp => None
+      }
+    }
+
+    def mergeResp(cachedRes:Option[R], uncachedRes:Option[R]):R
+  }
+
+  implicit val handleBalanceReq = new HandleReq[GetBalancesReq, GetBalancesResp] {
+
+    override def generateUncachedReq(req: GetBalancesReq, cachedRes: Option[GetBalancesResp]): Option[GetBalancesReq] = {
+      var uncachedReqOpt: Option[GetBalancesReq] = None
+      val reqTokens = req.tokens.toSet
+      val cachedTokens = cachedRes.get.balances.map(_.token).toSet
+      val uncachedTokens = reqTokens -- cachedTokens
+      if (uncachedTokens.nonEmpty) {
+        uncachedReqOpt = Some(req.withTokens(uncachedTokens.toSeq))
+      }
+      uncachedReqOpt
+    }
+
+    override def getFromEthAndCacheIt(req: GetBalancesReq): Future[Option[GetBalancesResp]] = for {
+      res <- super.getFromEthAndCacheIt(req)
+    } yield {
+      res match {
+        case None => None
+        case Some(info) =>
+          val cacheBalanceInfo = CacheBalanceInfo(
+            address = info.address,
+            balances = info.balances)
+          Routers.balanceCacher ! cacheBalanceInfo
+          Some(info)
+      }
+    }
+
+    override def mergeResp(cachedResOpt: Option[GetBalancesResp], uncachedResOpt: Option[GetBalancesResp]): GetBalancesResp = {
+      val mergedResp = cachedResOpt match {
+        case Some(resp1: GetBalancesResp) =>
+          uncachedResOpt match {
+            case Some(resp2: GetBalancesResp) =>
+              GetBalancesResp()
+                .withAddress(resp1.address)
+                .withBalances(resp1.balances ++ resp2.balances)
+            case _ => resp1
+          }
+      }
+      mergedResp
+    }
+  }
+
+
   def handleInfoReq(req: GeneratedMessage) = for {
     cachedInfoRes <- Routers.balanceCacher ? req
 
