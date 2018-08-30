@@ -149,6 +149,16 @@ message RingMinerSettings {
     int64 scheduleDelay = 4;
 }
 
+message RingEvaluatorSettings {
+    string id = 1;
+    repeated string roles = 2;
+}
+
+message RingSubmitterSettings {
+    string id = 1;
+    repeated string roles = 2;
+}
+
 message DynamicSettings {
     BalanceCacherSettings balance_cacher_settings = 2;
     BalanceManagerSettings balance_manager_settings = 3;
@@ -165,11 +175,15 @@ message DynamicSettings {
     OrderWriterSettings order_writer_settings = 14;
     OrderAccessorSettings order_accessor_settings = 15;
 
+
     repeated OrderBookManagerSettings order_book_manager_settings_seq = 102;
     repeated OrderBookReaderSettings order_book_reader_settings_seq = 103;
     repeated RingFinderSettings ring_finder_settings_seq = 104;
     repeated RingMinerSettings ring_miner_settings_seq = 105;
     map<string, MarketConfig> markets_settings = 106;
+    repeated RingSubmitterSettings ring_submitter_settings_seq = 107;
+    repeated RingEvaluatorSettings ring_evaluator_settings_seq = 108;
+
 }
 
 

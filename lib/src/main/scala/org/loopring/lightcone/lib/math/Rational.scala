@@ -16,9 +16,9 @@
 
 package org.loopring.lightcone.lib.math
 
-import java.math.{MathContext, RoundingMode}
+import java.math.{ MathContext, RoundingMode }
 
-import scala.math.{BigInt, Ordered, ScalaNumber, ScalaNumericConversions}
+import scala.math.{ BigInt, Ordered, ScalaNumber, ScalaNumericConversions }
 
 final class Rational(numerator: BigInt, denominator: BigInt)
   extends ScalaNumber with ScalaNumericConversions with Serializable with Ordered[Rational] {
