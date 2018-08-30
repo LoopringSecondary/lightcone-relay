@@ -16,21 +16,17 @@
 
 package org.loopring.lightcone.core.actors
 
-import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.Actor
 import akka.util.Timeout
 import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.proto.deployment.RingSubmitterSettings
-import org.loopring.lightcone.proto.ring.RingCandidates
+import org.loopring.lightcone.proto.eth_jsonrpc.SendRawTransactionReq
+import org.loopring.lightcone.proto.ring.RingToSettleSeq
 import org.web3j.crypto.{ Credentials, RawTransaction, TransactionEncoder, WalletUtils }
-import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.{ DefaultBlockParameter, Request }
-import org.web3j.protocol.core.methods.request.{ EthFilter, ShhFilter, ShhPost, Transaction }
-import org.web3j.protocol.core.methods.response
-import org.web3j.protocol.core.methods.response._
 import org.web3j.tx.ChainId
-import rx.Observable
 
 import scala.concurrent.ExecutionContext
 
@@ -43,36 +39,44 @@ object RingSubmitter
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
+case class Submitter(nonce: AtomicInteger, credentials: Credentials)
+
 class RingSubmitter(ethClient: EthClient)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
-  var submitterCredentials = Map[String, Credentials]()
+  var submitterCredentials = Map[String, Submitter]()
   var chainId = 1.toByte
 
   var contract = ""
+
   override def receive: Receive = {
     case settings: RingSubmitterSettings =>
       submitterCredentials = settings.keystoreFiles.map { k =>
         val credential = WalletUtils.loadCredentials(k.password, k.file)
-        (credential.getAddress, credential)
+        (credential.getAddress, Submitter(new AtomicInteger, credential)) //todo: 启动时,nonce需要初始化
       }.toMap
       contract = settings.contract
-      chainId = settings.chainId
+      chainId = settings.chainId.byteValue()
 
-    case ringToSettle: RingCandidates =>
-      val inputData = ""
-      val rawTransaction = RawTransaction.createTransaction(
-        BigInt(0).bigInteger,
-        BigInt(0).bigInteger,
-        BigInt(0).bigInteger,
-        contract,
-        BigInt(0).bigInteger,
-        inputData)
-      val signedMessage = signTransaction(rawTransaction, submitterCredentials(""))
+    case ringSeq: RingToSettleSeq =>
+      ringSeq.rings map { ring =>
+        val inputData = "" //todo:
+        val submitter = submitterCredentials(ring.submitter)
+        val nonce = submitter.nonce.getAndIncrement()
+        val rawTransaction = RawTransaction.createTransaction(
+          BigInt(nonce).bigInteger,
+          ring.gasPrice.asBigInteger,
+          ring.gasPimit.asBigInteger,
+          contract,
+          BigInt(0).bigInteger,
+          inputData)
+        val signedMessage = signTransaction(rawTransaction, submitter.credentials)
 
-      ethClient
+        ethClient.sendRawTransaction(SendRawTransactionReq(data = "0x" + BigInt(signedMessage).toString(16)))
+      }
+
   }
 
   def signTransaction(rawTransaction: RawTransaction, credentials: Credentials) = {

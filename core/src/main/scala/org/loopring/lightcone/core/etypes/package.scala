@@ -28,6 +28,7 @@ package object etypes {
     def asBigInt(): BigInt = new String(bytes).asBigInt
 
     def asBigInteger(): BigInteger = new String(bytes).asBigInteger
+
   }
 
   implicit class RichString(hex: String) {
