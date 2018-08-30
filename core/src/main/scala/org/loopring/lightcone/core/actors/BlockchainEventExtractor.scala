@@ -46,6 +46,28 @@ class BlockchainEventExtractor()(implicit
   val abiStrMap: Map[String, String],
   val accessor: EthClient) extends RepeatedJobActor {
 
+  var settingsOpt: Option[BlockchainEventExtractorSettings] = None
+
+  override def receive: Receive = {
+    case settings: BlockchainEventExtractorSettings =>
+      settingsOpt = Some(settings)
+      initAndStartNextRound(settings.scheduleDelay)
+  }
+
+  // 每次处理一个块,
+  // 从block里获取对应的transaction hash
+  // 获取transactionReceipt以及对应的trace数据
+  // 解析后将数据打包成多个完整的transaction发送出去
+  // todo: find roll back
+  override def handleRepeatedJob() = for {
+    _ <- setCurrentBlock()
+    forkseq <- handleForkEvent()
+  } yield if (forkseq.size > 0)
+    forkseq.map(route(_))
+  else {
+    for { list <- handleUnforkEvent() } yield list.map(route(_))
+  }
+
   val (abiFunctions: Map[String, Abi.Function], abiEvents: Map[String, Abi.Event]) = {
     var fmap: Map[String, Abi.Function] = Map()
     var emap: Map[String, Abi.Event] = Map()
@@ -64,24 +86,6 @@ class BlockchainEventExtractor()(implicit
   val supportedContracts: Seq[String] = tokenList.map(x => safeAddress(x.protocol))
 
   var currentBlockNumber: Big = Big("0".getBytes())
-
-  override def receive: Receive = {
-    case settings: BlockchainEventExtractorSettings => println("------hhahahhahahahhahah")
-  }
-
-  // 每次处理一个块,
-  // 从block里获取对应的transaction hash
-  // 获取transactionReceipt以及对应的trace数据
-  // 解析后将数据打包成多个完整的transaction发送出去
-  // todo: find roll back
-  override def handleRepeatedJob() = for {
-    _ <- setCurrentBlock()
-    forkseq <- handleForkEvent()
-  } yield if (forkseq.size > 0)
-    forkseq.map(route(_))
-  else {
-    for { list <- handleUnforkEvent() } yield list.map(route(_))
-  }
 
   def handleForkEvent(): Future[Seq[Any]] = for {
     forkevt <- getForkBlock()

@@ -46,6 +46,7 @@ message BalanceReaderSettings {
 
 message BlockchainEventExtractorSettings {
     repeated string roles = 1;
+    int64 scheduleDelay = 2;
 }
 
 message CacheObsoleterSettings {
