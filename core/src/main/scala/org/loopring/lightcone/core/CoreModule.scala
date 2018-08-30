@@ -223,4 +223,21 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     timeout: Timeout) = {
     Props(new RingMiner()) // .withDispatcher("ring-dispatcher")
   }
+
+  @Provides
+  @Named("ring_evaluator")
+  def getRingEvaluatorProps()(implicit
+    ec: ExecutionContext,
+    timeout: Timeout) = {
+    Props(new RingEvaluator()()) // .withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("ring_submitter")
+  def getRingSubmitterProps()(implicit
+    ec: ExecutionContext,
+    timeout: Timeout) = {
+    Props(new RingSubmitter()) // .withDispatcher("ring-dispatcher")
+  }
+
 }
