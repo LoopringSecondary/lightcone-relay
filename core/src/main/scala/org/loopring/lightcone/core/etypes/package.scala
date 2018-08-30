@@ -39,4 +39,15 @@ package object etypes {
     }
   }
 
+  implicit class RichString(hex: String) {
+
+    def asAddress: Address = hex.getBytes.asAddress()
+
+    def asHash: Hash = hex.getBytes.asHash()
+
+    def asBigInt: BigInt = hex.getBytes.asBigInt()
+
+    def asBigInteger: BigInteger = hex.getBytes.asBigInteger()
+  }
+
 }

@@ -16,9 +16,9 @@
 
 package org.loopring.lightcone.lib.math
 
-import java.math.{ MathContext, RoundingMode }
+import java.math.{MathContext, RoundingMode}
 
-import scala.math.{ Ordered, ScalaNumber, ScalaNumericConversions }
+import scala.math.{BigInt, Ordered, ScalaNumber, ScalaNumericConversions}
 
 final class Rational(numerator: BigInt, denominator: BigInt)
   extends ScalaNumber with ScalaNumericConversions with Serializable with Ordered[Rational] {
@@ -52,6 +52,10 @@ final class Rational(numerator: BigInt, denominator: BigInt)
       numerator = this.num * that.num,
       denominator = this.denom * that.denom)
   }
+
+  def min(that: Rational): Rational = if (this.num * that.denom > this.denom * that.num) that else this
+
+  def max(that: Rational): Rational = if (this.num * that.denom > this.denom * that.num) this else that
 
   def pow(exp: Rational) = {
     math.pow(this.doubleValue(), exp.doubleValue())

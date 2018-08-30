@@ -16,20 +16,21 @@
 
 package org.loopring.lightcone.core.actors
 
+import java.util.concurrent.ConcurrentHashMap
+
 import akka.actor._
 import akka.pattern._
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
-import com.google.protobuf.ByteString
 import org.loopring.lightcone.core.actors.base._
-import org.loopring.lightcone.core.routing._
-import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.ring._
-import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.{ Order, RawOrder }
 import org.loopring.lightcone.core.etypes._
-import scala.collection.mutable.Map
-import scala.collection.immutable
+import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.lib.math.Rational
+import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.order.RawOrder
+import org.loopring.lightcone.proto.ring._
+
+import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 object RingMiner
@@ -46,8 +47,6 @@ class RingMiner()(implicit val timeout: Timeout)
 
   import context.dispatcher
   var finders: Seq[ActorRef] = Seq.empty
-  lazy val balanceManager = Routers.balanceManager
-  lazy val ethereumAccessor = Routers.ethereumAccessor
 
   override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
@@ -59,10 +58,31 @@ class RingMiner()(implicit val timeout: Timeout)
     resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
       .mapTo[Seq[RingCandidates]]
   } yield {
-    val evaluator = new Evaluator()
+    val evaluator = new Evaluator("delegateAddress")
 
-    val rings = resps.map(_.rings).flatten
-    val ringCandidate = rings.map(evaluator.generateRingCandidate)
+    val rings = resps.flatMap(_.rings)
+    val ringCandidates = rings
+      .map(r => Some(RingCandidate(rawRing = r)))
+
+    val ringForSubmit = getRingForSubmit(Seq(), ringCandidates, evaluator)
+
+  }
+
+  @tailrec
+  final def getRingForSubmit(candidatesForSubmit: Seq[Option[RingCandidate]], candidates: Seq[Option[RingCandidate]], evaluator: Evaluator): Seq[Option[RingCandidate]] = {
+    val ringCandidates = candidates
+      .filter(_.nonEmpty)
+      .map(c => evaluator.generateRingCandidate(c.get.rawRing))
+
+    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
+    val (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
+
+    if (candidatesComputeAgain.size <= 0) {
+      candidatesForSubmit ++ candidatesForSubmit1
+    } else {
+      getRingForSubmit(candidatesForSubmit ++ candidatesForSubmit1, candidatesComputeAgain, evaluator)
+    }
+
   }
 
   def decideRingCandidates(ring: Seq[Ring]): NotifyRingSettlementDecisions = {
@@ -79,24 +99,25 @@ class RingMiner()(implicit val timeout: Timeout)
     receivedFiat: Rational,
     feeSelection: Byte)
 
-  case class RingCandidate(ringCandidate: Ring, receivedFiat: Rational, submitter: ByteString, orderFills: immutable.Map[ByteString, OrderFill])
+  case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), submitter: String = "", orderFills: Map[String, OrderFill] = Map())
 
-  class Evaluator {
+  class Evaluator(delegateAddress: String) {
+    val walletSplit = Rational(8, 10)
     //不同订单数量的环路执行需要的gas数
     val gasUsedOfOrders = Map(2 -> 400000, 3 -> 500000, 4 -> 600000)
     //订单已成交量
-    private var orderFillAmount = Map[ByteString, BigInt]()
+    private var orderFillAmount = Map[String, BigInt]()
     //账户可用金额等
-    private var avaliableAmounts = Map[ByteString, Map[ByteString, BigInt]]() //todo:change it
+    private var avaliableAmounts = new ConcurrentHashMap[String, BigInt]() asScala //todo:change it
 
     //余额以及授权金额
-    private def getAvailableAmount(delegateAddress: ByteString)(address: ByteString) = {
-      //    avaliableAmounts.getOrElseUpdate()
-      val balance = BigInt(0)
-      val allowance = BigInt(0)
-      val availableAmount = balance min allowance
-
-      availableAmount
+    private def getAvailableAmount(address: String) = {
+      avaliableAmounts.getOrElseUpdate(
+        address,
+        {
+          BigInt(0)
+        }
+      )
     }
 
     private def priceReduceRate(ring: Ring): Rational = {
@@ -118,9 +139,9 @@ class RingMiner()(implicit val timeout: Timeout)
     }
 
     def generateRingCandidate(ring: Ring): Option[RingCandidate] = {
-      val check = checkRing(ring)
-      if (!check)
+      if (!checkRing(ring))
         return None
+
       val reduceRate = priceReduceRate(ring)
       var orderFills = ring.orders.map { order =>
         val rawOrder = order.rawOrder.get
@@ -136,22 +157,21 @@ class RingMiner()(implicit val timeout: Timeout)
       }.toMap
 
       val ringReceivedFiat = orderFillsMap.foldLeft(Rational(0))(_ + _._2.receivedFiat)
-      val submitter = ByteString.EMPTY
+      val submitter = ""
       Some(RingCandidate(ring, ringReceivedFiat, submitter, orderFillsMap))
     }
 
     private def computeFillAmountStep1(rawOrder: RawOrder, reduceRate: Rational) = {
-      //todo: amounts/amountb
-      val sPrice = Rational(1) * reduceRate
-      val avaliableAmount = BigInt(10)
-      val remainedAmountS = Rational(1)
+      val sPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt) * reduceRate
+      val availableAmount = Rational(getAvailableAmount(rawOrder.owner)) //todo: balance min allowance
+      val remainedAmountS = Rational(1) //todo:
       val remainedAmountB = Rational(1)
       val (fillAmountS, fillAmountB) = if (rawOrder.buyNoMoreThanAmountB) {
         val availableAmountB = remainedAmountB
         val availableAmountS = availableAmountB * sPrice
         (availableAmountS, availableAmountB)
       } else {
-        val availableAmountS = Rational(1) //todo:val availableAmountS = remainedAmountS min avaliableAmount
+        val availableAmountS = remainedAmountS min availableAmount
         val availableAmountB = availableAmountS / sPrice
         (availableAmountS, availableAmountB)
       }
@@ -177,7 +197,7 @@ class RingMiner()(implicit val timeout: Timeout)
     }
 
     private def computeFeeOfOrder(orderFill: OrderFill) = {
-      //      val feeReceiptLrcAmount = getAvailableAmount(orderFill.rawOrder.delegateAddress.toByteArray)(ByteString.EMPTY) //todo:
+      val feeReceiptLrcAmount = getAvailableAmount(orderFill.rawOrder.owner)
       val splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
         Rational(1)
       } else {
@@ -190,17 +210,18 @@ class RingMiner()(implicit val timeout: Timeout)
         var savingAmountB = orderFill.fillAmountB - orderFill.fillAmountB * orderFill.reduceRate
         splitPercentage * savingAmountB //todo:
       }
-      val fillRate = orderFill.fillAmountS / Rational(1) //todo:Rational(orderFill.rawOrder.amountS)
-      val lrcFee = fillRate * Rational(1) //todo:orderFill.rawOrder.lrcFee
+      val fillRate = orderFill.fillAmountS / Rational(orderFill.rawOrder.amountS.asBigInt)
+      val lrcFee = fillRate * Rational(orderFill.rawOrder.lrcFee.asBigInt)
       val lrcFiatReceived = lrcFee //todo:transfer to fiat amount
 
       val gasFiat = Rational(1) //todo:
-      val (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 || lrcFiatReceived * Rational(2) < savingFiatReceived) {
+      val (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 ||
+        lrcFiatReceived * Rational(2) < savingFiatReceived) {
         (1.toByte, savingFiatReceived - gasFiat)
       } else {
         (0.toByte, lrcFiatReceived - gasFiat)
       }
-      (feeSelection, receivedFiat * Rational(8, 10))
+      (feeSelection, receivedFiat * walletSplit)
     }
 
   }
