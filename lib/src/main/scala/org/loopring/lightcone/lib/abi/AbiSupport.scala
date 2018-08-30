@@ -22,6 +22,8 @@ import org.spongycastle.util.encoders.Hex
 trait AbiSupport {
   implicit val abimap: Map[String, String]
 
+  val prefix = "0x"
+
   val (sigFunctionMap: Map[String, Abi.Function],
     sigEventMap: Map[String, Abi.Event],
     nameFunctionMap: Map[String, Abi.Function],
@@ -33,20 +35,21 @@ trait AbiSupport {
     var nemap: Map[String, Abi.Event] = Map()
 
     abimap.map(x => {
-      val abi = Abi.fromJson(x._2)
-      val iterator = abi.iterator()
-      while (iterator.hasNext) {
-        iterator.next() match {
-          case f: Abi.Function =>
+      val iter = Abi.fromJson(x._2).iterator()
+      while (iter.hasNext) {
+        iter.next() match {
+          case f: Abi.Function => {
             val sig = signature(f)
             println(s"abi ${x._1} function ${f.name} --> ${sig}")
             fmap += sig -> f
             nfmap += f.name -> f
-          case e: Abi.Event =>
+          }
+          case e: Abi.Event => {
             val sig = signature(e)
             println(s"abi ${x._1} event ${e.name} --> ${sig}")
             emap += sig -> e
             nemap += e.name -> e
+          }
         }
       }
     })
@@ -56,15 +59,13 @@ trait AbiSupport {
 
   def findFunctionByName(name: String) = nameFunctionMap(name)
   def findEventByName(name: String) = nameEventMap(name)
-  def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, 4).toLowerCase()
-  def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic).toLowerCase()
+  def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, 4)
+  def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic)
   def isSupportedFunction(txInput: String) = sigFunctionMap.contains(findTransactionFunctionSig(txInput))
   def isSupportedEvent(firstTopic: String) = sigEventMap.contains(findReceiptEventSig(firstTopic))
 
   private def signature(e: Abi.Entry) =
-    withPrefix(Hex.toHexString(e.encodeSignature()).toLowerCase())
-
-  val prefix = "0x"
+    Hex.toHexString(e.encodeSignature()).toLowerCase()
 
   private def withPrefix(src: String) = src.toLowerCase().startsWith(prefix) match {
     case true => src
