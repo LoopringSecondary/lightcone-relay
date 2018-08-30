@@ -224,19 +224,25 @@ class BalanceManager()(implicit
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
       this.settings = settings
-    case req: GetBalancesReq => handleInfoReq(req)
-    case req: GetAllowancesReq => handleInfoReq(req)
-    case req: GetBalanceAndAllowanceReq => handleInfoReq(req)
+    case req: GetBalancesReq =>
+      val sender = sender()
+      handleInfoReq(req, sender)
+    case req: GetAllowancesReq =>
+      val sender = sender()
+      handleInfoReq(req, sender)
+    case req: GetBalanceAndAllowanceReq =>
+      val sender = sender()
+      handleInfoReq(req, sender)
   }
 
-  def handleInfoReq[T, R](req: T)(implicit s: HandleReqTrait[T, R]): Future[R] = for {
+  def handleInfoReq[T, R](req: T, sender: ActorRef)(implicit s: HandleReqTrait[T, R]): Future[Unit] = for {
     cachedRes <- s.getFromCache(req)
     uncachedReq = s.generateUncachedReq(req, cachedRes)
     uncachedRes <- s.getUncachedTokens(uncachedReq)
   } yield {
     s.setUncachedTokenToCache(uncachedRes)
     val mergedResp = s.mergeResp(cachedRes, uncachedRes)
-    mergedResp
+    sender ! mergedResp
   }
 
 }
