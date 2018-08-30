@@ -84,8 +84,8 @@ class BlockchainEventExtractor()(implicit
   }
 
   def handleUnforkEvent(): Future[Seq[Any]] = for {
-    _ <- Future {}
-    blockReq = GetBlockWithTxHashByNumberReq(currentBlockNumber.toString)
+    _ <- Future { println(s"-----current block is ${currentBlockNumber.hex()}") }
+    blockReq = GetBlockWithTxHashByNumberReq(currentBlockNumber.hex())
     block <- accessor.getBlockWithTxHashByNumber(blockReq)
 
     minedTxs <- getMinedTransactions(block.getResult.transactions)
@@ -129,9 +129,9 @@ class BlockchainEventExtractor()(implicit
   }
 
   // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
-  private def setCurrentBlock(): Future[Big] = for {
+  private def setCurrentBlock() = for {
     _ <- Future {}
-  } yield Big("0x32".getBytes())
+  } yield currentBlockNumber = Big("43206".getBytes())
 
   private def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
 

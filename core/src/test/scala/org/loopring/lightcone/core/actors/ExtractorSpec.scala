@@ -61,7 +61,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
 
     "start single round" in {
       extractor ! round
-      Thread.sleep(300)
+      Thread.sleep(3000)
     }
   }
 }
