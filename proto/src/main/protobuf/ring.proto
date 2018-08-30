@@ -14,6 +14,17 @@ message Ring {
     string hash = 5;
 }
 
+message RingToSettle {
+    Ring ring = 1;
+    string submitter = 2;
+    string gas_price = 3;
+    string gas_pimit = 4;
+}
+
+message RingToSettleSeq {
+    repeated RingToSettle rings = 1;
+}
+
 message GetRingsReq {}
 message GetRingsResp {}
 

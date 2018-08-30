@@ -40,7 +40,7 @@ case class OrderFill(
   receivedFiat: Rational,
   feeSelection: Byte)
 
-case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), submitter: String = "", orderFills: Map[String, OrderFill] = Map())
+case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), gasPrice: BigInt = BigInt(0), gasLimit: BigInt = BigInt(0), submitter: String = "", orderFills: Map[String, OrderFill] = Map())
 
 object RingEvaluator
   extends base.Deployable[RingEvaluatorSettings] {
@@ -73,8 +73,11 @@ class RingEvaluator()(implicit
         .map(r => Some(RingCandidate(rawRing = r)))
 
       val ringForSubmit = getRingForSubmit(Seq(), ringCandidates)
-
-      sender() ! ringForSubmit
+      val ringToSettleSeq = RingToSettleSeq(rings = ringForSubmit.filter(_.nonEmpty).map { r =>
+        val ring = r.get
+        RingToSettle(Some(ring.rawRing), ring.submitter, ring.gasPrice.toHex, ring.gasLimit.toHex)
+      })
+      sender() ! ringToSettleSeq
   }
 
   @tailrec
@@ -136,8 +139,10 @@ class RingEvaluator()(implicit
     }.toMap
 
     val ringReceivedFiat = orderFillsMap.foldLeft(Rational(0))(_ + _._2.receivedFiat)
+    val gasPrice = Rational(1) //todo:fiat
+    val gasFiat = Rational(gasUsedOfOrders(orderFills.size)) * gasPrice
     val submitter = ""
-    Some(RingCandidate(ring, ringReceivedFiat, submitter, orderFillsMap))
+    Some(RingCandidate(rawRing = ring, receivedFiat = ringReceivedFiat - gasFiat, submitter = submitter, orderFills = orderFillsMap))
   }
 
   private def computeFillAmountStep1(rawOrder: RawOrder, reduceRate: Rational) = {
@@ -193,12 +198,11 @@ class RingEvaluator()(implicit
     val lrcFee = fillRate * Rational(orderFill.rawOrder.lrcFee.asBigInt)
     val lrcFiatReceived = lrcFee //todo:transfer to fiat amount
 
-    val gasFiat = Rational(1) //todo:
     val (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 ||
       lrcFiatReceived * Rational(2) < savingFiatReceived) {
-      (1.toByte, savingFiatReceived - gasFiat)
+      (1.toByte, savingFiatReceived)
     } else {
-      (0.toByte, lrcFiatReceived - gasFiat)
+      (0.toByte, lrcFiatReceived)
     }
     (feeSelection, receivedFiat * walletSplit)
   }
