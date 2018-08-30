@@ -229,7 +229,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getRingEvaluatorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingEvaluator()()) // .withDispatcher("ring-dispatcher")
+    Props(new RingEvaluator()) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
