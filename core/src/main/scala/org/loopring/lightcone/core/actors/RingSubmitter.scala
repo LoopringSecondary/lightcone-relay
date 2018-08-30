@@ -20,6 +20,8 @@ import akka.actor.Actor
 import akka.util.Timeout
 import org.loopring.lightcone.proto.deployment.RingSubmitterSettings
 
+import scala.concurrent.ExecutionContext
+
 object RingSubmitter
   extends base.Deployable[RingSubmitterSettings] {
   val name = "ring_submitter"
@@ -29,7 +31,9 @@ object RingSubmitter
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class RingSubmitter()(implicit val timeout: Timeout)
+class RingSubmitter()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
   extends Actor {
   override def receive: Receive = {
     case settings: RingSubmitterSettings =>

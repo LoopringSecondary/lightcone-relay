@@ -24,7 +24,7 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.ring._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {
@@ -35,9 +35,10 @@ object RingMiner
     base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner()(implicit val timeout: Timeout)
+class RingMiner()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
   extends RepeatedJobActor {
-  import context.dispatcher
   var marketIds = Seq[String]()
 
   override def receive: Receive = super.receive orElse {

@@ -28,7 +28,7 @@ import org.loopring.lightcone.proto.ring._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class OrderFill(
   rawOrder: RawOrder,
@@ -51,7 +51,9 @@ object RingEvaluator
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class RingEvaluator()(implicit val timeout: Timeout)
+class RingEvaluator()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
   extends Actor {
   var walletSplit = Rational(8, 10)
   //不同订单数量的环路执行需要的gas数
