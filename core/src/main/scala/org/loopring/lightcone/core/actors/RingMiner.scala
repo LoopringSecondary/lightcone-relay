@@ -54,7 +54,7 @@ class RingMiner()(implicit val timeout: Timeout)
     ringsToSettle <- Routers.ringEvaluator ? ringCandidates
   } yield {
     ringsToSettle match {
-      case r:RingCandidates =>
+      case r: RingCandidates =>
         Routers.ringSubmitter ! ringCandidates
         val decisions = decideRingCandidates(ringCandidates.rings, r.rings)
         decisions foreach { decision =>
@@ -71,8 +71,7 @@ class RingMiner()(implicit val timeout: Timeout)
       if (settledRings.contains(candidate))
         RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.Settled, orders = candidate.orders)
       else
-        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.UnSettled, orders = candidate.orders)
-    )
+        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.UnSettled, orders = candidate.orders))
   }
 }
 
