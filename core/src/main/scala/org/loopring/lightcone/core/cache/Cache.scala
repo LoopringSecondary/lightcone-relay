@@ -34,6 +34,9 @@ trait Cache[K, V] {
 trait ByteArrayCache
   extends Cache[Array[Byte], Array[Byte]]
 
+// this ByteArrayRedisCache needs to be final class, not a trait
+trait ByteArrayRedisCache extends ByteArrayCache
+
 trait ProtoCache[K, V <: scalapb.GeneratedMessage with scalapb.Message[V]]
   extends Cache[K, V] {
   implicit val ex: ExecutionContext
@@ -66,7 +69,7 @@ final class StringToProtoCache[V <: scalapb.GeneratedMessage with scalapb.Messag
   val underlying: ByteArrayCache,
   val serializer: ProtoSerializer[V])(implicit val ex: ExecutionContext)
   extends ProtoCache[String, V] {
-  def keyToBytes(key: String) = ??? //key.getBytes
+  def keyToBytes(str: String) = str.getBytes
 }
 
 final class ProtoToProtoCache[R <: scalapb.GeneratedMessage with scalapb.Message[R], V <: scalapb.GeneratedMessage with scalapb.Message[V]](
