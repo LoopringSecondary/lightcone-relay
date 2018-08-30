@@ -37,29 +37,42 @@ object RingMiner
 
 class RingMiner()(implicit val timeout: Timeout)
   extends RepeatedJobActor {
-
   import context.dispatcher
-  var finders: Seq[ActorRef] = Seq.empty
+  var marketIds = Seq[String]()
 
   override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
-      finders = settings.marketIds.map { id => Routers.ringFinder(id) }
+      marketIds = settings.marketIds
       initAndStartNextRound(settings.scheduleDelay)
   }
 
   def handleRepeatedJob() = for {
+    finders <- Future.successful(marketIds.map { id => Routers.ringFinder(id) })
     resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
       .mapTo[Seq[RingCandidates]]
+    ringCandidates = RingCandidates(resps.flatMap(_.rings))
+    ringsToSettle <- Routers.ringEvaluator ? ringCandidates
   } yield {
-    //    val evaluator = new Evaluator("delegateAddress")
-    //
-    //    val rings = resps.flatMap(_.rings)
-    //    val ringCandidates = rings
-    //      .map(r => Some(RingCandidate(rawRing = r)))
-    //
-    //    val ringForSubmit = getRingForSubmit(Seq(), ringCandidates, evaluator)
+    ringsToSettle match {
+      case r:RingCandidates =>
+        Routers.ringSubmitter ! ringCandidates
+        val decisions = decideRingCandidates(ringCandidates.rings, r.rings)
+        decisions foreach { decision =>
+          val finderId = "" //todo:
+          Routers.ringFinder(finderId) ! decision
+        }
+      case _ =>
+    }
 
   }
 
+  def decideRingCandidates(ringCandidates: Seq[Ring], settledRings: Seq[Ring]): Seq[RingSettlementDecision] = {
+    ringCandidates.map(candidate =>
+      if (settledRings.contains(candidate))
+        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.Settled, orders = candidate.orders)
+      else
+        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.UnSettled, orders = candidate.orders)
+    )
+  }
 }
 

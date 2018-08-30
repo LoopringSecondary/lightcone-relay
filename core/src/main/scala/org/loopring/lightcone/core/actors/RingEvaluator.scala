@@ -30,15 +30,6 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-object RingEvaluator
-  extends base.Deployable[RingEvaluatorSettings] {
-  val name = "ring_evaluator"
-  override val isSingleton = true
-
-  def getCommon(s: RingEvaluatorSettings) =
-    base.CommonSettings(Some(s.id), s.roles, 1)
-}
-
 case class OrderFill(
   rawOrder: RawOrder,
   sPrice: Rational,
@@ -51,14 +42,25 @@ case class OrderFill(
 
 case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), submitter: String = "", orderFills: Map[String, OrderFill] = Map())
 
+object RingEvaluator
+  extends base.Deployable[RingEvaluatorSettings] {
+  val name = "ring_evaluator"
+  override val isSingleton = true
+
+  def getCommon(s: RingEvaluatorSettings) =
+    base.CommonSettings(Some(s.id), s.roles, 1)
+}
+
 class RingEvaluator()(implicit val timeout: Timeout)
   extends Actor {
-  val walletSplit = Rational(8, 10)
+  var walletSplit = Rational(8, 10)
   //不同订单数量的环路执行需要的gas数
   val gasUsedOfOrders = Map(2 -> 400000, 3 -> 500000, 4 -> 600000)
 
   override def receive: Receive = {
     case settings: RingEvaluatorSettings =>
+      walletSplit = Rational(settings.walletSplit)
+
     case candidates: RingCandidates =>
       //订单已成交量
       val orderFillAmount = Future.successful(Map[String, BigInt]())

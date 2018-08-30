@@ -152,6 +152,7 @@ message RingMinerSettings {
 message RingEvaluatorSettings {
     string id = 1;
     repeated string roles = 2;
+    int64 wallet_split = 3;
 }
 
 message RingSubmitterSettings {
