@@ -17,12 +17,12 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor.{ ActorSystem, Props }
-import akka.testkit.{ ImplicitSender, TestActors, TestKit, TestProbe }
+import akka.testkit.{ ImplicitSender, TestKit }
 import org.loopring.lightcone.core.accessor.{ EthClientImpl, GethClientConfig }
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import org.loopring.lightcone.proto.token.Token
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {

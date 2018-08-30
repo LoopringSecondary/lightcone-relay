@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -27,15 +29,16 @@ import org.loopring.lightcone.proto.deployment._
 object EthereumAccessor
   extends base.Deployable[EthereumAccessorSettings] {
   val name = "ethereum_accessor"
-  val isSingleton = false
-
-  def props = Props(classOf[EthereumAccessor])
 
   def getCommon(s: EthereumAccessorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class EthereumAccessor() extends Actor {
+class EthereumAccessor()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: EthereumAccessorSettings =>
     case _ =>

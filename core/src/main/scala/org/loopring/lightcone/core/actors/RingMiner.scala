@@ -19,26 +19,24 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern._
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.actors.base._
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.common._
 import org.loopring.lightcone.proto.ring._
-
 import scala.concurrent.Future
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {
   val name = "ring_miner"
-  val isSingleton = true
-
-  def props = Props(classOf[RingMiner]).withDispatcher("ring-dispatcher")
+  override val isSingleton = true
 
   def getCommon(s: RingMinerSettings) =
-    base.CommonSettings(s.address, s.roles, 1)
+    base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner(implicit timout: Timeout)
+class RingMiner()(implicit timout: Timeout)
   extends RepeatedJobActor {
 
   import context.dispatcher

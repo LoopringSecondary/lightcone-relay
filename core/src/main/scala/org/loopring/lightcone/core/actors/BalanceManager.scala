@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
@@ -31,20 +32,24 @@ import scala.concurrent.Future
 object BalanceManager
   extends base.Deployable[BalanceManagerSettings] {
   val name = "balance_manager"
-  val isSingleton = true //按照分片id，应当是singleton的
+  override val isSingleton = true //按照分片id，应当是singleton的
 
-  def props = Props(classOf[BalanceManager])
   def getCommon(s: BalanceManagerSettings) =
-    base.CommonSettings(s.id, s.roles, s.instances)
+    base.CommonSettings(Some(s.id), s.roles, s.instances)
 }
 
-class BalanceManager()(implicit timeout: Timeout) extends Actor {
-  import context.dispatcher
-  var id = ""
+class BalanceManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
+  var settings: BalanceManagerSettings = null
+  def id = settings.id
 
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
-      id = settings.id
+      this.settings = settings
+
     case req: GetBalancesReq => handleInfoReq(req)
     case req: GetAllowancesReq => handleInfoReq(req)
     case req: GetBalanceAndAllowanceReq => handleInfoReq(req)

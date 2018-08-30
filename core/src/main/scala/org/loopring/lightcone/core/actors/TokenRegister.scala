@@ -23,12 +23,12 @@ import org.loopring.lightcone.proto.deployment._
 object TokenRegister
   extends base.Deployable[TokenRegistrySettings] {
   val name = "token_register"
-  val isSingleton = true
+  override val isSingleton = true
 
   def props = Props(classOf[TokenRegister])
 
   def getCommon(s: TokenRegistrySettings) =
-    base.CommonSettings("", Seq.empty, 0)
+    base.CommonSettings(Some(""), Seq.empty, 0)
 }
 
 class TokenRegister() extends Actor {

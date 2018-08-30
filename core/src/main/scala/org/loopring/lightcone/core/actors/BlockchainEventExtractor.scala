@@ -16,7 +16,6 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.actor._
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.proto.token._
@@ -28,18 +27,18 @@ import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.lib.abi.AbiSupport
 import org.loopring.lightcone.proto.common.StartNewRound
 
+import org.spongycastle.util.encoders.Hex
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object BlockchainEventExtractor
   extends base.Deployable[BlockchainEventExtractorSettings] {
   val name = "block_event_extractor"
-  val isSingleton = true
-
-  def props = Props(classOf[BlockchainEventExtractor])
+  override val isSingleton = true
 
   def getCommon(s: BlockchainEventExtractorSettings) =
-    base.CommonSettings("", s.roles, 1)
+    base.CommonSettings(None, s.roles, 1)
 }
 
 class BlockchainEventExtractor()(implicit
@@ -74,18 +73,21 @@ class BlockchainEventExtractor()(implicit
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.map(x => safeAddress(x.protocol))
 
-  var currentBlockNumber: Big = Big("0".getBytes())
+  var currentBlockNumber: BigInt = BigInt(0)
 
+  // todo: validate fork
   def handleForkEvent(): Future[Seq[Any]] = for {
     forkevt <- getForkBlock()
   } yield forkevt match {
-    case f: ChainRolledBack if f.delectedBlockHash.toByteArray.asHash.valid() => Seq(f)
+    case f: ChainRolledBack if f.delectedBlockHash.toString().nonEmpty => Seq(f)
     case _ => Seq()
   }
 
   def handleUnforkEvent(): Future[Seq[Any]] = for {
-    _ <- Future { println(s"-----current block is ${currentBlockNumber.hex()}") }
-    blockReq = GetBlockWithTxHashByNumberReq(currentBlockNumber.hex())
+    _ <- Future { println(s"-----current block is ${currentBlockNumber.toString()}") }
+    block = "0x" + Hex.toHexString(currentBlockNumber.toByteArray)
+    _ <- Future { println(s"---- block hex is ${block}") }
+    blockReq = GetBlockWithTxHashByNumberReq(block)
     block <- accessor.getBlockWithTxHashByNumber(blockReq)
 
     minedTxs <- getMinedTransactions(block.getResult.transactions)
@@ -131,7 +133,7 @@ class BlockchainEventExtractor()(implicit
   // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
   private def setCurrentBlock() = for {
     _ <- Future {}
-  } yield currentBlockNumber = Big("43206".getBytes())
+  } yield currentBlockNumber = BigInt.apply(43206)
 
   private def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
 
