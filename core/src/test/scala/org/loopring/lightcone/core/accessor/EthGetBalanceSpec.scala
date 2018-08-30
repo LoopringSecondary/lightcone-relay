@@ -35,7 +35,7 @@ class EthGetBalanceSpec extends FlatSpec {
     } yield resp.result
 
     val result = Await.result(respFuture, accessor.timeout.duration)
-    val amount = Big(result.getBytes()).toString()
+    val amount = result.getBytes.asBigInt.toString()
     info(s"geth eth_getBalance amount is $amount")
   }
 }
