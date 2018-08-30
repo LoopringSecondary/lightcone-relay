@@ -75,13 +75,19 @@ trait AbiSupport {
   private def signature(e: Abi.Entry) =
     Hex.toHexString(e.encodeSignature()).toLowerCase()
 
-  private def withPrefix(src: String) = src.toLowerCase().startsWith(prefix) match {
-    case true => src
-    case false => (prefix + src).toLowerCase()
+  private def withPrefix(src: String) = {
+    val dst = src.toLowerCase()
+    dst.startsWith(prefix) match {
+      case true => dst
+      case false => prefix + dst
+    }
   }
 
-  private def withoutPrefix(src: String) = src.toLowerCase().startsWith(prefix) match {
-    case true => src.substring(2).toLowerCase()
-    case false => src
+  private def withoutPrefix(src: String) = {
+    val dst = src.toLowerCase()
+    dst.startsWith(prefix) match {
+      case true => src.substring(2)
+      case false => src
+    }
   }
 }
