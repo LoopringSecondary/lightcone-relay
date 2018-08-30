@@ -66,7 +66,7 @@ class BlockchainEventExtractor()(implicit
   var currentBlockNumber: Big = Big("0".getBytes())
 
   override def receive: Receive = {
-    case settings: BlockchainEventExtractorSettings =>
+    case settings: BlockchainEventExtractorSettings => println("------hhahahhahahahhahah")
   }
 
   // 每次处理一个块,
