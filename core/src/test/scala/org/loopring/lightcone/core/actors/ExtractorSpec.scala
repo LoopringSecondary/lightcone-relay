@@ -19,10 +19,12 @@ package org.loopring.lightcone.core.actors
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestActors, TestKit, TestProbe}
 import org.loopring.lightcone.core.accessor.{EthClientImpl, GethClientConfig}
+import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.token.Token
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.spongycastle.util.encoders.Hex
 
 class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -59,8 +61,8 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
   val round = StartNewRound
 
-  implicit val accessor = new EthClientImpl(gethconfig, abimap)
-  val actor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
+  //implicit val accessor = new EthClientImpl(gethconfig, abimap)
+  //val actor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
   // val probe = TestProbe()
   // val testActor = TestActors
   // val sender = system.actorOf(Props.empty)
@@ -68,9 +70,18 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   "extractor actor" must {
 
     "start single round" in {
-      actor ! round
+      val iter = Abi.fromJson(abimap("erc20")).iterator()
+      while (iter.hasNext) {
+        iter.next() match {
+          case e: Abi.Entry => info(s"${e.name} --> ${Hex.toHexString(e.encodeSignature())}")
+          //case f:Abi.Function => info(s"${f.name} --> ${Hex.toHexString(f.encodeSignature())}")
+          //case e:Abi.Event => info(s"${e.name} --> ${Hex.toHexString(e.encodeSignature())}")
+        }
+      }
+
+      //actor ! round
       // sender() ! round
-      Thread.sleep(300)
+      //Thread.sleep(300)
     }
   }
 }

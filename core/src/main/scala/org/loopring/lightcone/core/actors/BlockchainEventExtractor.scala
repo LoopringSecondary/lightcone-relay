@@ -17,13 +17,13 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
+import org.loopring.lightcone.abi.AbiSupport
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.proto.token._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.solidity._
 import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.proto.common.StartNewRound
@@ -44,8 +44,8 @@ object BlockchainEventExtractor
 
 class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
-  val abiStrMap: Map[String, String],
-  val accessor: EthClient) extends RepeatedJobActor {
+  val abimap: Map[String, String],
+  val accessor: EthClient) extends RepeatedJobActor with AbiSupport {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -72,20 +72,6 @@ class BlockchainEventExtractor()(implicit
     forkseq.map(route(_))
   else {
     for { list <- handleUnforkEvent() } yield list.map(route(_))
-  }
-
-  val (abiFunctions: Map[String, Abi.Function], abiEvents: Map[String, Abi.Event]) = {
-    var fmap: Map[String, Abi.Function] = Map()
-    var emap: Map[String, Abi.Event] = Map()
-
-    val abimap = abiStrMap.map(x => { x._1.toLowerCase() -> Abi.fromJson(x._2) })
-
-    abimap.map(x => x._2.iterator.next() match {
-      case f: Abi.Function => fmap += f.encodeSignature().toString.toUpperCase() -> f
-      case e: Abi.Event => emap += e.encodeSignature().toString.toUpperCase() -> e
-    })
-
-    (fmap, emap)
   }
 
   // todo: get protocol address(delegate, impl, token register...) on chain
@@ -145,27 +131,12 @@ class BlockchainEventExtractor()(implicit
     case cutoffPair: CutoffPair =>
   }
 
-  def isSupportedFunction(txTo: String, txInput: String): Boolean = {
-    require(isProtocolSupported(txTo))
-    val functionId = txInput.substring(0, 4).toUpperCase()
-    abiFunctions.contains(functionId)
-  }
-
-  def isSupportedEvent(txTo: String, firstTopic: String): Boolean = {
-    require(isProtocolSupported(txTo))
-    val eventId = getEventId(firstTopic)
-    abiEvents.contains(eventId)
-  }
-
   // todo: 首次从数据库获取blockNumber,后续启动从数据库获取blockNumber
   private def setCurrentBlock(): Future[Big] = for {
     _ <- Future {}
   } yield Big("0x32".getBytes())
 
   private def isProtocolSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
-
-  private def getFunctionId(txInput: String): String = txInput.substring(0, 4).toUpperCase
-  private def getEventId(firstTopic: String): String = firstTopic.toUpperCase()
 
   // todo: other validate
   private def safeAddress(address: String): String = address.toUpperCase()
