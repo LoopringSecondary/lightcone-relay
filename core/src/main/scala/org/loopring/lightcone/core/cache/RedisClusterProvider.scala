@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors.base
+package org.loopring.lightcone.core.cache
 
-import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
+import collection.JavaConverters._
+import akka.actor.ActorSystem
 import com.typesafe.config.Config
-import org.loopring.lightcone.proto.deployment._
+import redis._
 import com.google.inject._
 
-case class NullConfig()
+class RedisClusterProvider @Inject() (
+  config: Config)(
+  implicit
+  system: ActorSystem) extends Provider[RedisCluster] {
+  def get(): RedisCluster = {
 
-abstract class NullConfigDeployable extends Deployable[NullConfig] {
-  def getCommon(s: NullConfig): CommonSettings = getCommon()
-  def getCommon() = CommonSettings(None, Seq.empty, 1)
+    val servers = config.getObjectList("redis.servers").asScala
+      .map { item =>
+        val c = item.toConfig
+        val host = c.getString("host")
+        val port = c.getInt("port")
+        val password = Some(c.getString("redis.password"))
+        RedisServer(host, port, password)
+      }
 
-  def deploy(injector: Injector)(
-    implicit
-    cluster: Cluster): Map[String, ActorRef] =
-    deploy(injector, Seq(NullConfig()))
+    RedisCluster(servers)
+  }
 }
 

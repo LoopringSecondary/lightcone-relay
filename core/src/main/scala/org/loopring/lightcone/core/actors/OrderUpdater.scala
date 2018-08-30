@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -28,15 +30,16 @@ import org.loopring.lightcone.proto.order.{ CalculateOrdersStatus, UpdateOrders 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
   val name = "order_updater"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderUpdater])
 
   def getCommon(s: OrderUpdaterSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderUpdater() extends Actor {
+class OrderUpdater()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderUpdaterSettings =>
     case UpdateOrders =>

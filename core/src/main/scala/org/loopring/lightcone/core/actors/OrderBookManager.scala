@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
@@ -25,15 +27,17 @@ import org.loopring.lightcone.proto.deployment._
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {
   val name = "order_book_manager"
-  val isSingleton = true
-
-  def props = Props(classOf[OrderBookManager])
+  override val isSingleton = true
 
   def getCommon(s: OrderBookManagerSettings) =
-    base.CommonSettings(s.id, s.roles, 1)
+    base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class OrderBookManager() extends Actor {
+class OrderBookManager()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {

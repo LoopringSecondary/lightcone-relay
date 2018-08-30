@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core
 
-import akka.actor.ActorSystem
-import com.typesafe.config.Config
-import redis.{ RedisCluster, RedisServer }
+import com.google.inject._
+import net.codingwell.scalaguice._
+import com.google.inject.name._
+import akka.actor._
 
-object Redis {
+object ActorUtil {
+  implicit class ActorInjector(injector: Injector) {
+    def getActor(name: String): ActorRef = {
+      injector.getInstance(Key.get(classOf[ActorRef], Names.named(name)))
+    }
 
-  def initRedisConn(implicit system: ActorSystem, config: Config): RedisCluster = {
-    val server = RedisServer(config.getString("redis.host"), config.getInt("redis.port"), Some(config.getString("redis.password")))
-    RedisCluster(Seq(server))
+    def getProps(name: String): Props = {
+      injector.getInstance(Key.get(classOf[Props], Names.named(name)))
+    }
   }
 }
-
