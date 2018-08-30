@@ -23,11 +23,8 @@ import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
-import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.lib.abi.AbiSupport
 import org.loopring.lightcone.proto.common.StartNewRound
-
-import org.spongycastle.util.encoders.Hex
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -83,7 +80,7 @@ class BlockchainEventExtractor()(implicit
   }
 
   def handleUnforkEvent(): Future[Seq[Any]] = for {
-    _ <- Future{}
+    _ <- Future {}
 
     block = safeBlockHex(currentBlockNumber)
     blockReq = GetBlockWithTxHashByNumberReq(block)
