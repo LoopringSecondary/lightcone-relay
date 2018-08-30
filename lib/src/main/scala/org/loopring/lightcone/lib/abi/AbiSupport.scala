@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.abi
+package org.loopring.lightcone.lib.abi
 
-import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
 

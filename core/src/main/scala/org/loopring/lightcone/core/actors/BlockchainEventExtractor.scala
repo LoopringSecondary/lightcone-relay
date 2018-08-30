@@ -17,7 +17,6 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import org.loopring.lightcone.abi.AbiSupport
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.proto.token._
@@ -26,6 +25,7 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
 import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.lib.abi.AbiSupport
 import org.loopring.lightcone.proto.common.StartNewRound
 
 import scala.concurrent.ExecutionContext.Implicits.global

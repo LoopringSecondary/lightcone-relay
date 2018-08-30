@@ -30,12 +30,10 @@ import org.json4s.native.Serialization
 
 trait JsonRpcSupport {
   implicit val system: ActorSystem
-  val abiStrMap: Map[String, String]
   val uri: String
 
   implicit lazy val materializer = ActorMaterializer()
   implicit lazy val executionContext = system.dispatcher
-  implicit lazy val erc20Abi = Abi.fromJson(abiStrMap("erc20"))
 
   val id: Int = 1
   val JSON_RPC_VERSION = "2.0"
@@ -62,8 +60,4 @@ trait JsonRpcSupport {
     } yield resp
   }
 
-  def findErc20Function(name: String) = {
-    val method: Predicate[Abi.Function] = (x) => x.name.equals(name)
-    erc20Abi.findFunction(method)
-  }
 }
