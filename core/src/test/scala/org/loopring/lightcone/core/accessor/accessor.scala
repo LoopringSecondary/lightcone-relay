@@ -18,12 +18,15 @@ package org.loopring.lightcone.core.accessor
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
+import org.loopring.lightcone.lib.abi.AbiSupport
+
 import scala.concurrent.duration._
 
 package object accessor {
   implicit val system = ActorSystem()
-
   implicit val config = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
+  implicit val abiSupport = AbiSupport()
+
   val geth = new EthClientImpl()
   val timeout = Timeout(5 seconds)
 

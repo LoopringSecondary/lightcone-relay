@@ -20,10 +20,22 @@ import com.google.protobuf.ByteString
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.solidity._
 
-final class SubmitRingDecoder extends AbiSerializer[SubmitRingFunction, RingMinedEvent] {
-  def decode(abi: Abi.Function, txinput: String): SubmitRingFunction = ???
-  def decode(abi: Abi.Event, log: String, topics: Seq[String]): RingMinedEvent = ???
-  def encode(abi: Abi.Function, data: SubmitRingFunction): String = ???
+case class RingSerializer()(
+  implicit
+  val abiFunction: Abi.Function,
+  val abiEvent: Abi.Event) extends AbiSerializer[SubmitRingFunction, RingMinedEvent] {
+
+  def decode(txinput: Array[Byte]): SubmitRingFunction = {
+    val list = abiFunction.decode(txinput)
+
+    SubmitRingFunction()
+  }
+
+  def decode(log: String, topics: Seq[String]): RingMinedEvent = {
+    RingMinedEvent()
+  }
+
+  def encode(data: SubmitRingFunction): String = ???
 
   def objectToBytesArray(src: Any): Seq[BytesArray] = src match {
 

@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ ImplicitSender, TestKit }
 import org.loopring.lightcone.core.accessor.{ EthClientImpl, GethClientConfig }
+import org.loopring.lightcone.lib.abi.AbiSupport
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token.Token
@@ -54,7 +55,9 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
   val round = StartNewRound()
 
+  implicit val abiSupport = AbiSupport()
   implicit val accessor = new EthClientImpl()
+
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
 
   "extractor actor" must {

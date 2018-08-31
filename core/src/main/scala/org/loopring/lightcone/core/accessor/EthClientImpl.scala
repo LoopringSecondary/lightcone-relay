@@ -21,8 +21,12 @@ import org.loopring.lightcone.lib.abi.AbiSupport
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 
-class EthClientImpl()(implicit val system: ActorSystem, val config: GethClientConfig)
-  extends EthClient with JsonRpcSupport with AbiSupport {
+class EthClientImpl()(
+  implicit
+  val system: ActorSystem,
+  val config: GethClientConfig,
+  val abiSupport: AbiSupport)
+  extends EthClient with JsonRpcSupport {
 
   val uri = s"http://${config.host}:${config.port}"
 
@@ -70,7 +74,7 @@ class EthClientImpl()(implicit val system: ActorSystem, val config: GethClientCo
 
   def getBalance(req: GetBalanceReq) =
     httpPost[GetBalanceRes](ETH_CALL) {
-      val function = findFunctionByName("balanceOf")
+      val function = abiSupport.findFunctionByName("balanceOf")
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
@@ -78,7 +82,7 @@ class EthClientImpl()(implicit val system: ActorSystem, val config: GethClientCo
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = findFunctionByName("allowance")
+      val function = abiSupport.findFunctionByName("allowance")
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)

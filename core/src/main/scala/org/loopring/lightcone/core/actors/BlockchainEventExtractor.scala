@@ -40,7 +40,8 @@ object BlockchainEventExtractor
 
 class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
-  val accessor: EthClient) extends RepeatedJobActor with AbiSupport {
+  val accessor: EthClient,
+  val abiSupport: AbiSupport) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -112,8 +113,10 @@ class BlockchainEventExtractor()(implicit
     _ <- Future {}
   } yield ChainRolledBack().withFork(false)
 
-  // todo: 解析receipt, trace等并转换成blockChainEvent
-  def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = ???
+  def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
+    abiSupport.decode(tx.trace.input)
+    //++ tx.trace.calls.map(x => decode(x.input)).seq
+  }
 
   def unpackPendingTransaction(tx: Transaction): Seq[Any] = ???
 

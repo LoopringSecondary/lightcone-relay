@@ -16,20 +16,35 @@
 
 package org.loopring.lightcone.lib.abi
 
+import org.loopring.lightcone.lib.AbiData
 import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
 
-trait AbiSupport {
+case class AbiSupport() extends AbiData {
 
-  def findFunctionByName(name: String) = nameFunctionMap(name)
-  def findEventByName(name: String) = nameEventMap(name)
+  def signature(e: Abi.Entry) = Hex.toHexString(e.encodeSignature()).toLowerCase()
+
+  def findFunctionByName(name: String) = nameFuncMap(name)
+  def findEventByName(name: String) = nameEvtMap(name)
+
   def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, 4)
   def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic)
-  def isSupportedFunction(txInput: String) = sigFunctionMap.contains(findTransactionFunctionSig(txInput))
-  def isSupportedEvent(firstTopic: String) = sigEventMap.contains(findReceiptEventSig(firstTopic))
 
-  private def signature(e: Abi.Entry) =
-    Hex.toHexString(e.encodeSignature()).toLowerCase()
+  def isSupportedFunction(txInput: String) = sigFuncMap.contains(findTransactionFunctionSig(txInput))
+  def isSupportedEvent(firstTopic: String) = sigEvtMap.contains(findReceiptEventSig(firstTopic))
+
+  def decode(txinput: String): Seq[Any] = {
+    val sig = findTransactionFunctionSig(txinput)
+    if (sigFuncMap.contains(sig)) {
+      val input = withoutPrefix(txinput).getBytes()
+      sigFuncMap(sig).name match {
+        case FN_SUBMIT_RING => Seq(ringSerializer.decode(input))
+        case _ => Seq()
+      }
+    } else {
+      Seq()
+    }
+  }
 
   private def withPrefix(src: String) = {
     val dst = src.toLowerCase()

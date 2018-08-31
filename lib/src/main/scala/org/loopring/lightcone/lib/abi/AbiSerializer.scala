@@ -19,7 +19,10 @@ package org.loopring.lightcone.lib.abi
 import org.loopring.lightcone.lib.solidity.Abi
 
 trait AbiSerializer[U1, U2] {
-  def decode(abi: Abi.Function, txinput: String): U1
-  def decode(abi: Abi.Event, log: String, topics: Seq[String]): U2
-  def encode(abi: Abi.Function, data: U1): String
+  val abiFunction: Abi.Function
+  val abiEvent: Abi.Event
+
+  def decode(txinput: Array[Byte]): U1
+  def decode(log: String, topics: Seq[String]): U2
+  def encode(data: U1): String
 }
