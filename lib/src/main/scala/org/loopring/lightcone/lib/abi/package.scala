@@ -41,6 +41,7 @@ import org.spongycastle.util.encoders.Hex
 trait AbiData {
 
   val prefix = "0x"
+  val FunctionSigLength = 8
 
   // todo: impl删除了function与event中间空entry部分, weth,tokenregister,delegate还有点问题,
   val abimap: Map[String, String] = Map(

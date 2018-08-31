@@ -27,7 +27,8 @@ case class AbiSupport() extends AbiData {
   def findFunctionByName(name: String) = nameFuncMap(name)
   def findEventByName(name: String) = nameEvtMap(name)
 
-  def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, 4)
+  def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, FunctionSigLength)
+
   def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic)
 
   def isSupportedFunction(txInput: String) = sigFuncMap.contains(findTransactionFunctionSig(txInput))
@@ -36,9 +37,9 @@ case class AbiSupport() extends AbiData {
   def decode(txinput: String): Seq[Any] = {
     val sig = findTransactionFunctionSig(txinput)
     if (sigFuncMap.contains(sig)) {
-      val input = withoutPrefix(txinput).getBytes()
+      val bytes = getInputBytes(txinput)
       sigFuncMap(sig).name match {
-        case FN_SUBMIT_RING => Seq(ringSerializer.decode(input))
+        case FN_SUBMIT_RING => Seq(ringSerializer.decode(bytes))
         case _ => Seq()
       }
     } else {
@@ -57,8 +58,12 @@ case class AbiSupport() extends AbiData {
   private def withoutPrefix(src: String) = {
     val dst = src.toLowerCase()
     dst.startsWith(prefix) match {
-      case true => src.substring(2)
-      case false => src
+      case true => dst.substring(2)
+      case false => dst
     }
+  }
+
+  private def getInputBytes(input: String): Array[Byte] = {
+    Hex.decode("00000000" + withoutPrefix(input).substring(FunctionSigLength))
   }
 }
