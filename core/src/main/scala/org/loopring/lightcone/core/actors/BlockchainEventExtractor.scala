@@ -18,6 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
+import org.loopring.lightcone.core.conveter.RingConverter
 import org.loopring.lightcone.proto.token._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc._
@@ -41,7 +42,8 @@ object BlockchainEventExtractor
 class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
   val accessor: EthClient,
-  val abiSupport: AbiSupporter) extends RepeatedJobActor {
+  val abiSupporter: AbiSupporter,
+  val ringConverter: RingConverter) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -113,14 +115,29 @@ class BlockchainEventExtractor()(implicit
     _ <- Future {}
   } yield ChainRolledBack().withFork(false)
 
+  // todo
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    val list = abiSupport.decode(tx.trace.input)
-    println("------")
-    Seq()
+    unpackSingleInput(tx.trace.input)
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }
 
   def unpackPendingTransaction(tx: Transaction): Seq[Any] = ???
+
+  def unpackSingleInput(input: String): Seq[Any] = {
+    val sig = abiSupporter.findTransactionFunctionSig(input)
+    if (abiSupporter.isSupportedFunctionSig(sig)) {
+      val bytes = abiSupporter.getInputBytes(input)
+      val abi = abiSupporter.findFunctionWithSig(sig)
+      val decodedseq = abi.decode(bytes).toArray().toSeq
+      val data = abi.name match {
+        case abiSupporter.FN_SUBMIT_RING =>
+          ringConverter.convert(decodedseq)
+      }
+      Seq(data)
+    } else {
+      Seq()
+    }
+  }
 
   def route(onchainEvent: Any) = onchainEvent match {
     case balance: SubmitRingFunction =>

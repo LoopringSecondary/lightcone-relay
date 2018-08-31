@@ -21,26 +21,28 @@ import org.spongycastle.util.encoders.Hex
 
 case class AbiSupporter() extends AbiData {
 
+  val prefix = "0x"
+  val FunctionSigLength = 8
+
+  val FN_SUBMIT_RING = "submitRing"
+  val EV_RING_MINED = "RingMined"
+
   def signature(e: Abi.Entry) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 
   def findFunctionByName(name: String) = nameFuncMap(name)
   def findEventByName(name: String) = nameEvtMap(name)
 
   def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, FunctionSigLength)
-
   def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic)
-
+  def isSupportedFunctionSig(sig: String) = sigFuncMap.contains(sig)
+  def isSupportedEventSig(sig: String) = sigEvtMap.contains(sig)
+  def findFunctionWithSig(sig: String) = sigFuncMap(sig)
+  def findEventWithSig(sig: String) = sigEvtMap(sig)
   def isSupportedFunction(txInput: String) = sigFuncMap.contains(findTransactionFunctionSig(txInput))
   def isSupportedEvent(firstTopic: String) = sigEvtMap.contains(findReceiptEventSig(firstTopic))
 
-  def decode(txinput: String): Seq[Any] = {
-    val sig = findTransactionFunctionSig(txinput)
-    if (sigFuncMap.contains(sig)) {
-      val bytes = getInputBytes(txinput)
-      sigFuncMap(sig).decode(bytes).toArray.toSeq
-    } else {
-      Seq()
-    }
+  def getInputBytes(input: String): Array[Byte] = {
+    Hex.decode("00000000" + withoutPrefix(input).substring(FunctionSigLength))
   }
 
   private def withPrefix(src: String) = {
@@ -59,7 +61,4 @@ case class AbiSupporter() extends AbiData {
     }
   }
 
-  private def getInputBytes(input: String): Array[Byte] = {
-    Hex.decode("00000000" + withoutPrefix(input).substring(FunctionSigLength))
-  }
 }

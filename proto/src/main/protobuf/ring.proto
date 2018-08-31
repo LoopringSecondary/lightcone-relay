@@ -6,7 +6,14 @@ package com.loopring.lightcone.proto;
 
 import "order.proto";
 
-message Ring {}
+message Ring {
+    repeated RawOrder orders = 1;
+    string ringhash = 2;
+    int32 ringIndex = 3;
+    string feeReceipt = 4;
+    int32 feeSelection = 5;
+}
+
 message GetRingsReq {}
 message GetRingsResp {}
 
