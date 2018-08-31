@@ -46,7 +46,7 @@ package object etypes {
   }
 
   implicit class RichBigInt(i: BigInt) {
-    def toHex: String = i.toString(16)
+    def toHex: String = "0x" + i.toString(16)
   }
 
 }

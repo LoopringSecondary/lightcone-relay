@@ -55,7 +55,8 @@ class RingSubmitter(ethClient: EthClient)(implicit
     case settings: RingSubmitterSettings =>
       submitterCredentials = settings.keystoreFiles.map { k =>
         val credential = WalletUtils.loadCredentials(k.password, k.file)
-        (credential.getAddress, Submitter(new AtomicInteger, credential)) //todo: 启动时,nonce需要初始化
+        val currentNonce = 1 //todo: 启动时,nonce需要初始化, 结合以太坊以及数据库的数据
+        (credential.getAddress, Submitter(new AtomicInteger, credential))
       }.toMap
       contract = settings.contract
       chainId = settings.chainId.byteValue()
@@ -74,9 +75,8 @@ class RingSubmitter(ethClient: EthClient)(implicit
           inputData)
         val signedMessage = signTransaction(rawTransaction, submitter.credentials)
 
-        ethClient.sendRawTransaction(SendRawTransactionReq(data = "0x" + BigInt(signedMessage).toString(16)))
+        ethClient.sendRawTransaction(SendRawTransactionReq(data = BigInt(signedMessage).toHex))
       }
-
   }
 
   def signTransaction(rawTransaction: RawTransaction, credentials: Credentials) = {
