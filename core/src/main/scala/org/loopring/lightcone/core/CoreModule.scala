@@ -47,9 +47,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
     bind[Timeout].toInstance(new Timeout(2 seconds))
-    bind[AbiSupport].toInstance(abiSupport)
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
-
+    bind[AbiSupport].toInstance(abiSupport)
     bind[EthClient].toInstance(new EthClientImpl())
   }
 

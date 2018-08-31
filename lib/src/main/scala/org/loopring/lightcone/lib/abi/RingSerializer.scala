@@ -16,19 +16,23 @@
 
 package org.loopring.lightcone.lib.abi
 
-import com.google.protobuf.ByteString
+import org.loopring.lightcone.lib.collection.{ BigintArraySerializer, BytesArraySerializer }
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.solidity._
 
-case class RingSerializer()(
+case class RingSerializer(abiFunction: Abi.Function, abiEvent: Abi.Event)(
   implicit
-  val abiFunction: Abi.Function,
-  val abiEvent: Abi.Event) extends AbiSerializer[SubmitRingFunction, RingMinedEvent] {
+  val bytesArraySerializer: BytesArraySerializer,
+  val bigintArraySerializer: BigintArraySerializer) extends AbiSerializer[SubmitRingFunction, RingMinedEvent] {
 
   def decode(txinput: Array[Byte]): SubmitRingFunction = {
-    val list = abiFunction.decode(txinput)
 
+    val list = abiFunction.decode(txinput)
+    val addressList = bytesArraySerializer.objectToBytesArray(list.get(0))
+    //val bigintList = bigintArraySerializer.hex2Bigint(list.get(1))
     SubmitRingFunction()
+      .withAddressList(addressList)
+    //.withBigintArgsList()
   }
 
   def decode(log: String, topics: Seq[String]): RingMinedEvent = {
@@ -36,30 +40,5 @@ case class RingSerializer()(
   }
 
   def encode(data: SubmitRingFunction): String = ???
-
-  def objectToBytesArray(src: Any): Seq[BytesArray] = src match {
-
-    case arr: Array[Object] => {
-      arr.toSeq.map(subarr =>
-        subarr match {
-          case s: Array[Object] =>
-            BytesArray().withBytesList(s.toSeq.map(obj => obj match {
-              case bytes: Array[Byte] => ByteString.copyFrom(bytes)
-              case _ => throw new Exception("to sub array[object] failed")
-            }))
-          case _ => throw new Exception("sub array type error")
-        })
-    }
-    case _ => throw new Exception("input type error")
-  }
-
-  def hex2Bigint(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
 
 }

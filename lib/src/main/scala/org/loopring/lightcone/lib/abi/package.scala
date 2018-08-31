@@ -17,6 +17,7 @@
 package org.loopring.lightcone.lib
 
 import org.loopring.lightcone.lib.abi.RingSerializer
+import org.loopring.lightcone.lib.collection.{SimpleBigintArraySerializer, SimpleBytesArraySerializer}
 import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
 
@@ -87,6 +88,4 @@ trait AbiData {
 
   val FN_SUBMIT_RING = "submitRing"
   val EV_RING_MINED = "RingMined"
-
-  val ringSerializer = RingSerializer()(nameFuncMap(FN_SUBMIT_RING), nameEvtMap(EV_RING_MINED))
 }

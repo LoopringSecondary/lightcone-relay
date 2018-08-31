@@ -24,8 +24,8 @@ message BigIntArray {
 
 message SubmitRingFunction {
     repeated BytesArray addressList = 1;
-    repeated BytesArray uintArgsList = 2;
-    repeated BytesArray repeatedUint = 3;
+    repeated BigIntArray bigintArgsList = 2;
+    repeated UintArray uintArgsList = 3;
     repeated bool buyNoMoreThanBList = 4;
     repeated uint32 vList = 5;
     repeated bytes rList = 6;

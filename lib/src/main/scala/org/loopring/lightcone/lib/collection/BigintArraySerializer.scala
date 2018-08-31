@@ -16,11 +16,11 @@
 
 package org.loopring.lightcone.lib.collection
 
-trait HexToBigIntConverter {
+trait BigintArraySerializer {
   def hex2Bigint(hex: String): BigInt
 }
 
-final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
+final class SimpleBigintArraySerializer extends BigintArraySerializer {
   def hex2Bigint(hex: String): BigInt = {
     if (hex.startsWith("0x")) {
       val subhex = hex.substring(2)
