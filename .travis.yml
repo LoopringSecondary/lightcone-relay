@@ -15,8 +15,8 @@ jobs:
   include:
     - stage: compile
       script: sbt compile
-    - stage: test
-      script: sbt test
+    #- stage: test
+    #  script: sbt test
       
 stages:
   - compile
