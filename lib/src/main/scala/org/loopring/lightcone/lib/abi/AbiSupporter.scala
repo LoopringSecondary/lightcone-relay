@@ -16,17 +16,10 @@
 
 package org.loopring.lightcone.lib.abi
 
-import org.loopring.lightcone.lib.AbiData
-import org.loopring.lightcone.lib.collection.{ SimpleBigintArraySerializer, SimpleBytesArraySerializer }
 import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
 
-case class AbiSupport() extends AbiData {
-
-  implicit val bytesArraySerializer = new SimpleBytesArraySerializer()
-  implicit val bigintArraySerializer = new SimpleBigintArraySerializer()
-
-  val ringSerializer = RingSerializer(nameFuncMap(FN_SUBMIT_RING), nameEvtMap(EV_RING_MINED))
+case class AbiSupporter() extends AbiData {
 
   def signature(e: Abi.Entry) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 
@@ -44,10 +37,7 @@ case class AbiSupport() extends AbiData {
     val sig = findTransactionFunctionSig(txinput)
     if (sigFuncMap.contains(sig)) {
       val bytes = getInputBytes(txinput)
-      sigFuncMap(sig).name match {
-        case FN_SUBMIT_RING => Seq(ringSerializer.decode(bytes))
-        case _ => Seq()
-      }
+      sigFuncMap(sig).decode(bytes).toArray.toSeq
     } else {
       Seq()
     }

@@ -27,7 +27,7 @@ import org.loopring.lightcone.proto.token.Token
 import com.typesafe.config.Config
 import akka.util.Timeout
 import org.loopring.lightcone.core.accessor.{ EthClient, EthClientImpl, GethClientConfig }
-import org.loopring.lightcone.lib.abi.AbiSupport
+import org.loopring.lightcone.lib.abi.AbiSupporter
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -39,7 +39,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     implicit val system = ActorSystem("Lightcone", config)
     implicit val cluster = Cluster(system)
     implicit val ethConfig = GethClientConfig(config.getString("geth.host"), config.getInt("geth.port"), config.getBoolean("geth.ssl"))
-    implicit val abiSupport = AbiSupport()
+    implicit val abiSupport = AbiSupporter()
 
     bind[Config].toInstance(config)
     bind[ActorSystem].toInstance(system)
@@ -48,7 +48,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[ActorMaterializer].toInstance(ActorMaterializer())
     bind[Timeout].toInstance(new Timeout(2 seconds))
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
-    bind[AbiSupport].toInstance(abiSupport)
+    bind[AbiSupporter].toInstance(abiSupport)
     bind[EthClient].toInstance(new EthClientImpl())
   }
 
@@ -93,7 +93,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     ec: ExecutionContext,
     timeout: Timeout,
     tokenlist: Seq[Token],
-    abiSupport: AbiSupport,
+    abiSupport: AbiSupporter,
     accessor: EthClient) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }

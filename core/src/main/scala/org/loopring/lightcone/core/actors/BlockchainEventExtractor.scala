@@ -23,7 +23,7 @@ import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
-import org.loopring.lightcone.lib.abi.AbiSupport
+import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,7 +41,7 @@ object BlockchainEventExtractor
 class BlockchainEventExtractor()(implicit
   val tokenList: Seq[Token],
   val accessor: EthClient,
-  val abiSupport: AbiSupport) extends RepeatedJobActor {
+  val abiSupport: AbiSupporter) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -114,7 +114,9 @@ class BlockchainEventExtractor()(implicit
   } yield ChainRolledBack().withFork(false)
 
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    abiSupport.decode(tx.trace.input)
+    val list = abiSupport.decode(tx.trace.input)
+    println("------")
+    Seq()
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }
 

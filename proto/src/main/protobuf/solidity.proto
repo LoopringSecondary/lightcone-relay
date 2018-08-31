@@ -12,10 +12,6 @@ message UintArray {
     repeated uint32 uintList = 1;
 }
 
-message BigIntArray {
-    repeated bytes bigintList = 1;
-}
-
 ///////////////////////////////////////////////////////
 //
 // abi functions
@@ -24,7 +20,7 @@ message BigIntArray {
 
 message SubmitRingFunction {
     repeated BytesArray addressList = 1;
-    repeated BigIntArray bigintArgsList = 2;
+    repeated BytesArray bigintArgsList = 2;
     repeated UintArray uintArgsList = 3;
     repeated bool buyNoMoreThanBList = 4;
     repeated uint32 vList = 5;
@@ -36,7 +32,7 @@ message SubmitRingFunction {
 
 message CancelOrderFunction {
     BytesArray addressList = 1;
-    BigIntArray OrderValues = 2;
+    BytesArray OrderValues = 2;
     bool buyNoMoreThanAmountB = 3;
     uint32 marginSplit = 4;
     uint32 v = 5;

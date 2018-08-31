@@ -21,6 +21,7 @@ trait BigintArraySerializer {
 }
 
 final class SimpleBigintArraySerializer extends BigintArraySerializer {
+
   def hex2Bigint(hex: String): BigInt = {
     if (hex.startsWith("0x")) {
       val subhex = hex.substring(2)

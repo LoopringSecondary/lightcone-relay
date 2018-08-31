@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import org.loopring.lightcone.lib.abi.AbiSupport
+import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 
@@ -25,7 +25,7 @@ class EthClientImpl()(
   implicit
   val system: ActorSystem,
   val config: GethClientConfig,
-  val abiSupport: AbiSupport)
+  val abiSupport: AbiSupporter)
   extends EthClient with JsonRpcSupport {
 
   val uri = s"http://${config.host}:${config.port}"
