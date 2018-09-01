@@ -19,13 +19,12 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern._
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.actors.base._
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.common._
 import org.loopring.lightcone.proto.ring._
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {
@@ -36,29 +35,44 @@ object RingMiner
     base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner()(implicit timout: Timeout)
+class RingMiner()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
   extends RepeatedJobActor {
-
-  import context.dispatcher
-  var finders: Seq[ActorRef] = Seq.empty
-  lazy val balanceManager = Routers.balanceManager
-  lazy val ethereumAccessor = Routers.ethereumAccessor
+  var marketIds = Seq[String]()
 
   override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
-      finders = settings.marketIds.map { id => Routers.ringFinder(id) }
+      marketIds = settings.marketIds
       initAndStartNextRound(settings.scheduleDelay)
   }
 
   def handleRepeatedJob() = for {
+    finders <- Future.successful(marketIds.map { id => Routers.ringFinder(id) })
     resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
       .mapTo[Seq[RingCandidates]]
+    ringCandidates = RingCandidates(resps.flatMap(_.rings))
+    ringToSettleSeq <- Routers.ringEvaluator ? ringCandidates
   } yield {
-    resps.map(_.rings).flatten
+    ringToSettleSeq match {
+      case r: RingToSettleSeq =>
+        Routers.ringSubmitter ! r
+        val decisions = decideRingCandidates(ringCandidates.rings, r.rings.flatMap(_.ring))
+        decisions foreach { decision =>
+          val finderId = "" //todo:
+          Routers.ringFinder(finderId) ! decision
+        }
+      case _ =>
+    }
+
   }
 
-  def decideRingCandidates(ring: Seq[Ring]): NotifyRingSettlementDecisions = {
-    NotifyRingSettlementDecisions()
+  def decideRingCandidates(ringCandidates: Seq[Ring], settledRings: Seq[Ring]): Seq[RingSettlementDecision] = {
+    ringCandidates.map(candidate =>
+      if (settledRings.contains(candidate))
+        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.Settled, orders = candidate.orders)
+      else
+        RingSettlementDecision(ringHash = candidate.hash, decision = SettlementDecision.UnSettled, orders = candidate.orders))
   }
-
 }
+

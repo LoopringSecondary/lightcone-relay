@@ -20,6 +20,8 @@ import akka.actor._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 
+import scala.concurrent.Future
+
 class EthClientImpl(
   val config: GethClientConfig,
   val abiStrMap: Map[String, String])(
@@ -81,12 +83,16 @@ class EthClientImpl(
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = findErc20Function("balanceOf")
+      val function = findErc20Function("allowance")
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
     }
 
+  def sendRawTransaction(req: SendRawTransactionReq): Future[SendRawTransactionRes] =
+    httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
+      Seq(req.data)
+    }
   // def getEstimatedGas() = ???
 
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???

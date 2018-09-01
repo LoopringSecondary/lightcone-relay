@@ -152,6 +152,14 @@ class NodeManager(
       Routers.setRouters(
         RingMiner.name,
         RingMiner.deploy(injector, settings.ringMinerSettingsSeq))
+
+      Routers.setRouters(
+        RingEvaluator.name,
+        RingEvaluator.deploy(injector, settings.ringEvaluatorSettingsSeq))
+
+      Routers.setRouters(
+        RingSubmitter.name,
+        RingSubmitter.deploy(injector, settings.ringSubmitterSettingsSeq))
   }
 
 }

@@ -25,6 +25,8 @@ import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core.actors._
 import com.typesafe.config.Config
 import akka.util.Timeout
+import org.loopring.lightcone.core.accessor.EthClient
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import redis._
@@ -223,4 +225,21 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     timeout: Timeout) = {
     Props(new RingMiner()) // .withDispatcher("ring-dispatcher")
   }
+
+  @Provides
+  @Named("ring_evaluator")
+  def getRingEvaluatorProps()(implicit
+    ec: ExecutionContext,
+    timeout: Timeout) = {
+    Props(new RingEvaluator()) // .withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Named("ring_submitter")
+  def getRingSubmitterProps(@Inject() ethClient: EthClient)(implicit
+    ec: ExecutionContext,
+    timeout: Timeout) = {
+    Props(new RingSubmitter(ethClient)) // .withDispatcher("ring-dispatcher")
+  }
+
 }

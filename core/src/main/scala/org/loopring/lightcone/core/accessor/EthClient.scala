@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.accessor
 
 import org.loopring.lightcone.proto.eth_jsonrpc._
+
 import scala.concurrent._
 
 trait EthClient {
@@ -37,4 +38,7 @@ trait EthClient {
   // erc20
   def getBalance(req: GetBalanceReq): Future[GetBalanceRes]
   def getAllowance(req: GetAllowanceReq): Future[GetAllowanceRes]
+
+  def sendRawTransaction(req: SendRawTransactionReq): Future[SendRawTransactionRes]
+
 }

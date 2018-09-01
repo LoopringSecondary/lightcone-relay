@@ -19,17 +19,15 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.{ AskTimeoutException, ask }
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.core.managing.NodeData
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.common.StartNewRound
-import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
+import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 import org.loopring.lightcone.proto.ring._
-import com.google.inject._
-import scala.concurrent._
+
+import scala.concurrent.{ ExecutionContext, _ }
 
 object RingFinder
   extends base.Deployable[RingFinderSettings] {
@@ -71,6 +69,11 @@ class RingFinder()(implicit
 
     case getFinderRingCandidates: GetRingCandidates =>
       sender() ! RingCandidates()
+
+    case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled =>
+      orderManager ! MarkOrdersDeferred(deferOrders =
+        m.orders.map(o => DeferOrder(orderhash = "orderhash", deferredTime = 100)))
+
   }
 
   def handleRepeatedJob() = for {
