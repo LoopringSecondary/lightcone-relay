@@ -20,65 +20,6 @@ import com.google.protobuf.ByteString
 import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring.Ring
 
-/*
-* func (m *SubmitRingMethodInputs) ConvertDown(protocol, delegate common.Address) (*types.SubmitRingMethodEvent, error) {
-   var (
-      list  []types.Order
-      event types.SubmitRingMethodEvent
-   )
-
-   length := len(m.AddressList)
-   vrsLength := 2 * length
-
-   orderLengthInvalid := length < 2
-   argLengthInvalid := length != len(m.UintArgsList) || length != len(m.Uint8ArgsList)
-   vrsLengthInvalid := vrsLength != len(m.VList) || vrsLength != len(m.RList) || vrsLength != len(m.SList)
-   if orderLengthInvalid || argLengthInvalid || vrsLengthInvalid {
-      return nil, fmt.Errorf("submitRing method unpack error:orders length invalid")
-   }
-
-   for i := 0; i < length; i++ {
-      var order types.Order
-
-      order.Protocol = protocol
-      order.DelegateAddress = delegate
-      order.Owner = m.AddressList[i][0]
-      order.TokenS = m.AddressList[i][1]
-      if i == length-1 {
-         order.TokenB = m.AddressList[0][1]
-      } else {
-         order.TokenB = m.AddressList[i+1][1]
-      }
-      order.WalletAddress = m.AddressList[i][2]
-      order.AuthAddr = m.AddressList[i][3]
-
-      order.AmountS = m.UintArgsList[i][0]
-      order.AmountB = m.UintArgsList[i][1]
-      order.ValidSince = m.UintArgsList[i][2]
-      order.ValidUntil = m.UintArgsList[i][3]
-      order.LrcFee = m.UintArgsList[i][4]
-      // order.rateAmountS
-
-      order.MarginSplitPercentage = m.Uint8ArgsList[i][0]
-
-      order.BuyNoMoreThanAmountB = m.BuyNoMoreThanBList[i]
-
-      order.V = m.VList[i]
-      order.R = m.RList[i]
-      order.S = m.SList[i]
-
-      order.Hash = order.GenerateHash()
-      list = append(list, order)
-   }
-
-   event.OrderList = list
-   event.FeeReceipt = m.FeeRecipient
-   event.FeeSelection = m.FeeSelections
-   event.Err = ""
-
-   return &event, nil
-}
-* */
 class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
   def convert(list: Seq[Any]): Ring = {
@@ -174,11 +115,8 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
       .withR(ByteString.copyFrom(rList(1).getBytes()))
       .withS(ByteString.copyFrom(sList(1).getBytes()))
 
-    val ring = Ring().withOrders(Seq(maker, taker))
+    Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)
       .withFeeSelection(feeSelection.intValue())
-
-    println(s"------ ring is ${ring.toProtoString}")
-    ring
   }
 }
