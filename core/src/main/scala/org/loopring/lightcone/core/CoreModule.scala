@@ -27,7 +27,7 @@ import org.loopring.lightcone.proto.token.Token
 import com.typesafe.config.Config
 import akka.util.Timeout
 import org.loopring.lightcone.core.accessor.{ EthClient, EthClientImpl, GethClientConfig }
-import org.loopring.lightcone.core.conveter.RingConverter
+import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter }
 import org.loopring.lightcone.lib.abi.AbiSupporter
 
 import scala.concurrent.ExecutionContext
@@ -51,6 +51,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
 
     bind[RingConverter].toInstance(new RingConverter())
+    bind[RingMinedConverter].toInstance(new RingMinedConverter())
     bind[AbiSupporter].toInstance(abiSupport)
     bind[EthClient].toInstance(new EthClientImpl())
   }
@@ -98,7 +99,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     tokenlist: Seq[Token],
     abiSupport: AbiSupporter,
     accessor: EthClient,
-    ringConverter: RingConverter) = {
+    ringConverter: RingConverter,
+    ringMinedConverter: RingMinedConverter) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }
 

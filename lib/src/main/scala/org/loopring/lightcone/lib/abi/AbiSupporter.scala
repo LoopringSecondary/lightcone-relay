@@ -45,6 +45,10 @@ case class AbiSupporter() extends AbiData {
     Hex.decode("00000000" + withoutPrefix(input).substring(FunctionSigLength))
   }
 
+  def getLogDataBytes(data: String): Array[Byte] = {
+    Hex.decode(withoutPrefix(data))
+  }
+
   private def withPrefix(src: String) = {
     val dst = src.toLowerCase()
     dst.startsWith(prefix) match {

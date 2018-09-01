@@ -16,15 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.actor.{ ActorSystem, Props }
-import akka.testkit.{ ImplicitSender, TestKit }
-import org.loopring.lightcone.core.accessor.{ EthClientImpl, GethClientConfig }
-import org.loopring.lightcone.core.conveter.RingConverter
+import akka.actor.{ActorSystem, Props}
+import akka.testkit.{ImplicitSender, TestKit}
+import org.loopring.lightcone.core.accessor.{EthClientImpl, GethClientConfig}
+import org.loopring.lightcone.core.conveter.{RingConverter, RingMinedConverter}
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token.Token
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -59,6 +59,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   implicit val abiSupporter = AbiSupporter()
   implicit val accessor = new EthClientImpl()
   implicit val ringConverter = new RingConverter()
+  implicit val ringminedConverter = new RingMinedConverter()
 
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
 
