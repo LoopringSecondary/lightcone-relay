@@ -16,6 +16,6 @@
 
 package org.loopring.lightcone.core.database
 
-class MySQLOrderDatabase extends OrderDatabase {
+trait OrderDBReader {
 
 }

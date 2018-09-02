@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
+import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import akka.pattern.ask
@@ -38,7 +39,7 @@ object OrderReader
 
 }
 
-class OrderReader()(implicit
+class OrderReader(db: OrderDBReader)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
