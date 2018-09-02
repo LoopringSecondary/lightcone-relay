@@ -39,7 +39,7 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor(db: OrderDBWriter)(implicit
+class OrderDBAccessor(db: OrderDatabase)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {

@@ -46,8 +46,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
 
     // TODO(xiaolu): also need to bind a mysql instance as singleton.
-    bind[OrderDBReader].to[MySQLOrderDBReader]
-    bind[OrderDBWriter].to[MySQLOrderDBWriter]
+    bind[OrderDatabase].to[MySQLOrderDatabase]
   }
 
   @Provides
@@ -159,7 +158,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps(db: OrderDBWriter)(implicit
+  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
     Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
@@ -183,10 +182,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_reader")
-  def getOrderReaderProps(db: OrderDBReader)(implicit
+  def getOrderReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReader(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides

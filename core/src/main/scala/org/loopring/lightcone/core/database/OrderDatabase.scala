@@ -16,6 +16,6 @@
 
 package org.loopring.lightcone.core.database
 
-class MySQLOrderDBWriter extends OrderDBWriter {
+trait OrderDatabase {
 
 }
