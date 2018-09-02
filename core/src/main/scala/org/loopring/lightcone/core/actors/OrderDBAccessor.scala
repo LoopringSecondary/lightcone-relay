@@ -25,6 +25,7 @@ import akka.cluster.routing._
 import akka.util.ByteString
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
+import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
@@ -38,7 +39,7 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor()(implicit
+class OrderDBAccessor(db: OrderDBWriter)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {

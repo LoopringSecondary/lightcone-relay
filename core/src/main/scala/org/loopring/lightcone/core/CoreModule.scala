@@ -27,6 +27,7 @@ import com.typesafe.config.Config
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import org.loopring.lightcone.core.database._
 import redis._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
@@ -43,6 +44,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Timeout].toInstance(new Timeout(2 seconds))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
+
+    // TODO(xiaolu): also need to bind a mysql instance as singleton.
+    bind[OrderDBReader].to[MySQLOrderDBReader]
+    bind[OrderDBWriter].to[MySQLOrderDBWriter]
   }
 
   @Provides
@@ -154,10 +159,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps()(implicit
+  def getOrderDBAccessorProps(db: OrderDBWriter)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
@@ -178,10 +183,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_reader")
-  def getOrderReaderProps()(implicit
+  def getOrderReaderProps(db: OrderDBReader)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderReader(db)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
