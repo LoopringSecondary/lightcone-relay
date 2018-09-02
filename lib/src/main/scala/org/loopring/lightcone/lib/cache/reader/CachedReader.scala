@@ -17,7 +17,7 @@
 package org.loopring.lightcone.lib.cache.reader
 
 import org.loopring.lightcone.lib.cache._
-import org.loopring.lightcone.lib.cache.serializer._
+import org.loopring.lightcone.lib.serializer._
 
 import scala.concurrent._
 
