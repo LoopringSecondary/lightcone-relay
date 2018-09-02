@@ -22,12 +22,31 @@ import com.typesafe.config.Config
 import redis._
 import com.google.inject._
 import scala.concurrent._
+import akka.util.ByteString
 
 final class ByteArrayRedisCache @Inject() (
   redis: RedisCluster)(
   implicit
-  val ex: ExecutionContext) extends ByteArrayCache {
-  def get(keys: Seq[Array[Byte]]): Future[Map[Array[Byte], Array[Byte]]] = ???
-  def get(key: Array[Byte]): Future[Option[Array[Byte]]] = ???
-  def put(key: Array[Byte], value: Array[Byte]): Future[Boolean] = ???
+  val ex: ExecutionContext)
+  extends ByteArrayCache {
+
+  def get(keys: Seq[Array[Byte]]): Future[Map[Array[Byte], Array[Byte]]] = {
+
+    Future.sequence(keys.map {
+      k => redis.get(new String(k)).map(v => k -> v)
+    }).map {
+      _.filter {
+        case (_, v) => v.isDefined
+      }.map {
+        case (k, v) => k -> v.get.toArray
+      }.toMap
+    }
+
+  }
+  def get(key: Array[Byte]): Future[Option[Array[Byte]]] = {
+    redis.get(new String(key)).map(_.map(_.toArray))
+  }
+  def put(key: Array[Byte], value: Array[Byte]): Future[Boolean] = {
+    redis.set(new String(key), new String(value))
+  }
 }
