@@ -17,6 +17,17 @@
 package org.loopring.lightcone.core.cache
 
 import org.loopring.lightcone.lib.cache._
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+import redis._
+import com.google.inject._
+import scala.concurrent._
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+final class ByteArrayRedisCache @Inject() (
+  redis: RedisCluster)(
+  implicit
+  val ex: ExecutionContext) extends ByteArrayCache {
+  def get(keys: Seq[Array[Byte]]): Future[Map[Array[Byte], Array[Byte]]] = ???
+  def get(key: Array[Byte]): Future[Option[Array[Byte]]] = ???
+  def put(key: Array[Byte], value: Array[Byte]): Future[Boolean] = ???
+}
