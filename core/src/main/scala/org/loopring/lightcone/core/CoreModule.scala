@@ -23,6 +23,7 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.cache._
 import com.typesafe.config.Config
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
@@ -43,6 +44,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Timeout].toInstance(new Timeout(2 seconds))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
+    bind[BalanceCache].to[cache.BalanceRedisCache]
+    bind[OrderCache].to[cache.OrderRedisCache]
   }
 
   @Provides
@@ -58,10 +61,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("balance_cacher")
-  def getBalanceCacherProps()(implicit
+  def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher()) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
@@ -138,10 +141,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_cacher")
-  def getOrderCacherProps(redisCluster: RedisCluster)(implicit
+  def getOrderCacherProps(cache: OrderCache)(implicit
     context: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderCacher(redisCluster)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
