@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache
 
+import org.loopring.lightcone.lib.cache.serializer._
 import scala.concurrent._
-import org.loopring.lightcone.proto.example._
 
+/*
+// Example usage
 private object ReaderExample {
-  class Example1Reader extends Reader[Example1Req, Example1Resp] {
-    def read(req: Example1Req) = ??? // read from ethereum
-    def read(reqs: Seq[Example1Req]) = ??? // read from ethereum
-  }
-
-  class Example2Reader extends Reader[String, Example2Resp] {
+  class ExampleReader extends Reader[String, ExampleResp] {
     def read(req: String) = ??? // read from ethereum
     def read(reqs: Seq[String]) = ??? // read from ethereum
   }
@@ -33,14 +30,14 @@ private object ReaderExample {
   implicit val cache: ByteArrayRedisCache = ???
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val reader1 = new ProtoToProtoCachedReader(
-    new Example1Reader,
-    (req: Example1Req) => req.id.getBytes)
+  val reader = new StringToProtoCachedReader(new ExampleReader)
+  reader.read(Seq("1", "2"))
+}
+*/
 
-  val reader2 = new StringToProtoCachedReader(new Example2Reader)
-
-  // now reader1 and reader2 will read from cache, if not found, will read
-  // from ethreum by using raw1Reader and raw2Reader
-  reader1.read(Example1Req("123"))
-  reader2.read(Seq("1", "2"))
+final class StringToProtoCache[V <: scalapb.GeneratedMessage with scalapb.Message[V]](
+  val underlying: ByteArrayCache,
+  val serializer: ProtoSerializer[V])(implicit val ex: ExecutionContext)
+  extends ProtoCache[String, V] {
+  def keyToBytes(str: String) = str.getBytes
 }

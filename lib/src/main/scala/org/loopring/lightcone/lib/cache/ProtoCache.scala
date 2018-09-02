@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache
 
+import org.loopring.lightcone.lib.cache.serializer._
 import scala.concurrent._
-
-trait Cache[K, V] {
-  implicit val ex: ExecutionContext
-  def get(key: K): Future[Option[V]]
-  def get(keys: Seq[K]): Future[Map[K, V]]
-  def put(key: K, value: V): Future[Any]
-
-  def put(keyValues: Map[K, V]): Future[Any] =
-    Future.sequence(
-      keyValues.map {
-        case (k, v) => put(k, v)
-      }.toSeq)
-}
-
-trait ByteArrayCache
-  extends Cache[Array[Byte], Array[Byte]]
 
 trait ProtoCache[K, V <: scalapb.GeneratedMessage with scalapb.Message[V]]
   extends Cache[K, V] {
@@ -60,19 +45,4 @@ trait ProtoCache[K, V <: scalapb.GeneratedMessage with scalapb.Message[V]]
       keyToBytes(key),
       serializer.toBytes(value))
   }
-}
-
-final class StringToProtoCache[V <: scalapb.GeneratedMessage with scalapb.Message[V]](
-  val underlying: ByteArrayCache,
-  val serializer: ProtoSerializer[V])(implicit val ex: ExecutionContext)
-  extends ProtoCache[String, V] {
-  def keyToBytes(str: String) = str.getBytes
-}
-
-final class ProtoToProtoCache[R <: scalapb.GeneratedMessage with scalapb.Message[R], V <: scalapb.GeneratedMessage with scalapb.Message[V]](
-  val underlying: ByteArrayCache,
-  val serializer: ProtoSerializer[V],
-  val genKey: R => Array[Byte])(implicit val ex: ExecutionContext)
-  extends ProtoCache[R, V] {
-  def keyToBytes(key: R) = genKey(key)
 }

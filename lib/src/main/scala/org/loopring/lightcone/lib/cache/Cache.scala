@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache
 
-import org.loopring.lightcone.lib.cache._
+import scala.concurrent._
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+trait Cache[K, V] {
+  implicit val ex: ExecutionContext
+  def get(key: K): Future[Option[V]]
+  def get(keys: Seq[K]): Future[Map[K, V]]
+  def put(key: K, value: V): Future[Boolean]
+
+  def put(keyValues: Map[K, V]): Future[Boolean] =
+    Future.sequence(
+      keyValues.map {
+        case (k, v) => put(k, v)
+      }.toSeq).map(_.reduce(_ && _))
+}

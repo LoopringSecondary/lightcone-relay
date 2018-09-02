@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache.reader
+
+import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.cache.serializer._
 
 import scala.concurrent._
-
-trait Reader[R, T] {
-  def read(req: R): Future[Option[T]]
-  def read(reqs: Seq[R]): Future[Map[R, T]]
-}
 
 trait CachedReader[R, T] extends Reader[R, T] {
   implicit val ex: ExecutionContext
@@ -44,33 +42,4 @@ trait CachedReader[R, T] extends Reader[R, T] {
     _ <- cache.put(uncached)
     result = uncached ++ cached
   } yield result
-}
-
-final class StringToProtoCachedReader[T <: scalapb.GeneratedMessage with scalapb.Message[T]](
-  val underlying: Reader[String, T])(
-  implicit
-  val ex: ExecutionContext,
-  val underlyingCache: ByteArrayCache,
-  c: scalapb.GeneratedMessageCompanion[T])
-  extends CachedReader[String, T] {
-
-  val cache = new StringToProtoCache[T](
-    underlyingCache,
-    new ProtoSerializer)
-}
-
-final class ProtoToProtoCachedReader[R <: scalapb.GeneratedMessage with scalapb.Message[R], T <: scalapb.GeneratedMessage with scalapb.Message[T]](
-  val underlying: Reader[R, T],
-  genKey: R => Array[Byte])(
-  implicit
-  val ex: ExecutionContext,
-  val underlyingCache: ByteArrayCache,
-  cR: scalapb.GeneratedMessageCompanion[R],
-  cT: scalapb.GeneratedMessageCompanion[T])
-  extends CachedReader[R, T] {
-
-  val cache = new ProtoToProtoCache[R, T](
-    underlyingCache,
-    new ProtoSerializer,
-    genKey)
 }

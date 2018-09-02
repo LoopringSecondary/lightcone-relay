@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache.serializer
 
-import org.loopring.lightcone.lib.cache._
-
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+trait Serializer[T] {
+  def toBytes(obj: T): Array[Byte]
+  def fromBytes(bytes: Array[Byte]): T
+}

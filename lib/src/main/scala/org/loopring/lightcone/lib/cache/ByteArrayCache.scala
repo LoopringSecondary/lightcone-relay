@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache
 
-import org.loopring.lightcone.lib.cache._
+import scala.concurrent._
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+trait ByteArrayCache
+  extends Cache[Array[Byte], Array[Byte]]

@@ -14,9 +14,25 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache.reader
 
 import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.cache.serializer._
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+import scala.concurrent._
+
+final class ProtoToProtoCachedReader[R <: scalapb.GeneratedMessage with scalapb.Message[R], T <: scalapb.GeneratedMessage with scalapb.Message[T]](
+  val underlying: Reader[R, T],
+  genKey: R => Array[Byte])(
+  implicit
+  val ex: ExecutionContext,
+  val underlyingCache: ByteArrayCache,
+  cR: scalapb.GeneratedMessageCompanion[R],
+  cT: scalapb.GeneratedMessageCompanion[T])
+  extends CachedReader[R, T] {
+
+  val cache = new ProtoToProtoCache[R, T](
+    underlyingCache,
+    new ProtoSerializer,
+    genKey)
+}

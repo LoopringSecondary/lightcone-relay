@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
-
-trait Serializer[T] {
-  def toBytes(obj: T): Array[Byte]
-  def fromBytes(bytes: Array[Byte]): T
-}
+package org.loopring.lightcone.lib.cache.serializer
 
 final class ProtoSerializer[T <: scalapb.GeneratedMessage with scalapb.Message[T]](
   implicit

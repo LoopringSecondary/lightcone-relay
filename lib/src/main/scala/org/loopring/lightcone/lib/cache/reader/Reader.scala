@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.cache.reader
 
 import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.cache.serializer._
 
-// this ByteArrayRedisCache needs to be final class, not a trait
-trait ByteArrayRedisCache extends ByteArrayCache
+import scala.concurrent._
+
+trait Reader[R, T] {
+  def read(req: R): Future[Option[T]]
+  def read(reqs: Seq[R]): Future[Map[R, T]]
+}
