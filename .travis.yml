@@ -14,7 +14,7 @@ cache:
 jobs:
   include:
     - stage: compile
-      script: sbt compile
+      script: sbt test:compile
     #- stage: test
     #  script: sbt test
 
