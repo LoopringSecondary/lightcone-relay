@@ -29,6 +29,7 @@ message TxHeader {
     string value = 12;
     TxStatus status = 13;
     bool is_internal = 14;
+    bool is_log = 15;
 }
 
 message AddressBalanceChanged {

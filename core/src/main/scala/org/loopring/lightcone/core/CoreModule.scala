@@ -70,6 +70,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
     bind[RingConverter].toInstance(new RingConverter())
     bind[RingMinedConverter].toInstance(new RingMinedConverter())
+    bind[TransferEventConverter].toInstance(new TransferEventConverter())
     bind[TokenList].toInstance(TokenList(list = Seq()))
   }
 
@@ -117,7 +118,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     accessor: EthClient,
     abiSupporter: AbiSupporter,
     ringConverter: RingConverter,
-    ringMinedConverter: RingMinedConverter) = {
+    ringMinedConverter: RingMinedConverter,
+    transferEventConverter: TransferEventConverter) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }
 

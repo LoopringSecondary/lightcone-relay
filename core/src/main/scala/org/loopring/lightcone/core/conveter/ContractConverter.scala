@@ -17,5 +17,5 @@
 package org.loopring.lightcone.core.conveter
 
 trait ContractConverter[T] {
-  def convert(list: Seq[Any]): T
+  def convert(list: Seq[Any]): Seq[T]
 }

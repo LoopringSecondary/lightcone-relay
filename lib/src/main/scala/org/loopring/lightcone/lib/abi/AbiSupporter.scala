@@ -27,6 +27,12 @@ case class AbiSupporter() extends AbiData {
   val FN_SUBMIT_RING = "submitRing"
   val EV_RING_MINED = "RingMined"
 
+  val FN_APPROVE = "approve"
+  val FN_TRANSFER = "transfer"
+  val FN_TRANSFER_FROM = "transferFrom"
+  val EV_TRANSFER = "Transfer"
+  val EV_APPROVAL = "Approval"
+
   def signature(e: Abi.Entry) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 
   def findFunctionByName(name: String) = nameFuncMap(name)

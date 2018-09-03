@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
-import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter }
+import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter, TransferEventConverter }
 import org.loopring.lightcone.proto.token._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc._
@@ -27,6 +27,7 @@ import org.loopring.lightcone.proto.solidity._
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 import com.google.inject._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -44,7 +45,8 @@ class BlockchainEventExtractor()(implicit
   val accessor: EthClient,
   val abiSupporter: AbiSupporter,
   val ringConverter: RingConverter,
-  val ringMinedConverter: RingMinedConverter) extends RepeatedJobActor {
+  val ringMinedConverter: RingMinedConverter,
+  val transferEventConverter: TransferEventConverter) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -118,15 +120,15 @@ class BlockchainEventExtractor()(implicit
 
   // todo
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    //Seq(unpackSingleInput(tx.trace.input))
-    Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
+    //unpackSingleInput(tx.trace.input)
+    tx.receipt.logs.map(unpackSingleEvent(_))
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }
 
   def unpackPendingTransaction(tx: Transaction): Seq[Any] = ???
 
   // todo 这里需要整合所有的数据到一个transaction里面,对于callArgs&transaction&receipt统一处理
-  def unpackSingleInput(input: String): Any = {
+  def unpackSingleInput(input: String): Seq[Any] = {
     val sig = abiSupporter.findTransactionFunctionSig(input)
     if (abiSupporter.isSupportedFunctionSig(sig)) {
       val decodedinput = abiSupporter.getInputBytes(input)
@@ -138,11 +140,11 @@ class BlockchainEventExtractor()(implicit
           ringConverter.convert(decodedseq)
       }
     } else {
-      None
+      Seq()
     }
   }
 
-  def unpackSingleEvent(log: Log): Any = {
+  def unpackSingleEvent(log: Log): Seq[Any] = {
     require(log.topics.length > 0)
     val sig = abiSupporter.findReceiptEventSig(log.topics.head)
     if (abiSupporter.isSupportedEventSig(sig)) {
@@ -154,10 +156,12 @@ class BlockchainEventExtractor()(implicit
       abi.name match {
         case abiSupporter.EV_RING_MINED =>
           ringMinedConverter.convert(decodedseq)
-        case _ => None
+        case abiSupporter.EV_TRANSFER =>
+          transferEventConverter.convert(decodedseq)
+        case _ => Seq()
       }
     } else {
-      None
+      Seq()
     }
   }
 

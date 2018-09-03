@@ -22,7 +22,7 @@ import org.loopring.lightcone.core.etypes._
 
 class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
-  def convert(list: Seq[Any]): Ring = {
+  def convert(list: Seq[Any]): Seq[Ring] = {
     if (list.length != 9) {
       throw new Exception("length of ring invalid")
     }
@@ -110,8 +110,9 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
       .withFeeReceipt(feeReceipt)
       .withFeeSelection(feeSelection.intValue())
 
+    // todo: delete after debug and test
     println(ring.toProtoString)
 
-    ring
+    Seq(ring)
   }
 }

@@ -23,12 +23,13 @@ import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.core.accessor.EthClientImpl
-import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter }
+import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter, TransferEventConverter }
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token.Token
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+
 import scala.concurrent.duration._
 import scala.concurrent.Promise
 
@@ -68,6 +69,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   implicit val geth = new EthClientImpl(config, supporter, httpFlow)
   implicit val ringConverter = new RingConverter()
   implicit val ringminedConverter = new RingMinedConverter()
+  implicit val transferEventConverter = new TransferEventConverter()
 
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
 
