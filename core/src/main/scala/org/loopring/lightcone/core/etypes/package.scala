@@ -18,6 +18,8 @@ package org.loopring.lightcone.core
 
 import java.math.BigInteger
 
+import com.google.protobuf.ByteString
+
 package object etypes {
 
   implicit class RichByteArray(bytes: Array[Byte]) {
@@ -36,6 +38,24 @@ package object etypes {
       val str = new String(bytes).toLowerCase
       if (!str.startsWith("0x")) new BigInteger(bytes)
       else new BigInteger(str.substring(2))
+    }
+
+    def asProtoByteString(): ByteString = {
+      ByteString.copyFrom(bytes)
+    }
+  }
+
+  implicit class RichString(str: String) {
+
+    def asProtoByteString(): ByteString = {
+      ByteString.copyFrom(str.getBytes())
+    }
+  }
+
+  implicit class RichBigint(num: BigInt) {
+
+    def asProtoByteString(): ByteString = {
+      ByteString.copyFrom(num.toByteArray)
     }
   }
 

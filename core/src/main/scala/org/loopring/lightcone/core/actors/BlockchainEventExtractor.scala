@@ -118,8 +118,8 @@ class BlockchainEventExtractor()(implicit
 
   // todo
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    Seq(unpackSingleInput(tx.trace.input))
-    //Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
+    //Seq(unpackSingleInput(tx.trace.input))
+    Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }
 

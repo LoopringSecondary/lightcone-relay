@@ -16,9 +16,9 @@
 
 package org.loopring.lightcone.core.conveter
 
-import com.google.protobuf.ByteString
 import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring.Ring
+import org.loopring.lightcone.core.etypes._
 
 class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
@@ -30,7 +30,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     val addressList = list(0) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Hex(_))
+          case son: Array[Object] => son.map(javaObj2Hex(_).asProtoByteString())
           case _ => throw new Exception("submitRing sub addresses type error")
         })
       }
@@ -40,7 +40,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     val bigintList = list(1) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint(_))
+          case son: Array[Object] => son.map(javaObj2Bigint(_).asProtoByteString())
           case _ => throw new Exception("submitRing sub bigintArgs type error")
         })
       }
@@ -68,12 +68,12 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     }
 
     val rList = list(5) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex(_))
+      case arr: Array[Object] => arr.map(javaObj2Hex(_).asProtoByteString())
       case _ => throw new Exception("submitRing rlist type error")
     }
 
     val sList = list(6) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex(_))
+      case arr: Array[Object] => arr.map(javaObj2Hex(_).asProtoByteString())
       case _ => throw new Exception("submitRing slist type error")
     }
 
@@ -81,39 +81,30 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
     val feeSelection = scalaAny2Bigint(list(8))
 
-    val maker = RawOrder()
-      .withOwner(ByteString.copyFrom(addressList(0)(0).getBytes()))
-      .withTokenS(ByteString.copyFrom(addressList(0)(1).getBytes()))
-      .withTokenB(ByteString.copyFrom(addressList(1)(1).getBytes()))
-      .withWalletAddress(ByteString.copyFrom(addressList(0)(2).getBytes()))
-      .withAuthAddr(ByteString.copyFrom(addressList(0)(3).getBytes()))
-      .withAmountS(ByteString.copyFrom(bigintList(0)(0).toByteArray))
-      .withAmountB(ByteString.copyFrom(bigintList(0)(1).toByteArray))
-      .withValidSince(bigintList(0)(2).intValue().toLong)
-      .withValidUntil(bigintList(0)(3).intValue().toLong)
-      .withLrcFee(ByteString.copyFrom(bigintList(0)(4).toByteArray))
-      .withMarginSplitPercentage(uintArgList(0)(0).doubleValue())
-      .withBuyNoMoreThanAmountB(buyNoMoreThanAmountBList(0))
-      .withV(vList(0).intValue())
-      .withR(ByteString.copyFrom(rList(0).getBytes()))
-      .withS(ByteString.copyFrom(sList(0).getBytes()))
+    var orders: Seq[RawOrder] = Seq()
+    for (i <- 0 to 1) {
+      val subAddrList = addressList(i)
+      val subBigintList = bigintList(i)
 
-    val taker = RawOrder()
-      .withOwner(ByteString.copyFrom(addressList(1)(0).getBytes()))
-      .withTokenS(ByteString.copyFrom(addressList(1)(1).getBytes()))
-      .withTokenB(ByteString.copyFrom(addressList(0)(1).getBytes()))
-      .withWalletAddress(ByteString.copyFrom(addressList(1)(2).getBytes()))
-      .withAuthAddr(ByteString.copyFrom(addressList(1)(3).getBytes()))
-      .withAmountS(ByteString.copyFrom(bigintList(1)(0).toByteArray))
-      .withAmountB(ByteString.copyFrom(bigintList(1)(1).toByteArray))
-      .withValidSince(bigintList(1)(2).intValue().toLong)
-      .withValidUntil(bigintList(1)(3).intValue().toLong)
-      .withLrcFee(ByteString.copyFrom(bigintList(1)(4).toByteArray))
-      .withMarginSplitPercentage(uintArgList(1)(0).doubleValue())
-      .withBuyNoMoreThanAmountB(buyNoMoreThanAmountBList(1))
-      .withV(vList(1).intValue())
-      .withR(ByteString.copyFrom(rList(1).getBytes()))
-      .withS(ByteString.copyFrom(sList(1).getBytes()))
+      orders +:= RawOrder()
+        .withOwner(subAddrList(0))
+        .withTokenS(subAddrList(1))
+        .withWalletAddress(subAddrList(2))
+        .withAuthAddr(subAddrList(3))
+        .withAmountS(subBigintList(0))
+        .withAmountB(subBigintList(1))
+        .withValidSince(subBigintList(2).toByteArray.asBigInt().toLong)
+        .withValidUntil(subBigintList(3).toByteArray.asBigInt().toLong)
+        .withLrcFee(subBigintList(4))
+        .withMarginSplitPercentage(uintArgList(i)(0).doubleValue())
+        .withBuyNoMoreThanAmountB(buyNoMoreThanAmountBList(i))
+        .withV(vList(i).intValue())
+        .withR(rList(i))
+        .withS(sList(i))
+    }
+
+    val maker = orders(0).withTokenB(addressList(1)(1))
+    val taker = orders(1).withTokenB(addressList(0)(1))
 
     val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)
