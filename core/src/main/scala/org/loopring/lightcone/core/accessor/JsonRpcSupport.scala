@@ -28,6 +28,7 @@ import scalapb.json4s.JsonFormat
 import org.json4s._
 import org.json4s.native.Serialization
 
+// TODO(fukun): use a connection pool?
 trait JsonRpcSupport {
   implicit val system: ActorSystem
   val abi: ContractABI
@@ -53,9 +54,8 @@ trait JsonRpcSupport {
 
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(
-    params: Seq[Any])(
-    implicit
-    c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
+      params: Seq[Any])(
+        implicit c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
     val request = JsonRpcRequest(id, JSON_RPC_VERSION, method, params)
     val jsonReq = Serialization.write(request)
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
