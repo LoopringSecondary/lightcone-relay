@@ -26,9 +26,15 @@ import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.accessor._
 import com.typesafe.config.Config
 import akka.util.Timeout
+import scala.concurrent._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import redis._
+import akka.stream._
+import scala.util._
+import akka.http.scaladsl.model._
+import akka.stream.scaladsl._
+import akka.http.scaladsl._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -46,6 +52,12 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
     bind[Timeout].toInstance(new Timeout(2 seconds))
     bind[EthClient].to[EthClientImpl].in[Singleton]
+
+    bind[HttpFlow].toInstance {
+      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+        host = config.getString("ethereum.host"),
+        port = config.getInt("ethereum.port"))
+    }
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
   }

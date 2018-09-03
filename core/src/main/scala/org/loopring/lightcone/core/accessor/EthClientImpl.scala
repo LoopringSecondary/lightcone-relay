@@ -17,31 +17,32 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
+import scala.concurrent._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
 import com.typesafe.config.Config
 import com.google.inject._
+import akka.stream._
+import scala.util._
+import akka.http.scaladsl.model._
+import akka.stream.scaladsl._
+import akka.http.scaladsl._
 
 class EthClientImpl @Inject() (
   val config: Config,
-  val abi: ContractABI)(
+  val abi: ContractABI,
+  val ethereumClientFlow: HttpFlow)(
   implicit
   val system: ActorSystem)
 
   extends EthClient with JsonRpcSupport {
 
+  val queueSize = config.getInt("ethereum.queueSize")
+
   case class DebugParams(
     timeout: String,
     tracer: String)
 
-  val uri = {
-    val host = config.getString("ethereum.host")
-    val port = config.getInt("ethereum.port")
-    val ssl = config.getBoolean("ethereum.ssl")
-    s"http://${host}:${port}"
-  }
-
-  // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =
     httpPost[EthGetBalanceRes]("eth_getBalance") {
       Seq(req.address, req.tag)
@@ -104,4 +105,5 @@ class EthClientImpl @Inject() (
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
 
   def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
+
 }
