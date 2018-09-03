@@ -31,8 +31,8 @@ final class Rational(numerator: BigInt, denominator: BigInt)
 
   def +(that: Rational) = {
     new Rational(
-      numerator = this.num + that.num,
-      denominator = this.denom + that.denom)
+      numerator = this.num * that.denom + (this.denom * that.num),
+      denominator = this.denom * that.denom)
   }
 
   def -(that: Rational) = {
@@ -87,8 +87,11 @@ final class Rational(numerator: BigInt, denominator: BigInt)
 
   override def toString: String = s"${this.num.toString()}/${this.denom.toString()}"
 
-  def floatString(precision: Int): String = {
-    val mc = new MathContext(precision, RoundingMode.HALF_EVEN)
+  def floatString(precisionOpt: Option[Int] = None): String = {
+    val mc = precisionOpt match {
+      case None => defaultMathContext
+      case Some(precision) => new MathContext(precision, RoundingMode.HALF_EVEN)
+    }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
 
@@ -104,10 +107,10 @@ object Rational {
     (MaxDoubleValue * BigDecimal(value)).toBigInt(),
     MaxDoubleValue.toBigInt())
 
-  def apply(numberator: BigInt) = new Rational(numberator, BigInt(1))
+  def apply(numerator: BigInt) = new Rational(numerator, BigInt(1))
 
-  def apply(numberator: Int, denominator: Int) = new Rational(BigInt(numberator), BigInt(denominator))
+  def apply(numerator: Int, denominator: Int) = new Rational(BigInt(numerator), BigInt(denominator))
 
-  def apply(numberator: Int) = new Rational(BigInt(numberator), BigInt(1))
+  def apply(numerator: Int) = new Rational(BigInt(numerator), BigInt(1))
 
 }
