@@ -27,10 +27,10 @@ class GetTransactionReceiptSpec extends FlatSpec {
   "receipt" should "contain logs" in {
     val req = GetTransactionReceiptReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
-      resp <- accessor.geth.getTransactionReceipt(req)
+      resp <- ethClient.getTransactionReceipt(req)
     } yield resp.result
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration)
+    val tx = Await.result(resultFuture, timeout.duration)
 
     info(tx.toString)
   }

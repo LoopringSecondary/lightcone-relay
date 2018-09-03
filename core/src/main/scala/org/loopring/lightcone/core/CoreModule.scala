@@ -63,6 +63,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
         port = config.getInt("ethereum.port"))
     }
 
+    bind[Int].annotatedWith(Names.named("ethereum_conn_queuesize"))
+      .toInstance(config.getInt("ethereum.queueSize"))
+
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
     bind[OrderDatabase].to[MySQLOrderDatabase]
 

@@ -27,17 +27,16 @@ import scala.util._
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl._
 import akka.http.scaladsl._
+import com.google.inject.name._
 
 class EthClientImpl @Inject() (
-  val config: Config,
   val abi: ContractABI,
-  val ethereumClientFlow: HttpFlow)(
+  val ethereumClientFlow: HttpFlow,
+  @Named("ethereum_conn_queuesize") val queueSize: Int)(
   implicit
   val system: ActorSystem)
 
   extends EthClient with JsonRpcSupport {
-
-  val queueSize = config.getInt("ethereum.queueSize")
 
   case class DebugParams(
     timeout: String,
