@@ -24,5 +24,8 @@ import akka.http.scaladsl._
 import scala.concurrent.Promise
 
 package object accessor {
-  type HttpFlow = Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Http.HostConnectionPool]
+  type HttpFlow = Flow[ //
+  (HttpRequest, Promise[HttpResponse]), //
+  (Try[HttpResponse], Promise[HttpResponse]), //
+  Http.HostConnectionPool]
 }
