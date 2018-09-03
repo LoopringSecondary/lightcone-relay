@@ -85,4 +85,14 @@ Then visit `http://localhost:8081/stats` for the listed of all actors deployed.
 
 ## TEST
 
-How to run test?
+Here is the sample to run single unit test
+```
+sbt core/'testOnly *AllowanceSpec'
+```
+
+run all tests
+```
+sbt core/test
+```
+
+check the settings in application.conf and test data used in specs.
