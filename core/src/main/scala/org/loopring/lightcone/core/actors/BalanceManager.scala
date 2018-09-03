@@ -39,8 +39,7 @@ object BalanceManager
 }
 
 class BalanceManager()(
-  implicit
-  ec: ExecutionContext,
+  implicit ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
@@ -51,7 +50,7 @@ class BalanceManager()(
   var settings: BalanceManagerSettings = null
   def id = settings.id
 
-  import BalanceManagerFacilitators._
+  import BalanceManagerCachingFacilitators._
   def receive: Receive = {
     case settings: BalanceManagerSettings =>
       this.settings = settings

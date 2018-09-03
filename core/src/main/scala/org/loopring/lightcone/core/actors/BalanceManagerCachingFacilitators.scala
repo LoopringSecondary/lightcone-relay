@@ -20,7 +20,7 @@ import akka.actor._
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.core.cache.actorcache._
 
-object BalanceManagerFacilitators {
+object BalanceManagerCachingFacilitators {
   implicit val getBalancesReqFacilitator = new ActorCachingFacilitator[GetBalancesReq, GetBalancesResp, GetBalancesResp] {
     def genCacheRequest(req: GetBalancesReq, uncachedResp: GetBalancesResp): Option[GetBalancesResp] = ???
     def genSourceRequest(req: GetBalancesReq, cachedResp: GetBalancesResp): Option[GetBalancesReq] = ???
