@@ -16,6 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
+import org.loopring.lightcone.core.ethaccessor
 import org.loopring.lightcone.proto.eth_jsonrpc.GetAllowanceReq
 import org.scalatest.FlatSpec
 
@@ -28,16 +29,16 @@ class AllowanceSpec extends FlatSpec {
   "allowance" should "encode params and return amount of big number" in {
 
     val req = GetAllowanceReq()
-      .withOwner(accessor.owner)
-      .withToken(accessor.lrc)
-      .withSpender(accessor.delegate)
+      .withOwner(ethaccessor.owner)
+      .withToken(ethaccessor.lrc)
+      .withSpender(ethaccessor.delegate)
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- accessor.geth.getAllowance(req)
+      resp <- ethaccessor.geth.getAllowance(req)
     } yield resp
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration)
+    val tx = Await.result(resultFuture, ethaccessor.timeout.duration)
 
     info(tx.result)
   }
