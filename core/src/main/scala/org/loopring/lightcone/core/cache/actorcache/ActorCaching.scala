@@ -23,23 +23,15 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.reflect.Manifest
 
-trait ActorCache {
+class ActorCaching(
+  cacheActor: ActorRef,
+  sourceActor: ActorRef)(implicit
+  timeout: Timeout,
+  ec: ExecutionContext) {
 
-  implicit val timeout: Timeout
-  implicit val ec: ExecutionContext
-
-  val cacheActor: ActorRef
-  val sourceActor: ActorRef
-
-  trait Facilitator[R, T, C] {
-    def genSourceRequest(req: R, cachedResp: T): Option[R]
-    def mergeResponses(req: R, cachedResp: T, uncachedResp: T): T
-    def genCacheRequest(req: R, uncachedResp: T): Option[C]
-  }
-
-  def fromCacheOrSource[R, T: Manifest, C](
-    req: R,
-    facilitator: Facilitator[R, T, C]) = {
+  def get[R, T: Manifest, C](req: R)(
+    implicit
+    facilitator: ActorCachingFacilitator[R, T, C]) = {
 
     for {
       cachedResp <- (cacheActor ? req).mapTo[T]
