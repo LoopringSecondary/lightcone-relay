@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.database
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction, TransactionReceipt }
-import org.loopring.lightcone.proto.token.Token
+class MySQLOrderDatabase extends OrderDatabase {
 
-package object actors {
-
-  case class MinedTransaction(
-    receipt: TransactionReceipt,
-    trace: TraceTransaction)
-
-  case class TokenList(
-    list: Seq[Token])
 }

@@ -16,15 +16,21 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestKit}
-import org.loopring.lightcone.core.accessor.{EthClientImpl, GethClientConfig}
-import org.loopring.lightcone.core.conveter.{RingConverter, RingMinedConverter}
+import akka.actor.{ ActorSystem, Props }
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpResponse
+import akka.testkit.{ ImplicitSender, TestKit }
+import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
+import org.loopring.lightcone.core.accessor.EthClientImpl
+import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter }
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token.Token
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import scala.concurrent.duration._
+import scala.concurrent.Promise
 
 class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -35,7 +41,12 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
     TestKit.shutdownActorSystem(system)
   }
 
-  implicit val tokenlist = Seq[Token](
+  val config = ConfigFactory.defaultApplication()
+  val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
+    host = config.getString("ethereum.host"),
+    port = config.getInt("ethereum.port"))
+
+  implicit val tokenlist = TokenList(list = Seq[Token](
     Token(
       protocol = "0xcd36128815ebe0b44d0374649bad2721b8751bef",
       symbol = "LRC",
@@ -50,14 +61,11 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       decimal = 18,
       source = "ethereum",
       deny = false,
-      market = true))
+      market = true)))
 
-  implicit val gethconfig = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
-  val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
-  val round = StartNewRound()
-
-  implicit val abiSupporter = AbiSupporter()
-  implicit val accessor = new EthClientImpl()
+  implicit val timeout = Timeout(5 seconds)
+  implicit val supporter = AbiSupporter()
+  implicit val geth = new EthClientImpl(config, supporter, httpFlow)
   implicit val ringConverter = new RingConverter()
   implicit val ringminedConverter = new RingMinedConverter()
 
@@ -66,6 +74,9 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   "extractor actor" must {
 
     "start single round" in {
+      val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
+      val round = StartNewRound()
+
       extractor ! round
       Thread.sleep(5000)
     }

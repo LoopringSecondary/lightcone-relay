@@ -26,7 +26,7 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
-
+import com.google.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -40,7 +40,7 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-  val tokenList: Seq[Token],
+  val tokenList: TokenList,
   val accessor: EthClient,
   val abiSupporter: AbiSupporter,
   val ringConverter: RingConverter,
@@ -72,7 +72,7 @@ class BlockchainEventExtractor()(implicit
   }
 
   // todo: get protocol address(delegate, impl, token register...) on chain
-  val supportedContracts: Seq[String] = tokenList.map(x => safeAddress(x.protocol))
+  val supportedContracts: Seq[String] = tokenList.list.map(x => safeAddress(x.protocol))
 
   var currentBlockNumber: BigInt = BigInt(0)
 
@@ -118,7 +118,7 @@ class BlockchainEventExtractor()(implicit
 
   // todo
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    // Seq(unpackSingleInput(tx.trace.input))
+    //Seq(unpackSingleInput(tx.trace.input))
     Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }

@@ -17,20 +17,28 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import org.loopring.lightcone.lib.abi.AbiSupporter
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.spongycastle.util.encoders.Hex
 
-class EthClientImpl()(
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.lib.abi.AbiSupporter
+import org.spongycastle.util.encoders.Hex
+import com.google.inject._
+import com.typesafe.config.Config
+
+class EthClientImpl @Inject() (
+  val config: Config,
+  val abiSupport: AbiSupporter,
+  val ethereumClientFlow: HttpFlow)(
   implicit
-  val system: ActorSystem,
-  val config: GethClientConfig,
-  val abiSupport: AbiSupporter)
+  val system: ActorSystem)
+
   extends EthClient with JsonRpcSupport {
 
-  val uri = s"http://${config.host}:${config.port}"
+  val queueSize = config.getInt("ethereum.queueSize")
 
-  // eth actions
+  case class DebugParams(
+    timeout: String,
+    tracer: String)
+
   def ethGetBalance(req: EthGetBalanceReq) =
     httpPost[EthGetBalanceRes]("eth_getBalance") {
       Seq(req.address, req.tag)
@@ -93,4 +101,5 @@ class EthClientImpl()(
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
 
   def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
+
 }

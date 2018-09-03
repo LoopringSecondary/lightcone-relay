@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.lib.cache.serializer
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction, TransactionReceipt }
-import org.loopring.lightcone.proto.token.Token
-
-package object actors {
-
-  case class MinedTransaction(
-    receipt: TransactionReceipt,
-    trace: TraceTransaction)
-
-  case class TokenList(
-    list: Seq[Token])
+final class ProtoSerializer[T <: scalapb.GeneratedMessage with scalapb.Message[T]](
+  implicit
+  c: scalapb.GeneratedMessageCompanion[T]) extends Serializer[T] {
+  def toBytes(obj: T): Array[Byte] = obj.toByteArray
+  def fromBytes(bytes: Array[Byte]): T = c.parseFrom(bytes)
 }

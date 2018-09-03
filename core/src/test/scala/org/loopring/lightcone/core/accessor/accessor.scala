@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.accessor
+package org.loopring.lightcone.core
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpResponse
 import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
+import org.loopring.lightcone.core.accessor.EthClientImpl
 import org.loopring.lightcone.lib.abi.AbiSupporter
 
+import scala.concurrent.Promise
 import scala.concurrent.duration._
 
-package object accessor {
+package object ethaccessor {
   implicit val system = ActorSystem()
-  implicit val config = GethClientConfig.apply(host = "localhost", port = 8545, ssl = false)
-  implicit val abiSupport = AbiSupporter()
 
-  val geth = new EthClientImpl()
+  val config = ConfigFactory.defaultApplication()
+  val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
+    host = config.getString("ethereum.host"),
+    port = config.getInt("ethereum.port"))
+  val supporter = AbiSupporter()
+
+  val geth = new EthClientImpl(config, supporter, httpFlow)
   val timeout = Timeout(5 seconds)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"

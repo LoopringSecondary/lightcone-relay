@@ -17,20 +17,20 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
-import org.apache.commons.collections4.Predicate
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.lib.solidity.Abi
+import akka.stream._
+import akka.stream.scaladsl._
 import scala.concurrent._
 import scalapb.json4s.JsonFormat
 import org.json4s._
 import org.json4s.native.Serialization
+import scala.util._
 
+// TODO(fukun): use a connection pool?
 trait JsonRpcSupport {
   implicit val system: ActorSystem
-  val uri: String
+  val ethereumClientFlow: HttpFlow
+  val queueSize: Int
 
   implicit lazy val materializer = ActorMaterializer()
   implicit lazy val executionContext = system.dispatcher
@@ -43,18 +43,49 @@ trait JsonRpcSupport {
 
   implicit val formats = Serialization.formats(NoTypeHints)
 
+  case class JsonRpcRequest(
+    id: Int,
+    jsonrpc: String,
+    method: String,
+    params: Seq[Any])
+
+  private val queue =
+    Source.queue[(HttpRequest, Promise[HttpResponse])](queueSize, OverflowStrategy.dropNew)
+      .via(ethereumClientFlow)
+      .toMat(Sink.foreach({
+        case ((Success(resp), p)) => p.success(resp)
+        case ((Failure(e), p)) => p.failure(e)
+      }))(Keep.left)
+      .run()
+
+  private def queueRequest(request: HttpRequest): Future[HttpResponse] = {
+    val responsePromise = Promise[HttpResponse]()
+    queue.offer(request -> responsePromise).flatMap {
+      case QueueOfferResult.Enqueued =>
+        responsePromise.future
+      case QueueOfferResult.Dropped =>
+        Future.failed(new RuntimeException("Queue overflowed. Try again later."))
+      case QueueOfferResult.Failure(ex) =>
+        Future.failed(ex)
+      case QueueOfferResult.QueueClosed =>
+        Future.failed(new RuntimeException(
+          "Queue was closed (pool shut down) while running the request. Try again later."))
+    }
+  }
+
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(
     params: Seq[Any])(
     implicit
     c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
     val request = JsonRpcRequest(id, JSON_RPC_VERSION, method, params)
-    val jsonReq = Serialization.write(request)
-    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq.toString())
-    val httpReq = HttpRequest.apply(method = HttpMethods.POST, uri = uri, entity = entity)
+    val jsonReq = Serialization.write(request).toString
+    val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
+
+    val httpReq = HttpRequest(method = HttpMethods.POST, uri = "/", entity = entity)
 
     for {
-      httpRes <- Http().singleRequest(httpReq)
+      httpRes <- queueRequest(httpReq)
       jsonStr <- httpRes.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
       resp = JsonFormat.parser.fromJsonString[R](jsonStr)
     } yield resp

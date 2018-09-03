@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.lib.cache
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction, TransactionReceipt }
-import org.loopring.lightcone.proto.token.Token
+import scala.concurrent._
 
-package object actors {
+trait Cache[K, V] {
+  implicit val ex: ExecutionContext
+  def get(key: K): Future[Option[V]]
+  def get(keys: Seq[K]): Future[Map[K, V]]
+  def put(key: K, value: V): Future[Boolean]
 
-  case class MinedTransaction(
-    receipt: TransactionReceipt,
-    trace: TraceTransaction)
-
-  case class TokenList(
-    list: Seq[Token])
+  def put(keyValues: Map[K, V]): Future[Boolean] =
+    Future.sequence(
+      keyValues.map {
+        case (k, v) => put(k, v)
+      }.toSeq).map(_.reduce(_ && _))
 }

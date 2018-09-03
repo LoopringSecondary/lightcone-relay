@@ -16,44 +16,61 @@
 
 package org.loopring.lightcone.core
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
 import akka.actor._
 import akka.cluster._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl._
 import akka.stream.ActorMaterializer
-import org.loopring.lightcone.core.actors._
-import org.loopring.lightcone.proto.token.Token
-import com.typesafe.config.Config
 import akka.util.Timeout
-import org.loopring.lightcone.core.accessor.{ EthClient, EthClientImpl, GethClientConfig }
-import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter }
+import com.google.inject._
+import com.google.inject.name._
+import com.typesafe.config.Config
+import net.codingwell.scalaguice._
+import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.accessor._
+import org.loopring.lightcone.core.cache._
+import org.loopring.lightcone.core.conveter._
+import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.lib.abi.AbiSupporter
-
+import org.loopring.lightcone.lib.cache.ByteArrayCache
+import org.loopring.lightcone.proto.token.Token
+import redis._
+import scala.concurrent._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import redis._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   override def configure(): Unit = {
     implicit val system = ActorSystem("Lightcone", config)
     implicit val cluster = Cluster(system)
-    implicit val ethConfig = GethClientConfig(config.getString("geth.host"), config.getInt("geth.port"), config.getBoolean("geth.ssl"))
-    implicit val abiSupport = AbiSupporter()
 
     bind[Config].toInstance(config)
     bind[ActorSystem].toInstance(system)
     bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
+
     bind[Timeout].toInstance(new Timeout(2 seconds))
+    bind[AbiSupporter].toInstance(AbiSupporter())
+    bind[EthClient].to[EthClientImpl].in[Singleton]
+
+    bind[HttpFlow].toInstance {
+      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+        host = config.getString("ethereum.host"),
+        port = config.getInt("ethereum.port"))
+    }
+
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
+    bind[OrderDatabase].to[MySQLOrderDatabase]
+
+    bind[ByteArrayCache].to[ByteArrayRedisCache].in[Singleton]
+    bind[BalanceCache].to[cache.BalanceRedisCache]
+    bind[OrderCache].to[cache.OrderRedisCache]
 
     bind[RingConverter].toInstance(new RingConverter())
     bind[RingMinedConverter].toInstance(new RingMinedConverter())
-    bind[AbiSupporter].toInstance(abiSupport)
-    bind[EthClient].toInstance(new EthClientImpl())
+    bind[TokenList].toInstance(TokenList(list = Seq()))
   }
 
   @Provides
@@ -69,10 +86,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("balance_cacher")
-  def getBalanceCacherProps()(implicit
+  def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher()) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
@@ -96,9 +113,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout,
-    tokenlist: Seq[Token],
-    abiSupport: AbiSupporter,
+    tokenList: TokenList,
     accessor: EthClient,
+    abiSupporter: AbiSupporter,
     ringConverter: RingConverter,
     ringMinedConverter: RingMinedConverter) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
@@ -154,10 +171,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_cacher")
-  def getOrderCacherProps(redisCluster: RedisCluster)(implicit
+  def getOrderCacherProps(cache: OrderCache)(implicit
     context: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderCacher(redisCluster)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
@@ -170,10 +187,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps()(implicit
+  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides

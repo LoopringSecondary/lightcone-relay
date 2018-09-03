@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc.{ TraceTransaction, TransactionReceipt }
-import org.loopring.lightcone.proto.token.Token
+import scala.concurrent._
+import com.typesafe.config.Config
+import org.loopring.lightcone.lib.solidity.Abi
 
-package object actors {
-
-  case class MinedTransaction(
-    receipt: TransactionReceipt,
-    trace: TraceTransaction)
-
-  case class TokenList(
-    list: Seq[Token])
+case class ContractABI(config: Config) {
+  def getAbiJsonString(str: String): String = config.getString(str)
+  def get(str: String): Abi = Abi.fromJson(getAbiJsonString("erc20"))
 }
