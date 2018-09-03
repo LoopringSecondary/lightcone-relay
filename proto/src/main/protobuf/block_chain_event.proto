@@ -4,31 +4,46 @@ option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
-//message SimulateTransaction {}
-//message BroadcastTransaction {}
-//message GetOrderFillAmountAndCancelStatus {}
-//message OrderFillAmountAndCancelStatus {}
-//message GetBlock {}
-//message GetTransaction {}
-//message GetTracing {}
-//message OrderCancelledByContract {}
-//message RingDetectedInMemPoll {}
-//message RingMined {}
-//message ChainRolledBack {}
-//message HeartBeat {}
+import "ring.proto";
+
+enum TxStatus {
+    TX_STATUS_UNKNOWN = 0;
+    TX_STATUS_PENDING = 1;
+    TX_STATUS_SUCCESS = 2;
+    TX_STATUS_FAILED = 3;
+    TX_STATUS_DISMISS = 4;  // 该状态不一定有用
+}
+
+message TxHeader {
+    string tx_hash  = 1;
+    int32 tx_index = 2;
+    int32 log_index = 3;
+    string block_number = 4;
+    string block_hash = 5;
+    string gas_price = 6;
+    string gas_used = 7;
+    string gas_limit = 8;
+    string nonce = 9;
+    string from = 10;
+    string to = 11;
+    string value = 12;
+    TxStatus status = 13;
+    bool is_internal = 14;
+}
 
 message AddressBalanceChanged {
     bytes token = 1;
     bytes owner = 2;
     bytes value = 3;
     bool income = 4;
+    TxHeader tx_header = 5;
 }
 
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
-    bytes tx_hash = 1;
     bytes ring_hash = 2;
     repeated bytes order_hash = 3;
+    TxHeader tx_header = 4;
 }
 
 message OrderFilled {
@@ -47,27 +62,36 @@ message OrderFilled {
     bytes split_s = 13;
     bytes split_b = 14;
     int32 fill_index = 15;
+    TxHeader tx_header = 16;
+}
+
+message SubmitRing {
+    Ring ring = 1;
+    TxHeader tx_header = 2;
 }
 
 message RingMined {
-    bytes txhash = 1;
     repeated OrderFilled fills = 2;
+    TxHeader tx_header = 3;
 }
 
 message OrderCancelled {
     bytes order_hash = 1;
     bytes amount = 2;
+    TxHeader tx_header = 3;
 }
 
 message Cutoff {
     bytes owner = 1;
     int32 cutoff = 2;
+    TxHeader tx_header = 3;
 }
 
 message CutoffPair {
     bytes owner = 1;
     string market = 2;
     int32 cutoff = 3;
+    TxHeader tx_header = 4;
 }
 
 message ChainRolledBack {
