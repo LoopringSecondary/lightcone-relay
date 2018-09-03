@@ -28,16 +28,16 @@ class AllowanceSpec extends FlatSpec {
   "allowance" should "encode params and return amount of big number" in {
 
     val req = GetAllowanceReq()
-      .withOwner(accessor.owner)
-      .withToken(accessor.lrc)
-      .withSpender(accessor.delegate)
+      .withOwner(owner)
+      .withToken(lrc)
+      .withSpender(delegate)
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- accessor.geth.getAllowance(req)
+      resp <- ethClient.getAllowance(req)
     } yield resp
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration)
+    val tx = Await.result(resultFuture, timeout.duration)
 
     info(tx.result)
   }

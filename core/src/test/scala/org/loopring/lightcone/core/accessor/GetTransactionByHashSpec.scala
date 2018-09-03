@@ -29,10 +29,10 @@ class GetTransactionByHashSpec extends FlatSpec {
   "transaction hash" should "contain gasLimit but without gasUsed" in {
     val req = GetTransactionByHashReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
-      resp <- accessor.geth.getTransactionByHash(req)
+      resp <- ethClient.getTransactionByHash(req)
     } yield resp.result
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration).get
+    val tx = Await.result(resultFuture, timeout.duration).get
 
     info(tx.toString)
     info(tx.from.getBytes().asAddress.toString)
