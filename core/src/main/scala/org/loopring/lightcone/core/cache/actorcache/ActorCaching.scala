@@ -29,7 +29,7 @@ class ActorCaching(
   timeout: Timeout,
   ec: ExecutionContext) {
 
-  def get[R, T: Manifest, C](req: R)(
+  def askFor[R, T: Manifest, C](req: R)(
     implicit
     facilitator: ActorCachingFacilitator[R, T, C]) = {
 

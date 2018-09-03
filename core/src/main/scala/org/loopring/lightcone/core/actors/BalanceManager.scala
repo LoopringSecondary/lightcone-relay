@@ -39,7 +39,8 @@ object BalanceManager
 }
 
 class BalanceManager()(
-  implicit ec: ExecutionContext,
+  implicit
+  ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
@@ -56,15 +57,15 @@ class BalanceManager()(
       this.settings = settings
 
     case req: GetBalancesReq =>
-      caching.get[GetBalancesReq, GetBalancesResp, GetBalancesResp](
+      caching.askFor[GetBalancesReq, GetBalancesResp, GetBalancesResp](
         req).pipeTo(sender)
 
     case req: GetAllowancesReq =>
-      caching.get[GetAllowancesReq, GetAllowancesResp, GetAllowancesResp](
+      caching.askFor[GetAllowancesReq, GetAllowancesResp, GetAllowancesResp](
         req).pipeTo(sender)
 
     case req: GetBalanceAndAllowanceReq =>
-      caching.get[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, GetBalanceAndAllowanceResp](
+      caching.askFor[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, GetBalanceAndAllowanceResp](
         req).pipeTo(sender)
   }
 }
