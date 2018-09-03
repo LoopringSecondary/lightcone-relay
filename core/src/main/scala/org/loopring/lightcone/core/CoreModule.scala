@@ -28,6 +28,7 @@ import com.typesafe.config.Config
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import org.loopring.lightcone.core.database._
 import redis._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
 import org.loopring.lightcone.core.cache.ByteArrayRedisCache
@@ -46,10 +47,12 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Timeout].toInstance(new Timeout(2 seconds))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
+    bind[OrderDatabase].to[MySQLOrderDatabase]
 
     bind[ByteArrayCache].to[ByteArrayRedisCache].in[Singleton]
     bind[BalanceCache].to[cache.BalanceRedisCache]
     bind[OrderCache].to[cache.OrderRedisCache]
+
   }
 
   @Provides
@@ -161,10 +164,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps()(implicit
+  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
