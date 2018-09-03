@@ -22,8 +22,9 @@ import scala.concurrent.ExecutionContext
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import org.loopring.lightcone.proto.balance._
-import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.cache._
+import org.loopring.lightcone.core.cache._
 
 object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
@@ -33,7 +34,7 @@ object BalanceCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceCacher()(implicit
+class BalanceCacher(cache: BalanceCache)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
