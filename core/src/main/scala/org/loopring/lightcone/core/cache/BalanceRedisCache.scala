@@ -18,6 +18,11 @@ package org.loopring.lightcone.core.cache
 
 import org.loopring.lightcone.lib.cache._
 
-final class BalanceRedisCache extends BalanceCache {
+import redis._
+import com.google.inject._
+
+final class BalanceRedisCache @Inject() (
+  redis: RedisCluster)
+  extends BalanceCache {
 
 }

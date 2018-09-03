@@ -57,11 +57,12 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Timeout].toInstance(new Timeout(2 seconds))
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
-    bind[HttpFlow].toInstance {
-      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+    val httpFlow = Http()
+      .cachedHostConnectionPool[Promise[HttpResponse]](
         host = config.getString("ethereum.host"),
         port = config.getInt("ethereum.port"))
-    }
+
+    bind[HttpFlow].toInstance(httpFlow)
 
     bind[Int].annotatedWith(Names.named("ethereum_conn_queuesize"))
       .toInstance(config.getInt("ethereum.queueSize"))
