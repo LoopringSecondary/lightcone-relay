@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -23,25 +25,25 @@ import akka.cluster.routing._
 import akka.util.ByteString
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
+import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent._
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
   val name = "order_db_accessor"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderDBAccessor])
 
   def getCommon(s: OrderDBAccessorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor() extends Actor {
-  implicit val executor = ExecutionContext.global
+class OrderDBAccessor(db: OrderDatabase)(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>

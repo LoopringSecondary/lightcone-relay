@@ -16,29 +16,52 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
-import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import akka.util.ByteString
 import org.loopring.lightcone.proto.cache._
+import org.loopring.lightcone.proto.common.ErrorResp
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.core.cache._
+import redis._
+import com.google.inject._
+
+import scala.util.{ Failure, Success }
 
 object OrderCacher
   extends base.Deployable[OrderCacherSettings] {
   val name = "order_cacher"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderCacher])
 
   def getCommon(s: OrderCacherSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderCacher() extends Actor {
-  DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
+class OrderCacher(cache: OrderCache)(
+  implicit
+  ec: ExecutionContext,
+  timeout: Timeout) extends Actor {
+
+  // implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {
+  //   def serialize(data: CachedMultiOrders): ByteString = {
+  //     ByteString.fromArray(data.toByteArray)
+  //   }
+  // }
+
+  // implicit val byteStringDeserializer = new ByteStringDeserializer[CachedMultiOrders] {
+  //   def deserialize(data: ByteString): CachedMultiOrders = {
+  //     CachedMultiOrders.parseFrom(data.toArray)
+  //   }
+  // }
 
   def receive: Receive = {
     case settings: OrderCacherSettings =>
-
+    case req: GetOrdersFromCache =>
+    // redis.get(req.orderHashes.head) onComplete {
+    //   case Success(_) =>
+    //     sender ! CachedMultiOrders.defaultInstance
+    //   case Failure(_) => ErrorResp()
+    // }
     case m: Purge.Order =>
 
     case m: Purge.AllOrderForAddress =>
@@ -48,7 +71,5 @@ class OrderCacher() extends Actor {
     case m: Purge.AllAfterBlock =>
 
     case m: Purge.All =>
-
-    case _ =>
   }
 }

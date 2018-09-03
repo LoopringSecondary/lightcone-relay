@@ -37,6 +37,6 @@ class GetTransactionByHashSpec extends FlatSpec {
     info(tx.toString)
     info(tx.from.getBytes().asAddress.toString)
     info(tx.hash.getBytes().asHash.toString)
-    info(tx.value.getBytes().asBig.toString)
+    info(tx.value.getBytes().asBigInt.toString)
   }
 }

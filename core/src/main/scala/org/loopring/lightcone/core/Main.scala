@@ -25,6 +25,10 @@ import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
 
+import com.google.inject._
+
+import com.google.inject._
+
 object Main {
 
   case class CmdOptions(
@@ -103,17 +107,10 @@ object Main {
             """)
           .withFallback(fallback)
 
-        managing.NodeData.config = config
-
-        implicit val system = ActorSystem("Lightcone", config)
-        implicit val cluster = Cluster(system)
-        implicit val materializer = ActorMaterializer()
-        implicit val executionContext = system.dispatcher
-
         // Deploying NodeManager
-        system.actorOf(
-          Props(new managing.NodeManager),
-          "node_manager")
+        import ActorUtil._
+        val injector = Guice.createInjector(new CoreModule(config))
+        injector.getActor("node_manager")
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +

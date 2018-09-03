@@ -41,8 +41,16 @@ import org.loopring.lightcone.proto.deployment._
 import akka.cluster.singleton._
 import org.loopring.lightcone.core.routing._
 import com.google.protobuf.any.Any
+import com.google.inject._
+import net.codingwell.scalaguice._
+import com.google.inject.name._
 
-class NodeManager()(implicit val cluster: Cluster)
+@Singleton
+class NodeManager(
+  injector: Injector,
+  config: Config)(implicit
+  val cluster: Cluster,
+  val materializer: ActorMaterializer)
   extends Actor
   with ActorLogging
   with Timers {
@@ -51,9 +59,9 @@ class NodeManager()(implicit val cluster: Cluster)
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
 
-  Routers.setRouters("cluster_manager", ClusterManager.deploy())
+  Routers.setRouters("cluster_manager", ClusterManager.deploy(injector))
 
-  val http = new NodeHttpServer(self)
+  val http = new NodeHttpServer(config, self)
 
   val mediator = DistributedPubSub(system).mediator
   mediator ! Subscribe("cluster_manager", self)
@@ -75,75 +83,75 @@ class NodeManager()(implicit val cluster: Cluster)
 
       Routers.setRouters(
         BalanceCacher.name,
-        BalanceCacher.deploy(settings.balanceCacherSettings))
+        BalanceCacher.deploy(injector, settings.balanceCacherSettings))
 
       Routers.setRouters(
         BalanceManager.name,
-        BalanceManager.deploy(settings.balanceManagerSettings))
+        BalanceManager.deploy(injector, settings.balanceManagerSettings))
 
       Routers.setRouters(
         BalanceReader.name,
-        BalanceReader.deploy(settings.balanceReaderSettings))
+        BalanceReader.deploy(injector, settings.balanceReaderSettings))
 
       Routers.setRouters(
         BlockchainEventExtractor.name,
-        BlockchainEventExtractor.deploy(settings.blockchainEventExtractorSettings))
+        BlockchainEventExtractor.deploy(injector, settings.blockchainEventExtractorSettings))
 
       Routers.setRouters(
         CacheObsoleter.name,
-        CacheObsoleter.deploy(settings.cacheObsoleterSettings))
+        CacheObsoleter.deploy(injector, settings.cacheObsoleterSettings))
 
       Routers.setRouters(
         EthereumAccessor.name,
-        EthereumAccessor.deploy(settings.ethereumAccessorSettings))
+        EthereumAccessor.deploy(injector, settings.ethereumAccessorSettings))
 
       Routers.setRouters(
         OrderCacher.name,
-        OrderCacher.deploy(settings.orderCacherSettings))
+        OrderCacher.deploy(injector, settings.orderCacherSettings))
 
       Routers.setRouters(
         OrderDBAccessor.name,
-        OrderDBAccessor.deploy(settings.orderDbAccessorSettings))
+        OrderDBAccessor.deploy(injector, settings.orderDbAccessorSettings))
 
       Routers.setRouters(
         OrderReadCoordinator.name,
-        OrderReadCoordinator.deploy(settings.orderReadCoordinatorSettings))
+        OrderReadCoordinator.deploy(injector, settings.orderReadCoordinatorSettings))
 
       Routers.setRouters(
         OrderReader.name,
-        OrderReader.deploy(settings.orderReaderSettings))
+        OrderReader.deploy(injector, settings.orderReaderSettings))
 
       Routers.setRouters(
         OrderUpdateCoordinator.name,
-        OrderUpdateCoordinator.deploy(settings.orderUpdateCoordinatorSettings))
+        OrderUpdateCoordinator.deploy(injector, settings.orderUpdateCoordinatorSettings))
 
       Routers.setRouters(
         OrderUpdater.name,
-        OrderUpdater.deploy(settings.orderUpdaterSettings))
+        OrderUpdater.deploy(injector, settings.orderUpdaterSettings))
 
       Routers.setRouters(
         OrderWriter.name,
-        OrderWriter.deploy(settings.orderWriterSettings))
+        OrderWriter.deploy(injector, settings.orderWriterSettings))
 
       Routers.setRouters(
         OrderAccessor.name,
-        OrderAccessor.deploy(settings.orderAccessorSettings))
+        OrderAccessor.deploy(injector, settings.orderAccessorSettings))
 
       Routers.setRouters(
         OrderBookManager.name,
-        OrderBookManager.deploy(settings.orderBookManagerSettingsSeq))
+        OrderBookManager.deploy(injector, settings.orderBookManagerSettingsSeq))
 
       Routers.setRouters(
         OrderBookReader.name,
-        OrderBookReader.deploy(settings.orderBookReaderSettingsSeq))
+        OrderBookReader.deploy(injector, settings.orderBookReaderSettingsSeq))
 
       Routers.setRouters(
         RingFinder.name,
-        RingFinder.deploy(settings.ringFinderSettingsSeq))
+        RingFinder.deploy(injector, settings.ringFinderSettingsSeq))
 
       Routers.setRouters(
         RingMiner.name,
-        RingMiner.deploy(settings.ringMinerSettingsSeq))
+        RingMiner.deploy(injector, settings.ringMinerSettingsSeq))
   }
 
 }

@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
 import akka.routing._
@@ -27,15 +29,16 @@ import org.loopring.lightcone.proto.deployment._
 object OrderBookReader
   extends base.Deployable[OrderBookReaderSettings] {
   val name = "order_book_reader"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderBookReader])
 
   def getCommon(s: OrderBookReaderSettings) =
-    base.CommonSettings(s.id, s.roles, s.instances)
+    base.CommonSettings(Option(s.id), s.roles, s.instances)
 }
 
-class OrderBookReader() extends Actor {
+class OrderBookReader()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
+
   def receive: Receive = {
     case settings: OrderBookReaderSettings =>
     case _ =>

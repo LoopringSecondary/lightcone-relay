@@ -9,3 +9,12 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt
+
+
+jobs:
+  include:
+    - stage: compile
+      script: sbt compile
+    #- stage: test
+    #  script: sbt test
+

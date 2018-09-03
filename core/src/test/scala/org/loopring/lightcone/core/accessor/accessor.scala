@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.accessor
+package org.loopring.lightcone.core
 
 import akka.actor.ActorSystem
 import akka.util.Timeout

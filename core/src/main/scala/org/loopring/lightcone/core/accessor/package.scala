@@ -16,21 +16,16 @@
 
 package org.loopring.lightcone.core
 
+import akka.stream._
+import scala.util._
+import akka.http.scaladsl.model._
+import akka.stream.scaladsl._
+import akka.http.scaladsl._
+import scala.concurrent.Promise
+
 package object accessor {
-
-  case class JsonRpcRequest(
-    id: Int,
-    jsonrpc: String,
-    method: String,
-    params: Seq[Any])
-
-  case class GethClientConfig(
-    host: String,
-    port: Int,
-    ssl: Boolean = false)
-
-  case class DebugParams(
-    timeout: String,
-    tracer: String)
-
+  type HttpFlow = Flow[ //
+  (HttpRequest, Promise[HttpResponse]), //
+  (Try[HttpResponse], Promise[HttpResponse]), //
+  Http.HostConnectionPool]
 }
