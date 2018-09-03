@@ -19,15 +19,27 @@ package org.loopring.lightcone.core.accessor
 import akka.actor._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
+import com.typesafe.config.Config
+import com.google.inject._
 
-class EthClientImpl(
-  val config: GethClientConfig,
-  val abiStrMap: Map[String, String])(
+class EthClientImpl @Inject() (
+  val config: Config,
+  val abi: ContractABI)(
   implicit
   val system: ActorSystem)
+
   extends EthClient with JsonRpcSupport {
 
-  val uri = s"http://${config.host}:${config.port}"
+  case class DebugParams(
+    timeout: String,
+    tracer: String)
+
+  val uri = {
+    val host = config.getString("ethereum.host")
+    val port = config.getInt("ethereum.port")
+    val ssl = config.getBoolean("ethereum.ssl")
+    s"http://${host}:${port}"
+  }
 
   // eth actions
   def ethGetBalance(req: EthGetBalanceReq) =

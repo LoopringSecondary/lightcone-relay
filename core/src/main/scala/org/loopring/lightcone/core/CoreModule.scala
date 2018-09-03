@@ -23,6 +23,7 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.accessor._
 import com.typesafe.config.Config
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
@@ -36,11 +37,15 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     implicit val cluster = Cluster(system)
 
     bind[Config].toInstance(config)
+    bind[ContractABI].toInstance(new ContractABI(config.getConfig("abi")))
+
     bind[ActorSystem].toInstance(system)
     bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
+
     bind[Timeout].toInstance(new Timeout(2 seconds))
+    bind[EthClient].to[EthClientImpl].in[Singleton]
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
   }

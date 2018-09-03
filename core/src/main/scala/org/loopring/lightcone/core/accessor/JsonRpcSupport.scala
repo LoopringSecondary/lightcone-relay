@@ -30,12 +30,12 @@ import org.json4s.native.Serialization
 
 trait JsonRpcSupport {
   implicit val system: ActorSystem
-  val abiStrMap: Map[String, String]
+  val abi: ContractABI
   val uri: String
 
   implicit lazy val materializer = ActorMaterializer()
   implicit lazy val executionContext = system.dispatcher
-  implicit lazy val erc20Abi = Abi.fromJson(abiStrMap("erc20"))
+  implicit lazy val erc20Abi = abi.get("erc20")
 
   val id: Int = 1
   val JSON_RPC_VERSION = "2.0"
@@ -44,6 +44,12 @@ trait JsonRpcSupport {
   val ETH_CALL = "eth_call"
 
   implicit val formats = Serialization.formats(NoTypeHints)
+
+  case class JsonRpcRequest(
+    id: Int,
+    jsonrpc: String,
+    method: String,
+    params: Seq[Any])
 
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
     method: String)(

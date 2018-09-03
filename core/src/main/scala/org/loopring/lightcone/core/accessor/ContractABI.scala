@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.accessor
 
-package object accessor {
+import scala.concurrent._
+import com.typesafe.config.Config
+import org.loopring.lightcone.lib.solidity.Abi
 
-  case class JsonRpcRequest(
-    id: Int,
-    jsonrpc: String,
-    method: String,
-    params: Seq[Any])
-
-  case class GethClientConfig(
-    host: String,
-    port: Int,
-    ssl: Boolean = false)
-
-  case class DebugParams(
-    timeout: String,
-    tracer: String)
-
+case class ContractABI(config: Config) {
+  def getAbiJsonString(str: String): String = config.getString(str)
+  def get(str: String): Abi = Abi.fromJson(getAbiJsonString("erc20"))
 }
