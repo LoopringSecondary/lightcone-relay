@@ -63,7 +63,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       deny = false,
       market = true)))
 
-  implicit val timeout = Timeout(5 seconds)
+  implicit val timeout = Timeout(2 seconds)
   implicit val supporter = AbiSupporter()
   implicit val geth = new EthClientImpl(config, supporter, httpFlow)
   implicit val ringConverter = new RingConverter()

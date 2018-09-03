@@ -115,8 +115,12 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
       .withR(ByteString.copyFrom(rList(1).getBytes()))
       .withS(ByteString.copyFrom(sList(1).getBytes()))
 
-    Ring().withOrders(Seq(maker, taker))
+    val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)
       .withFeeSelection(feeSelection.intValue())
+
+    println(ring.toProtoString)
+
+    ring
   }
 }

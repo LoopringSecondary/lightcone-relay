@@ -118,18 +118,18 @@ class BlockchainEventExtractor()(implicit
 
   // todo
   def unpackMinedTransaction(tx: MinedTransaction): Seq[Any] = {
-    //Seq(unpackSingleInput(tx.trace.input))
-    Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
+    Seq(unpackSingleInput(tx.trace.input))
+    //Seq(tx.receipt.logs.map(unpackSingleEvent(_)))
     //++ tx.trace.calls.map(x => decode(x.input)).seq
   }
 
   def unpackPendingTransaction(tx: Transaction): Seq[Any] = ???
 
   // todo 这里需要整合所有的数据到一个transaction里面,对于callArgs&transaction&receipt统一处理
-  def unpackSingleInput(tx: Transaction): Any = {
-    val sig = abiSupporter.findTransactionFunctionSig(tx.input)
+  def unpackSingleInput(input: String): Any = {
+    val sig = abiSupporter.findTransactionFunctionSig(input)
     if (abiSupporter.isSupportedFunctionSig(sig)) {
-      val decodedinput = abiSupporter.getInputBytes(tx.input)
+      val decodedinput = abiSupporter.getInputBytes(input)
       val abi = abiSupporter.findFunctionWithSig(sig)
       val decodedseq = abi.decode(decodedinput).toArray().toSeq
 
