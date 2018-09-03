@@ -57,11 +57,12 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[Timeout].toInstance(new Timeout(2 seconds))
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
-    bind[HttpFlow].toInstance {
-      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+    val httpFlow = Http()
+      .cachedHostConnectionPool[Promise[HttpResponse]](
         host = config.getString("ethereum.host"),
         port = config.getInt("ethereum.port"))
-    }
+
+    bind[HttpFlow].toInstance(httpFlow)
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
     bind[OrderDatabase].to[MySQLOrderDatabase]
