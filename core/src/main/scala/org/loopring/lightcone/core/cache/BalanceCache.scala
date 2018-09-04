@@ -16,6 +16,13 @@
 
 package org.loopring.lightcone.core.cache
 
+import org.loopring.lightcone.proto.balance._
+
+import scala.concurrent.Future
+
 trait BalanceCache {
+  def GetBalances(req: GetBalancesReq): Future[Option[GetBalancesResp]]
+  def GetAllowances(req: GetAllowancesReq): Future[Option[GetAllowancesResp]]
+  def GetBalanceAndAllowances(req: GetBalancesReq): Future[Option[GetBalanceAndAllowanceResp]]
 
 }
