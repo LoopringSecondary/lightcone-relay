@@ -42,12 +42,12 @@ case class OrderFill(
 
 case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), gasPrice: BigInt = BigInt(0), gasLimit: BigInt = BigInt(0), miner: String = "", orderFills: Map[String, OrderFill] = Map())
 
-class RingEvaluation(
-  walletSplit1: Rational = Rational(8, 10),
-  gasUsedOfOrders1: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000))(implicit ec: ExecutionContext, timeout: Timeout) {
+case class RingEvaluation(
+  walletSplit: Rational = Rational(8, 10),
+  gasUsedOfOrders: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000))(implicit ec: ExecutionContext, timeout: Timeout) {
 
-  var walletSplit = walletSplit1
-  var gasUsedOfOrders = gasUsedOfOrders1
+//  var walletSplit = walletSplit1
+//  var gasUsedOfOrders = gasUsedOfOrders1
 
   var avaliableAmounts: concurrent.Map[String, BigInt] = new ConcurrentHashMap[String, BigInt]() asScala
   var orderFillAmount = Map[String, BigInt]()
