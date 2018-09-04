@@ -21,6 +21,7 @@ import akka.pattern._
 import akka.util.Timeout
 import org.loopring.lightcone.core.actors.base._
 import org.loopring.lightcone.core.routing._
+import org.loopring.lightcone.core.utils.{ RingEvaluation, RingSubmit }
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.ring._
 
@@ -40,6 +41,8 @@ class RingMiner()(implicit
   timeout: Timeout)
   extends RepeatedJobActor {
   var marketIds = Seq[String]()
+  var evaluator = new RingEvaluation()
+  var submitter = new RingSubmit()
 
   override def receive: Receive = super.receive orElse {
     case settings: RingMinerSettings =>
@@ -52,19 +55,17 @@ class RingMiner()(implicit
     resps <- Future.sequence(finders.map { _ ? GetRingCandidates() })
       .mapTo[Seq[RingCandidates]]
     ringCandidates = RingCandidates(resps.flatMap(_.rings))
-    ringToSettleSeq <- Routers.ringEvaluator ? ringCandidates
+    ringsToSettle <- evaluator.getRingCadidatesToSettle(ringCandidates)
   } yield {
-    ringToSettleSeq match {
-      case r: RingToSettleSeq =>
-        Routers.ringSubmitter ! r
-        val decisions = decideRingCandidates(ringCandidates.rings, r.rings.flatMap(_.ring))
-        decisions foreach { decision =>
-          val finderId = "" //todo:
-          Routers.ringFinder(finderId) ! decision
-        }
-      case _ =>
+    //submit
+    val decisions = decideRingCandidates(ringCandidates.rings, ringsToSettle.map(_.rawRing))
+    decisions foreach { decision =>
+      val finderId = "" //todo:
+      Routers.ringFinder(finderId) ! decision
     }
+    for (cadidate <- ringsToSettle) {
 
+    }
   }
 
   def decideRingCandidates(ringCandidates: Seq[Ring], settledRings: Seq[Ring]): Seq[RingSettlementDecision] = {

@@ -145,19 +145,11 @@ message RingFinderSettings {
 message RingMinerSettings {
     string address = 1;
     repeated string roles = 2;
-    repeated string marketIds = 3;
-    int64 scheduleDelay = 4;
-}
-
-message RingEvaluatorSettings {
-    string id = 1;
-    repeated string roles = 2;
-    int64 wallet_split = 3;
-}
-
-message RingSubmitterSettings {
-    string id = 1;
-    repeated string roles = 2;
+    repeated string market_ids = 3;
+    int64 schedule_delay = 4;
+    int64 wallet_split = 5;
+    string miner = 6;
+    map<int32,int64> gas_used_of_orders = 7;
 }
 
 message DynamicSettings {
@@ -182,8 +174,6 @@ message DynamicSettings {
     repeated RingFinderSettings ring_finder_settings_seq = 104;
     repeated RingMinerSettings ring_miner_settings_seq = 105;
     map<string, MarketConfig> markets_settings = 106;
-    repeated RingSubmitterSettings ring_submitter_settings_seq = 107;
-    repeated RingEvaluatorSettings ring_evaluator_settings_seq = 108;
 
 }
 

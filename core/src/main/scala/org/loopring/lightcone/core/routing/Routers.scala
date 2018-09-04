@@ -53,6 +53,4 @@ object Routers extends RouterMap {
   def orderBookManager(id: String) = getRouterNamed(OrderBookManager.name, id)
   def orderBookReader(id: String) = getRouterNamed(OrderBookReader.name, id)
   def ringMiner(address: String) = getRouterNamed(RingMiner.name, address)
-  def ringEvaluator = getRouterNamed(RingEvaluator.name)
-  def ringSubmitter = getRouterNamed(RingSubmitter.name)
 }
