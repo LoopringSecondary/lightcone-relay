@@ -17,15 +17,11 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import akka.util.ByteString
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import org.loopring.lightcone.core.persistence.{ LightconePersistenceModuleImpl, PersistenceModule }
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
+import slick.basic.DatabaseConfig
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -42,15 +38,20 @@ object OrderDBAccessor
 
 class OrderDBAccessor() extends Actor {
   implicit val executor = ExecutionContext.global
+
+  //TODO(xiaolu) replace this by guice
+  val module = new LightconePersistenceModuleImpl(DatabaseConfig.forConfig(""))
+
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>
-      writeToDB(s.orders)
-      Future {
-        s.orders
-      }
+      sender ! module.orders.saveOrderEntity()
+      sender ! module.db.run(module.orders
+        .saveOrderEntity(
+          org.loopring.lightcone.core.persistence.entities.Order(0L, "", 0L, 0L)))
+
     case chainRolledBack: ChainRolledBack => rollbackOrders(chainRolledBack.detectedBlockNumber)
     case changeLogs: NotifyRollbackOrders =>
 
