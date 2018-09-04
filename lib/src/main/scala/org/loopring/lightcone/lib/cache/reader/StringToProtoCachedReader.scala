@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.lib.cache.reader
 
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent.Promise
+import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.cache.serializer._
 
-package object accessor {
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
+import scala.concurrent._
+
+final class StringToProtoCachedReader[T <: scalapb.GeneratedMessage with scalapb.Message[T]](
+  val underlying: Reader[String, T])(
+  implicit
+  val ex: ExecutionContext,
+  val underlyingCache: ByteArrayCache,
+  c: scalapb.GeneratedMessageCompanion[T])
+  extends CachedReader[String, T] {
+
+  val cache = new StringToProtoCache[T](
+    underlyingCache,
+    new ProtoSerializer)
 }

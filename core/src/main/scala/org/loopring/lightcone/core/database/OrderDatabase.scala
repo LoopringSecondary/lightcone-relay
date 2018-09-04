@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.database
 
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent.Promise
+trait OrderDatabase {
 
-package object accessor {
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
 }

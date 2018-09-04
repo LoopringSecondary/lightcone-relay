@@ -26,15 +26,15 @@ class BalanceOfSpec extends FlatSpec {
 
   "balance" should "encode params and return amount of big number" in {
     val req = GetBalanceReq()
-      .withOwner(accessor.owner)
-      .withToken(accessor.lrc)
+      .withOwner(owner)
+      .withToken(lrc)
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- accessor.geth.getBalance(req)
+      resp <- ethClient.getBalance(req)
     } yield resp
 
-    val tx = Await.result(resultFuture, accessor.timeout.duration)
+    val tx = Await.result(resultFuture, timeout.duration)
 
     info(tx.result)
   }

@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.lib.cache.reader
 
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent.Promise
+import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.cache.serializer._
 
-package object accessor {
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
+import scala.concurrent._
+
+trait Reader[R, T] {
+  def read(req: R): Future[Option[T]]
+  def read(reqs: Seq[R]): Future[Map[R, T]]
 }
