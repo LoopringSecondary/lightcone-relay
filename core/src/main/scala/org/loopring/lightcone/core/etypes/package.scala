@@ -16,12 +16,27 @@
 
 package org.loopring.lightcone.core
 
+import java.math.BigInteger
+
 package object etypes {
 
   implicit class RichByteArray(bytes: Array[Byte]) {
-    def asAddress: Address = Address(bytes)
-    def asHash: Hash = Hash(bytes)
-    def asBig: Big = Big(bytes)
+
+    def asAddress(): Address = Address(bytes)
+
+    def asHash(): Hash = Hash(bytes)
+
+    def asBigInt(): BigInt = {
+      val str = new String(bytes).toLowerCase
+      if (!str.startsWith("0x")) BigInt(bytes)
+      else BigInt(str.substring(2))
+    }
+
+    def asBigInteger(): BigInteger = {
+      val str = new String(bytes).toLowerCase
+      if (!str.startsWith("0x")) new BigInteger(bytes)
+      else new BigInteger(str.substring(2))
+    }
   }
 
 }

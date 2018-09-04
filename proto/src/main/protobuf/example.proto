@@ -12,91 +12,13 @@ package com.loopring.lightcone.proto;
 
 message EampleTest {}
 
-//message Demo {
-//    reserved 4, 10; // reserved 在删除某个字段时使用，这样避免其他新增加字段再使用10，导致冲突和隐藏bug
-//    string query = 1; // proto3 所有字段都是optional的，这是和proto2的区别
-//    int64 demoId = 2; // int只支持32位和64位，但是分多种情况，使用效率会有一点点区别， 建议我们统一只使用int32和int64，在java中分别对应int和long
-//    double price = 3; // 字段定义并在线上运行后，不要再修改字段类型，避免反序列化问题
-//    // float amount = 4; //reserved , 强行使用会有编译错误
-//    int32 high = 5; //
-//
-//    bytes private_key = 11; // 基础类型在没有初始化的情况下，一定会有默认值，比如string是空字符串，int型是0，枚举类型是数据id=0的那个，repeated类型，是空list
-//                            // 所以这里建议，业务逻辑不要对字段的默认值有依赖，比如boolean类型的false，代码走什么特殊逻辑，这样会出问题
-//                            //自定义类型是语言相关的，具体请参考 https://developers.google.com/protocol-buffers/docs/reference/java-generated
-//    int32 margin_split_percentage = 12; //数据id不需要保持有序，但最好是顺序的； 字段命名方式，请按照官方例子采用下划线分割单词的方式，生成的java文件中会是驼峰命名
-//    string order_hash = 15; // 数字id不要超过15，虽然proto3支持的范围很大，如果有需要超过的情况，请将部分信息包装成另外的自定义类型，再放在里面
-//
-//}
-//
-//enum DemoStatus {
-//    // option allow_alias = true; // 是否支持别名，最好是false，或者不要写这行
-//    NEW = 0; // proto3枚举类型数据id，必须以0开头
-//    FINISHED = 1;
-//    CANCELLED = 2;
-//    // CUTOFF = 2;  enum支持别名，即相同数字id可以是同一个字段，最好不要使用
-//}
-//
-//message Trade {
-//    string ring_hash = 1;
-//    int64 create_time = 2;
-//    repeated Order orders = 3; // repeated 关键字对应Java里的list
-//}
-//
-//message Order {
-//    string order_hash = 1;
-//    int64 amount = 2;
-//    message Context { // 内嵌类型，外部message也可以使用，内嵌可以支持多层内嵌
-//        string desp = 1;
-//        int64 meta_type = 2;
-//        message NestedNestedMsg {
-//            int64 nested = 1;
-//                      }
-//        NestedNestedMsg nested = 3;
-//    }
-//}
-//
-//message TestNested {
-//    Order.Context ctx = 1; // 这里是使用Order内嵌类型Context例子，需要加Order前缀, 如果外部类型也需要其他message内嵌类型，最好将该内嵌类型放在第一层级定义
-//}
-//
-//// message更新
-//// 新增：新增字段不会影响旧代码序列化问题
-//// 删除：删除字段，一定要在reserved中指定，并注释掉该字段，虽然proto3提供了其他方法，但这里建议统一使用这种方式
-//// 指定字段的数字id并投入线上使用后，请一定不要再更改数字id
-//// 字段类型可以修改，但是是部分兼容，比如string和bytes在UTF-8编码情况下是兼容的，具体哪些是兼容的，请参考：https://developers.google.com/protocol-buffers/docs/proto3  Update A Message Type 部分
-//// 这里也是建议，尽量不要修改字段类型
-//
-//
-//// Any 是一个包含bytes的任意类型
-//message ErrorStatus {
-//    string message = 1;
-////    repeated google.protobuf.Any details = 2; // 要使用Any，请import any.proto
-//    map<string, Order> order_map = 3; // proto 支持map，但是key只能是integer和string，貌似也不支持这种嵌套map： map<string, map<string, Order>>
-//}
-//
-//// oneof类型， oneof包裹的多个字段，只有最后被设置的值会生效，还没想到我们哪个场景会用到这个
-//message Foo {
-//    oneof test_oneof {
-//        string name = 1;
-//        int32 id = 2;
-//    }
-//}
-//
-//message DemoQuery {
-//
-//}
-//
-//// proto同样支持接口service定义， 但是我们这里应该只有jsonrpc可能会用到， 应该不太需要
-//service SearchService {
-//    rpc Search (DemoQuery) returns (Order);
-//}
-//
-//// json序列化
-//// protobuf 提供了json序列化库protobuf-java-format， 一般情况下，event的序列化以及消息传递，都是由akka完成，但有时候我们需要打印日志或者其他用途，可以使用这个库里面的方法
-//
-//// options protobuf提供了两个级别的options配置，为了定制化需求，一般情况下，我们也不会用，比如文件级别的 option java_package = "com.example.foo"; 指定特殊package的
-//// 再比如message级别的上面OrderStatus里面的allow_alias
-//
-//// 最后，以上例子应该能满足我们绝大部分使用场景，比较全的参考文档有两篇：
-//// https://developers.google.com/protocol-buffers/docs/proto3
-//// https://developers.google.com/protocol-buffers/docs/reference/java-generated
+
+message Example1Req{
+    string id = 1;
+}
+message Example1Resp{}
+
+message Example2Req{
+    string id = 1;
+}
+message Example2Resp{}

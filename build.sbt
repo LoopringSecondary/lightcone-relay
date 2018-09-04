@@ -31,10 +31,12 @@ lazy val core = (project in file("core"))
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
-    libraryDependencies ++= akkaDenepdencies)
+    libraryDependencies ++= akkaDenepdencies,
+    libraryDependencies ++= Seq(
+      "net.codingwell" %% "scala-guice" % "4.2.1"))
 
 lazy val lightcone = (project in file("."))
-  .aggregate(proto, core)
+  .aggregate(proto, lib, core)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,

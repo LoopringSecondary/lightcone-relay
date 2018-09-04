@@ -18,6 +18,7 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.deployment._
@@ -25,15 +26,15 @@ import org.loopring.lightcone.proto.deployment._
 object BalanceReader
   extends base.Deployable[BalanceReaderSettings] {
   val name = "balance_reader"
-  val isSingleton = false
-
-  def props = Props(classOf[BalanceReader])
 
   def getCommon(s: BalanceReaderSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceReader()(implicit timeout: Timeout) extends Actor {
+class BalanceReader()(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
 
   def receive: Receive = {
     case settings: BalanceReaderSettings =>

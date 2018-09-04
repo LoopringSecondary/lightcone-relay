@@ -16,11 +16,13 @@
 
 package org.loopring.lightcone.core.etypes
 
-case class Hash(bytes: Array[Byte]) {
-
+object Hash {
   val HASH_LENGTH = 42
+}
 
-  def valid(): Boolean = bytes.length.equals(HASH_LENGTH)
+case class Hash(val bytes: Array[Byte]) {
+  def isValid: Boolean =
+    bytes != null && bytes.length.equals(Hash.HASH_LENGTH)
 
   override def toString: String = new String(bytes)
 }

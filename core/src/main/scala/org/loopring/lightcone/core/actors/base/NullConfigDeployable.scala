@@ -23,14 +23,17 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import com.google.inject._
 
 case class NullConfig()
 
 abstract class NullConfigDeployable extends Deployable[NullConfig] {
   def getCommon(s: NullConfig): CommonSettings = getCommon()
-  def getCommon() = CommonSettings("", Seq.empty, 1)
+  def getCommon() = CommonSettings(None, Seq.empty, 1)
 
-  def deploy()(implicit cluster: Cluster): Map[String, ActorRef] =
-    deploy(Seq(NullConfig()))
+  def deploy(injector: Injector)(
+    implicit
+    cluster: Cluster): Map[String, ActorRef] =
+    deploy(injector, Seq(NullConfig()))
 }
 

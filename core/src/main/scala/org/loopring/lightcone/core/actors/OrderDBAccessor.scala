@@ -16,41 +16,43 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.util.Timeout
+import scala.concurrent.ExecutionContext
 import akka.actor._
-import org.loopring.lightcone.core.persistence.{ LightconePersistenceModuleImpl, PersistenceModule }
+import akka.cluster._
+import akka.routing._
+import akka.cluster.routing._
+import akka.util.ByteString
+import org.loopring.lightcone.core.routing.Routers
+import com.typesafe.config.Config
+import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import slick.basic.DatabaseConfig
-
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent._
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
   val name = "order_db_accessor"
-  val isSingleton = false
-
-  def props = Props(classOf[OrderDBAccessor])
 
   def getCommon(s: OrderDBAccessorSettings) =
-    base.CommonSettings("", s.roles, s.instances)
+    base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor() extends Actor {
-  implicit val executor = ExecutionContext.global
-
-  //TODO(xiaolu) replace this by guice
-  val module = new LightconePersistenceModuleImpl(DatabaseConfig.forConfig(""))
+class OrderDBAccessor(db: OrderDatabase)(implicit
+  ec: ExecutionContext,
+  timeout: Timeout)
+  extends Actor {
 
   def receive: Receive = {
     case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>
-      sender ! module.orders.saveOrderEntity()
-      sender ! module.db.run(module.orders
-        .saveOrderEntity(
-          org.loopring.lightcone.core.persistence.entities.Order(0L, "", 0L, 0L)))
+//      sender ! module.orders.saveOrderEntity()
+//      sender ! module.db.run(module.orders
+//        .saveOrderEntity(
+//          org.loopring.lightcone.core.persistence.entities.Order(0L, "", 0L, 0L)))
 
     case chainRolledBack: ChainRolledBack => rollbackOrders(chainRolledBack.detectedBlockNumber)
     case changeLogs: NotifyRollbackOrders =>
