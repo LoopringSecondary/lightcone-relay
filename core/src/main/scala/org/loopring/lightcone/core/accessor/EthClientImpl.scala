@@ -17,18 +17,10 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import scala.concurrent._
+import com.google.inject._
+import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
-import com.typesafe.config.Config
-import com.google.inject._
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import com.google.inject.name._
-import scala.concurrent.Future
 
 class EthClientImpl @Inject() (
   val abi: ContractABI,
@@ -100,7 +92,7 @@ class EthClientImpl @Inject() (
       Seq(args, req.tag)
     }
 
-  def sendRawTransaction(req: SendRawTransactionReq): Future[SendRawTransactionRes] =
+  def sendRawTransaction(req: SendRawTransactionReq) =
     httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
       Seq(req.data)
     }
