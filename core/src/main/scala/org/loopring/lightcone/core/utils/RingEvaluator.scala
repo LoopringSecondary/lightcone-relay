@@ -41,9 +41,11 @@ case class OrderFill(
   receivedFiat: Rational = Rational(0),
   feeSelection: Byte = 0.toByte)
 
-case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), gasPrice: BigInt = BigInt(0), gasLimit: BigInt = BigInt(0), miner: String = "", orderFills: Map[String, OrderFill] = Map())
+case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), gasPrice: BigInt = BigInt(0), gasLimit: BigInt = BigInt(0), orderFills: Map[String, OrderFill] = Map())
 
 case class RingEvaluator(
+  miner: String = "",
+  lrcAddress: String,
   walletSplit: Rational = Rational(8, 10),
   gasUsedOfOrders: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000))(implicit ec: ExecutionContext, timeout: Timeout) {
 
@@ -137,8 +139,7 @@ case class RingEvaluator(
         ringReceivedFiat = orderFillsMap.foldLeft(Rational(0))(_ + _._2.receivedFiat)
         gasPrice = Rational(1) //todo:fiat
         gasFiat = Rational(gasUsedOfOrders(orderFillsStep2.size)) * gasPrice
-        submitter = ""
-      } yield Some(RingCandidate(rawRing = ring, receivedFiat = ringReceivedFiat - gasFiat, miner = submitter, orderFills = orderFillsMap))
+      } yield Some(RingCandidate(rawRing = ring, receivedFiat = ringReceivedFiat - gasFiat, orderFills = orderFillsMap))
     }
   } yield res
 
@@ -181,9 +182,9 @@ case class RingEvaluator(
   }
 
   private def computeFeeOfOrder(orderFill: OrderFill): Future[(Byte, Rational)] = for {
-    feeReceiptLrcAmount <- getAvailableAmount(
-      orderFill.rawOrder.owner,
-      orderFill.rawOrder.tokenS,
+    submitterLrcAmount <- getAvailableAmount(
+      miner,
+      lrcAddress,
       orderFill.rawOrder.delegateAddress)
     splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
       Rational(1)

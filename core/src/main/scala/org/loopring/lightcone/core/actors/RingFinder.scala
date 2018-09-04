@@ -61,18 +61,18 @@ class RingFinder()(implicit
       orderManager ! MarkOrdersDeferred(deferOrders =
         m.ringSettlementDecisions
           .filter(r => r.decision == SettlementDecision.UnSettled)
-          .flatMap(r => r.orders.map(o => DeferOrder(orderhash = "orderhash", deferredTime = 100))))
+          .flatMap(r => r.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100))))
 
-      orderManager ! MarkOrdersSettling(orderHashes = m.ringSettlementDecisions
+      orderManager ! MarkOrdersSettling(ordersSettleAmount = m.ringSettlementDecisions
         .filter(r => r.decision == SettlementDecision.Settled)
-        .flatMap(r => r.orders.map(o => "orderhash")))
+        .flatMap(r => r.ordersSettleAmount))
 
     case getFinderRingCandidates: GetRingCandidates =>
       sender() ! RingCandidates()
 
     case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled =>
       orderManager ! MarkOrdersDeferred(deferOrders =
-        m.orders.map(o => DeferOrder(orderhash = "orderhash", deferredTime = 100)))
+        m.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100)))
 
   }
 

@@ -32,7 +32,7 @@ case class RingSubmitter(
   chainId: Byte = 0.toByte,
   keystorePwd: String = "",
   keystoreFile: String = "") {
-  val submitter: Credentials = WalletUtils.loadCredentials(keystorePwd, keystoreFile)
+  val credentials: Credentials = WalletUtils.loadCredentials(keystorePwd, keystoreFile)
 
   var currentNonce = new AtomicInteger(1) //todo: 启动时,nonce需要初始化, 结合以太坊以及数据库的数据
 
@@ -45,7 +45,7 @@ case class RingSubmitter(
       contract,
       BigInt(0).bigInteger,
       inputData)
-    val signedMessage = signTx(rawTransaction, submitter)
+    val signedMessage = signTx(rawTransaction, credentials)
     ethClient.sendRawTransaction(SendRawTransactionReq(data = BigInt(signedMessage).toHex))
   }
 
