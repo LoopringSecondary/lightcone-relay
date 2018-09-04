@@ -31,11 +31,11 @@ class EthGetBalanceSpec extends FlatSpec {
       .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
       .withTag("latest")
     val respFuture = for {
-      resp <- accessor.geth.ethGetBalance(req)
+      resp <- ethClient.ethGetBalance(req)
     } yield resp.result
 
-    val result = Await.result(respFuture, accessor.timeout.duration)
-    val amount = Big(result.getBytes()).toString()
+    val result = Await.result(respFuture, timeout.duration)
+    val amount = result.getBytes.asBigInt.toString()
     info(s"geth eth_getBalance amount is $amount")
   }
 }

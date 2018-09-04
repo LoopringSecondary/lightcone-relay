@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.accessor
 
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent.Promise
+import scala.concurrent._
+import com.typesafe.config.Config
+import org.loopring.lightcone.lib.solidity.Abi
 
-package object accessor {
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
+case class ContractABI(config: Config) {
+  def getAbiJsonString(str: String): String = config.getString(str)
+  def get(str: String): Abi = Abi.fromJson(getAbiJsonString("erc20"))
 }

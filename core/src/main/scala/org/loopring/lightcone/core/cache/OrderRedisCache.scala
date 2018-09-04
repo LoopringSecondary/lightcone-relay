@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.core.cache
 
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent.Promise
+import org.loopring.lightcone.lib.cache._
 
-package object accessor {
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
+import redis._
+import com.google.inject._
+
+final class OrderRedisCache @Inject() (
+  redis: RedisCluster)
+  extends OrderCache {
+
 }
