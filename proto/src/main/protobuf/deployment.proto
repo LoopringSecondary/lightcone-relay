@@ -148,8 +148,11 @@ message RingMinerSettings {
     repeated string market_ids = 3;
     int64 schedule_delay = 4;
     int64 wallet_split = 5;
-    string miner = 6;
-    map<int32,int64> gas_used_of_orders = 7;
+    string keystore_pwd = 6;
+    string keystore_file = 7;
+    int32 chain_id = 8;
+    string contract = 9;
+    map<int32, int32> gas_used_of_orders = 10;
 }
 
 message DynamicSettings {

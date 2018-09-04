@@ -18,18 +18,19 @@ package org.loopring.lightcone.core.utils
 
 import java.util.concurrent.ConcurrentHashMap
 
+import akka.pattern._
+import akka.util.Timeout
 import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.balance.{ GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp }
 import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring.{ Ring, RingCandidates }
-import akka.pattern._
-import akka.util.Timeout
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.collection.concurrent
+import scala.concurrent.{ ExecutionContext, Future }
+
 case class OrderFill(
   rawOrder: RawOrder,
   sPrice: Rational,
@@ -37,17 +38,14 @@ case class OrderFill(
   fillAmountS: Rational,
   fillAmountB: Rational,
   reduceRate: Rational,
-  receivedFiat: Rational,
-  feeSelection: Byte)
+  receivedFiat: Rational = Rational(0),
+  feeSelection: Byte = 0.toByte)
 
 case class RingCandidate(rawRing: Ring, receivedFiat: Rational = Rational(0), gasPrice: BigInt = BigInt(0), gasLimit: BigInt = BigInt(0), miner: String = "", orderFills: Map[String, OrderFill] = Map())
 
-case class RingEvaluation(
+case class RingEvaluator(
   walletSplit: Rational = Rational(8, 10),
   gasUsedOfOrders: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000))(implicit ec: ExecutionContext, timeout: Timeout) {
-
-//  var walletSplit = walletSplit1
-//  var gasUsedOfOrders = gasUsedOfOrders1
 
   var avaliableAmounts: concurrent.Map[String, BigInt] = new ConcurrentHashMap[String, BigInt]() asScala
   var orderFillAmount = Map[String, BigInt]()
@@ -62,24 +60,25 @@ case class RingEvaluation(
     ringCandidates = candidates.rings
       .map(r => Some(RingCandidate(rawRing = r)))
 
-    ringsToSettle <- getRingForSubmit(Seq(), ringCandidates)
+    ringsToSettle <- getRingCadidatesToSettle(Seq(), ringCandidates)
       .mapTo[Seq[Option[RingCandidate]]]
   } yield ringsToSettle.filter(_.nonEmpty).map(_.get)
 
   //  @tailrec
-  final def getRingForSubmit(candidatesForSubmit: Seq[Option[RingCandidate]], candidates: Seq[Option[RingCandidate]]) = for {
-    ringCandidates <- Future.sequence(candidates
-      .filter(_.nonEmpty)
-      .map(c => generateRingCandidate(c.get.rawRing)))
+  private def getRingCadidatesToSettle(candidatesForSubmit: Seq[Option[RingCandidate]], candidates: Seq[Option[RingCandidate]]) =
+    for {
+      ringCandidates <- Future.sequence(candidates
+        .filter(_.nonEmpty)
+        .map(c => generateRingCandidate(c.get.rawRing)))
 
-    //    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
-    //    (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
-    //    if (candidatesComputeAgain.size <= 0) {
-    //      candidatesForSubmit ++ candidatesForSubmit1
-    //    } else {
-    //    getRingForSubmit(candidatesForSubmit ++ candidatesForSubmit1, candidatesComputeAgain)
-    //    }
-  } yield ringCandidates
+      //    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
+      //    (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
+      //    if (candidatesComputeAgain.size <= 0) {
+      //      candidatesForSubmit ++ candidatesForSubmit1
+      //    } else {
+      //    getRingForSubmit(candidatesForSubmit ++ candidatesForSubmit1, candidatesComputeAgain)
+      //    }
+    } yield ringCandidates
 
   //余额以及授权金额
   private def getAvailableAmount(address: String, token: String, delegate: String): Future[BigInt] = for {
@@ -87,8 +86,12 @@ case class RingEvaluation(
       Future.successful(avaliableAmounts.getOrElse(address, BigInt(0)))
     else
       for {
-        resp <- (Routers.balanceManager ? GetBalanceAndAllowanceReq(address = address, tokens = Seq(token), delegates = Seq(delegate))).mapTo[GetBalanceAndAllowanceResp]
-      } yield resp.balances(0).amount.asBigInt min resp.allowances(0).tokenAmounts(0).amount.asBigInt
+        resp <- (
+          Routers.balanceManager ? GetBalanceAndAllowanceReq(
+            address = address,
+            tokens = Seq(token),
+            delegates = Seq(delegate))).mapTo[GetBalanceAndAllowanceResp]
+      } yield resp.balances.head.amount.asBigInt min resp.allowances.head.tokenAmounts.head.amount.asBigInt
   } yield amount
 
   private def priceReduceRate(ring: Ring): Rational = {
@@ -122,7 +125,7 @@ case class RingEvaluation(
             amountS = rawOrder.amountS.asBigInt
             rateAmountS = Rational(amountS) * reduceRate
             (fillAmountS, fillAmountB, sPrice) <- computeFillAmountStep1(rawOrder, reduceRate)
-          } yield OrderFill(rawOrder, sPrice, rateAmountS, fillAmountS, fillAmountB, reduceRate, Rational(1), 0.toByte)
+          } yield OrderFill(rawOrder, sPrice, rateAmountS, fillAmountS, fillAmountB, reduceRate)
         }).mapTo[Seq[OrderFill]]
         orderFillsStep2 = computeFillAmountStep2(orderFillsStep1)
         orderFillsSeq <- Future.sequence(orderFillsStep2.map { orderFill =>

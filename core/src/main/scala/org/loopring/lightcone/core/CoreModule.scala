@@ -16,18 +16,20 @@
 
 package org.loopring.lightcone.core
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
 import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
-import org.loopring.lightcone.core.actors._
-import com.typesafe.config.Config
 import akka.util.Timeout
+import com.google.inject._
+import com.google.inject.name._
+import com.typesafe.config.Config
+import net.codingwell.scalaguice._
+import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.actors._
+import redis._
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import redis._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -218,10 +220,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("ring_miner")
-  def getRingMinerProps()(implicit
+  def getRingMinerProps(@Inject() ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingMiner()) // .withDispatcher("ring-dispatcher")
+    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
   }
 
 }

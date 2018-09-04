@@ -18,9 +18,9 @@ package org.loopring.lightcone.lib.math
 
 import java.math.{ MathContext, RoundingMode }
 
-import scala.math.{ BigInt, Ordered, ScalaNumber, ScalaNumericConversions }
+import scala.math._
 
-final class Rational(numerator: BigInt, denominator: BigInt)
+class Rational(numerator: BigInt, denominator: BigInt)
   extends ScalaNumber with ScalaNumericConversions with Serializable with Ordered[Rational] {
   require(denominator.signum != 0)
   private val gcd = if (numerator.signum == 0) BigInt(1) else numerator gcd denominator
@@ -31,7 +31,7 @@ final class Rational(numerator: BigInt, denominator: BigInt)
 
   def +(that: Rational) = {
     new Rational(
-      numerator = this.num * that.denom + (this.denom * that.num),
+      numerator = (this.num * that.denom) + (this.denom * that.num),
       denominator = this.denom * that.denom)
   }
 
@@ -58,6 +58,9 @@ final class Rational(numerator: BigInt, denominator: BigInt)
   def max(that: Rational): Rational = if (this.num * that.denom > this.denom * that.num) this else that
 
   def pow(exp: Rational) = {
+    require(
+      Rational(Rational.MaxDoubleValue.toBigInt()) > this ||
+        Rational(Rational.MaxDoubleValue.toBigInt()) > exp)
     math.pow(this.doubleValue(), exp.doubleValue())
   }
 
@@ -94,7 +97,6 @@ final class Rational(numerator: BigInt, denominator: BigInt)
     }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
-
 }
 
 object Rational {
