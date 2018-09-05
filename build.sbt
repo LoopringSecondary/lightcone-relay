@@ -32,6 +32,7 @@ lazy val core = (project in file("core"))
     basicSettings,
     libraryDependencies ++= commonDependency,
     libraryDependencies ++= akkaDenepdencies,
+    libraryDependencies ++= ethereumDependency,
     libraryDependencies ++= Seq(
       "net.codingwell" %% "scala-guice" % "4.2.1"))
 
