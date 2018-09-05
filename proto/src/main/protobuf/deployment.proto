@@ -142,17 +142,25 @@ message RingFinderSettings {
     int64 scheduleDelay = 3;
 }
 
+message RingSubmitterSettings {
+    string keystore_pwd = 1;
+    string keystore_file = 2;
+    int32 chain_id = 3;
+    string contract = 4;
+}
+
+message RingEvaluatorSettings {
+    int64 wallet_split = 1;
+    map<int32, int32> gas_used_of_orders = 2;
+}
+
 message RingMinerSettings {
     string address = 1;
     repeated string roles = 2;
     repeated string market_ids = 3;
     int64 schedule_delay = 4;
-    int64 wallet_split = 5;
-    string keystore_pwd = 6;
-    string keystore_file = 7;
-    int32 chain_id = 8;
-    string contract = 9;
-    map<int32, int32> gas_used_of_orders = 10;
+    RingSubmitterSettings submitter_settings = 5;
+    RingEvaluatorSettings evaluator_settings = 6;
 }
 
 message DynamicSettings {

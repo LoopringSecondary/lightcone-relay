@@ -16,43 +16,11 @@
 
 package org.loopring.lightcone.core.utils
 
-import java.util.concurrent.atomic.AtomicInteger
-
-import org.loopring.lightcone.core.accessor.EthClient
-import org.loopring.lightcone.core.etypes._
-import org.loopring.lightcone.proto.eth_jsonrpc.{ SendRawTransactionReq, SendRawTransactionRes }
-import org.web3j.crypto.{ Credentials, RawTransaction, TransactionEncoder, WalletUtils }
-import org.web3j.tx.ChainId
+import org.loopring.lightcone.proto.eth_jsonrpc.SendRawTransactionRes
 
 import scala.concurrent.Future
 
-case class RingSubmitter(
-  ethClient: EthClient,
-  contract: String = "",
-  chainId: Byte = 0.toByte,
-  keystorePwd: String = "",
-  keystoreFile: String = "") {
-  val credentials: Credentials = WalletUtils.loadCredentials(keystorePwd, keystoreFile)
-
-  var currentNonce = new AtomicInteger(1) //todo: 启动时,nonce需要初始化, 结合以太坊以及数据库的数据
-
-  def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes] = {
-    val inputData = "" //todo:
-    val rawTransaction = RawTransaction.createTransaction(
-      BigInt(currentNonce.getAndIncrement()).bigInteger,
-      ring.gasPrice.bigInteger,
-      ring.gasLimit.bigInteger,
-      contract,
-      BigInt(0).bigInteger,
-      inputData)
-    val signedMessage = signTx(rawTransaction, credentials)
-    ethClient.sendRawTransaction(SendRawTransactionReq(data = BigInt(signedMessage).toHex))
-  }
-
-  def signTx(rawTransaction: RawTransaction, credentials: Credentials): Array[Byte] = {
-    if (chainId > ChainId.NONE)
-      TransactionEncoder.signMessage(rawTransaction, chainId, credentials)
-    else
-      TransactionEncoder.signMessage(rawTransaction, credentials)
-  }
+trait RingSubmitter {
+  def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes]
+  def getSubmitterAddress(): String
 }

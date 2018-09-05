@@ -245,7 +245,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("ring_miner")
-  def getRingMinerProps(@Inject() ethClient: EthClient)(implicit
+  def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
     Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
