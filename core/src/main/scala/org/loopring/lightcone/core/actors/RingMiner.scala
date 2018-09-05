@@ -44,6 +44,7 @@ class RingMiner(ethClient: EthClient)(implicit
   timeout: Timeout)
   extends RepeatedJobActor {
   val lrcAddress = "0xef68e7c694f40c8202821edf525de3782458639f"
+
   var marketIds = Seq[String]()
   var submitter: RingSubmitter = null
   var evaluator: RingEvaluator = null
@@ -97,8 +98,11 @@ class RingMiner(ethClient: EthClient)(implicit
     ringsToSettle.foreach(submitter.signAndSendTx)
   }
 
-  def decideRingCandidates(ringCandidates: Seq[Ring], settledRings: Seq[RingCandidate]): Seq[RingSettlementDecision] = {
+  def decideRingCandidates(
+    ringCandidates: Seq[Ring],
+    settledRings: Seq[RingCandidate]): Seq[RingSettlementDecision] = {
     val settledRingHashSet = settledRings.map(_.rawRing.hash).toSet
+
     ringCandidates.map { candidate =>
       if (settledRingHashSet.contains(candidate.hash))
         RingSettlementDecision(
