@@ -188,7 +188,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(db))
   }
 
   @Provides

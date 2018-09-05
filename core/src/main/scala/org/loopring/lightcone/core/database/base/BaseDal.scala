@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.persistence.base
+package org.loopring.lightcone.core.database.base
 
-import org.loopring.lightcone.core.persistence.PersistenceModule
+import org.loopring.lightcone.core.database.OrderDatabase
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.CanBeQueryCondition
 
@@ -25,8 +25,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait BaseDal[T, A] {
   def insert(row: A): Future[Long]
   def insert(rows: Seq[A]): Future[Seq[Long]]
-//  def update(row: A): Future[Int]
-//  def update(rows: Seq[A]): Future[Unit]
+  def update(row: A): Future[Int]
+  def update(rows: Seq[A]): Future[Unit]
   def findById(id: Long): Future[Option[A]]
   def findByFilter[C: CanBeQueryCondition](f: (T) => C): Future[Seq[A]]
   def deleteById(id: Long): Future[Int]
@@ -36,34 +36,32 @@ trait BaseDal[T, A] {
   def displayTableSchema()
 }
 
-trait BaseDalImpl[T <: BaseTable[A], A] extends BaseDal[T, A] {
+trait BaseDalImpl[T <: BaseTable[A], A <: BaseEntity] extends BaseDal[T, A] {
   val query: TableQuery[T]
-  val module: PersistenceModule
+  val module: OrderDatabase
 
   implicit val db = module.db
   implicit val profile = module.profile
-  //TODO(xiaolu) replace executor to slick used only executor
-  implicit val executor = ExecutionContext.global
+  implicit val executor = module.dbec
 
   import profile.api._
-
-  // TODO(fukun): when to throw exception, which kind of exception should be throwed
 
   override def insert(row: A): Future[Long] = {
     insert(Seq(row)).map(_.head)
   }
 
   override def insert(rows: Seq[A]): Future[Seq[Long]] = {
-    db.run(query returning query.map(_.id) ++= rows)
+    db.run(query returning query.map(_.id) ++= rows.filter(_.isValid))
   }
 
-//  override def update(row: A): Future[Int] = {
-//    db.run(query.filter(_.id === row.id).update(row))
-//  }
-//
-//  override def update(rows: Seq[A]): Future[Unit] = {
-//    db.run(DBIO.seq(rows.map(r => query.filter(_.id === r.id).update(r)): _*))
-//  }
+  override def update(row: A): Future[Int] = {
+    if (row.isValid) db.run(query.filter(_.id === row.id).update(row))
+    else Future.successful(0)
+  }
+
+  override def update(rows: Seq[A]): Future[Unit] = {
+    db.run(DBIO.seq((rows.filter(_.isValid).map(r => query.filter(_.id === r.id).update(r))): _*))
+  }
 
   override def findById(id: Long): Future[Option[A]] = {
     db.run(query.filter(_.id === id).result.headOption)

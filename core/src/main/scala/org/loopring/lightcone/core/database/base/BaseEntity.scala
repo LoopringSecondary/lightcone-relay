@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.persistence
+package org.loopring.lightcone.core.database.base
 
-import slick.jdbc.MySQLProfile.api._
-
-package object tables {
-  val ordersQ = TableQuery[Orders]
-  val tradesQ = TableQuery[Trades]
-  val fillsQ = TableQuery[Fills]
-  val ledgerEntriesQ = TableQuery[LedgerEntries]
+trait BaseEntity {
+  val id: Long
+  def isValid: Boolean = true
 }

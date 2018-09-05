@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.persistence.tables
+package org.loopring.lightcone.core.database.tables
 
-import org.loopring.lightcone.core.persistence.base._
-import org.loopring.lightcone.proto.order.Order
+import org.loopring.lightcone.core.database.base._
+import org.loopring.lightcone.core.database.entities._
 import slick.jdbc.MySQLProfile.api._
+import slick.collection.heterogeneous.{ HList, HCons, HNil }
 
 class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def protocol = column[String]("protocol", O.SqlType("VARCHAR(64)"))
@@ -54,16 +55,13 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def market = column[String]("market", O.SqlType("VARCHAR(32)"))
   def side = column[String]("side", O.SqlType("VARCHAR(32)"))
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
-  //  def * = (id, orderId, userId, accountCategory, status, price, originalInLimit, originalOutLimit,
-  //    executedInAmount, executedOutAmount, inLimit, outLimit, marketId, side, takerOnly, refundAmount,
-  //    refundReason, createdAt, updatedAt) <> (Order.tupled, Order.unapply)
-  //
-  def * = (id, orderHash) <> (Order.tupled, Order.unapply)
+
+  //TODO(xiaolu) 这里需要仔细测试一下字段为空mapping的数据正确性
+  def * = id :: protocol :: delegateAddress :: owner :: authAddress :: privateKey :: walletAddress :: orderHash ::
+    tokenS :: tokenB :: amountS :: amountB :: validSince :: validUntil :: lrcFee :: buyNoMoreThanAmountB ::
+    marginSplitPercentage :: v :: r :: s :: powNonce :: updatedBlock :: dealtAmountS :: dealtAmountB :: cancelledAmountS ::
+    cancelledAmountB :: splitAmountS :: splitAmountB :: status :: minerBlockMark :: broadcastTime :: market :: side ::
+    orderType :: updatedAt :: createdAt :: HNil
   def idx = index("idx_order_hash", orderHash, unique = true)
 
-  def s = {
-    val tt = Test.tupled("")
-  }
 }
-
-case class Test(a : String)
