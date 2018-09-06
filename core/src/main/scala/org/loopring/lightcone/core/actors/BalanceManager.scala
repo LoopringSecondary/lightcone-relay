@@ -57,15 +57,15 @@ class BalanceManager()(
       this.settings = settings
 
     case req: GetBalancesReq =>
-      caching.askFor[GetBalancesReq, GetBalancesResp, GetBalancesResp](
+      caching.askFor[GetBalancesReq, GetBalancesResp, CacheBalanceInfo](
         req).pipeTo(sender)
 
     case req: GetAllowancesReq =>
-      caching.askFor[GetAllowancesReq, GetAllowancesResp, GetAllowancesResp](
+      caching.askFor[GetAllowancesReq, GetAllowancesResp, CacheBalanceInfo](
         req).pipeTo(sender)
 
     case req: GetBalanceAndAllowanceReq =>
-      caching.askFor[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, GetBalanceAndAllowanceResp](
+      caching.askFor[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, CacheBalanceInfo](
         req).pipeTo(sender)
   }
 }
