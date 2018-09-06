@@ -19,7 +19,6 @@ package org.loopring.lightcone.core.database.tables
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.entities._
 import slick.jdbc.MySQLProfile.api._
-import slick.collection.heterogeneous.{ HList, HCons, HNil }
 
 class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def protocol = column[String]("protocol", O.SqlType("VARCHAR(64)"))
@@ -56,12 +55,9 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def side = column[String]("side", O.SqlType("VARCHAR(32)"))
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
 
-  //TODO(xiaolu) 这里需要仔细测试一下字段为空mapping的数据正确性
-  def * = id :: protocol :: delegateAddress :: owner :: authAddress :: privateKey :: walletAddress :: orderHash ::
-    tokenS :: tokenB :: amountS :: amountB :: validSince :: validUntil :: lrcFee :: buyNoMoreThanAmountB ::
-    marginSplitPercentage :: v :: r :: s :: powNonce :: updatedBlock :: dealtAmountS :: dealtAmountB :: cancelledAmountS ::
-    cancelledAmountB :: splitAmountS :: splitAmountB :: status :: minerBlockMark :: broadcastTime :: market :: side ::
-    orderType :: updatedAt :: createdAt :: HNil
+  def * = (id, rawOrderProjection, updatedBlock, dealtAmountS, dealtAmountB, cancelledAmountS, cancelledAmountB, splitAmountS, splitAmountB, status, minerBlockMark, broadcastTime, powNonce, market, updatedAt, createdAt) <> (Order.tupled, Order.unapply)
+  def rawOrderProjection = (protocol, delegateAddress, owner, authAddress, privateKey, walletAddress, orderHash, tokenS, tokenB, amountS, amountB, validSince, validUntil, lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, v, r, s, side, orderType) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
+
   def idx = index("idx_order_hash", orderHash, unique = true)
 
 }

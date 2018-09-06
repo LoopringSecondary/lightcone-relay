@@ -20,6 +20,23 @@ import org.loopring.lightcone.core.database.base._
 
 case class Order(
   id: Long = 0L,
+  rawOrder: RawOrder,
+  updatedBlock: Long,
+  dealtAmountS: String,
+  dealtAmountB: String,
+  cancelledAmountS: String,
+  cancelledAmountB: String,
+  splitAmountS: String,
+  splitAmountB: String,
+  status: Int,
+  minerBlockMark: Long,
+  broadcastTime: Long = 0L,
+  powNonce: Long,
+  market: String,
+  createdAt: Long,
+  updatedAt: Long) extends BaseEntity
+
+case class RawOrder(
   protocol: String,
   delegateAddress: String,
   owner: String,
@@ -39,20 +56,6 @@ case class Order(
   v: Int,
   r: String,
   s: String,
-  powNonce: Long,
-  updatedBlock: Long,
-  dealtAmountS: String,
-  dealtAmountB: String,
-  cancelledAmountS: String,
-  cancelledAmountB: String,
-  splitAmountS: String,
-  splitAmountB: String,
-  status: Int,
-  minerBlockMark: Long,
-  broadcastTime: Long = 0L,
-  market: String,
   side: String,
   orderType: String,
-  createdAt: Long,
-  updatedAt: Long) extends BaseEntity
-
+  )

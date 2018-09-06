@@ -26,7 +26,9 @@ import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.core.database.entities.Order
-import scala.util.{ Success, Failure }
+import org.loopring.lightcone.core.database.entities.RawOrder
+
+import scala.util.{ Failure, Success }
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -43,8 +45,8 @@ class OrderDBAccessor(db: OrderDatabase)(implicit
 
   implicit def rawOrderToEntity(o: org.loopring.lightcone.proto.order.Order): Order = {
     val now = DateTime.now().toDate.getTime / 1000
-    Order(
-      0L,
+
+    val rawOrder = RawOrder(
       o.rawOrder.get.protocol,
       o.rawOrder.get.delegateAddress,
       o.rawOrder.get.owner,
@@ -64,7 +66,12 @@ class OrderDBAccessor(db: OrderDatabase)(implicit
       o.rawOrder.get.v,
       o.rawOrder.get.r,
       o.rawOrder.get.s,
-      o.rawOrder.get.powNonce,
+      o.rawOrder.get.side.toString(),
+      o.rawOrder.get.orderType.toString())
+
+    Order(
+      0L,
+      rawOrder,
       o.updatedBlock,
       o.dealtAmountS,
       o.dealtAmountB,
@@ -75,9 +82,8 @@ class OrderDBAccessor(db: OrderDatabase)(implicit
       o.status.value,
       0L,
       0L,
+      o.rawOrder.get.powNonce,
       o.rawOrder.get.market,
-      o.rawOrder.get.side.toString(),
-      o.rawOrder.get.orderType.toString(),
       now,
       now)
   }
