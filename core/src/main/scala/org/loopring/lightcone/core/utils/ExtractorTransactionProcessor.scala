@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.assemble._
 import org.loopring.lightcone.lib.abi.AbiSupporter
-import org.loopring.lightcone.proto.block_chain_event.{ FullTransaction, RingMined, AddressBalanceChanged }
+import org.loopring.lightcone.proto.block_chain_event.{ FullTransaction, RingMined, Transfer }
 import org.loopring.lightcone.proto.eth_jsonrpc.{ GetTransactionReceiptReq, Log, TraceTransactionReq, Transaction }
 import org.loopring.lightcone.proto.ring.Ring
 import org.loopring.lightcone.proto.token.TokenList
@@ -45,7 +45,7 @@ class ExtractorTransactionProcessorImpl @Inject() (
   val abiSupporter: AbiSupporter,
   val ringAssembler: Assembler[Ring],
   val ringMinedAssembler: Assembler[RingMined],
-  val transferEventAssembler: Assembler[AddressBalanceChanged]) extends ExtractorTransactionProcessor {
+  val transferEventAssembler: Assembler[Transfer]) extends ExtractorTransactionProcessor {
 
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.list.map(x => safeAddress(x.protocol))

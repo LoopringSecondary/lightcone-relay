@@ -34,7 +34,7 @@ import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.lib.cache.ByteArrayCache
-import org.loopring.lightcone.proto.block_chain_event.{ AddressBalanceChanged, RingMined }
+import org.loopring.lightcone.proto.block_chain_event.{ Transfer, RingMined }
 import org.loopring.lightcone.proto.ring.Ring
 import org.loopring.lightcone.proto.token.TokenList
 import redis._
@@ -55,7 +55,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
     bind[Timeout].toInstance(new Timeout(2 seconds))
-    bind[AbiSupporter].toInstance(AbiSupporter())
+    bind[AbiSupporter].to[AbiSupporter].in[Singleton]
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
     val httpFlow = Http()
@@ -77,7 +77,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
     bind[Assembler[Ring]].to[AssembleRingImpl]
     bind[Assembler[RingMined]].to[AssembleRingMinedImpl]
-    bind[Assembler[AddressBalanceChanged]].to[AssembleTransferEventImpl]
+    bind[Assembler[Transfer]].to[AssembleTransferEventImpl]
 
     bind[TokenList].toInstance(TokenList(list = Seq()))
     bind[ExtractorBlockDetector].to[ExtractorBlockDetectorImpl].in[Singleton]

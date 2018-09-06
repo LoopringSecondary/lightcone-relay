@@ -40,6 +40,6 @@ class AllowanceSpec extends FlatSpec {
 
     val tx = Await.result(resultFuture, timeout.duration)
 
-    info(tx.result)
+    info(tx.result.toString)
   }
 }

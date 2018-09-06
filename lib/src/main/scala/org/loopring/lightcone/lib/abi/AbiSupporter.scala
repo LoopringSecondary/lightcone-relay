@@ -16,13 +16,21 @@
 
 package org.loopring.lightcone.lib.abi
 
+import com.google.inject.Inject
+import com.typesafe.config._
 import org.loopring.lightcone.lib.solidity.Abi
 import org.spongycastle.util.encoders.Hex
 
-case class AbiSupporter() extends AbiData {
+case class AbiSupporter @Inject() (config: Config) {
 
   val prefix = "0x"
   val FunctionSigLength = 8
+
+  // todo typesafe 怎么去搞出来个map啊 真是无语
+  val abimap:Map[String, String] = Map(
+    "erc20" -> config.getString("abi.erc20"),
+    "impl" -> config.getString("abi.impl"),
+  )
 
   val FN_SUBMIT_RING = "submitRing"
   val EV_RING_MINED = "RingMined"
@@ -32,6 +40,39 @@ case class AbiSupporter() extends AbiData {
   val FN_TRANSFER_FROM = "transferFrom"
   val EV_TRANSFER = "Transfer"
   val EV_APPROVAL = "Approval"
+
+  val (sigFuncMap: Map[String, Abi.Function],
+    sigEvtMap: Map[String, Abi.Event],
+    nameFuncMap: Map[String, Abi.Function],
+    nameEvtMap: Map[String, Abi.Event]) = {
+
+    var fmap: Map[String, Abi.Function] = Map()
+    var emap: Map[String, Abi.Event] = Map()
+    var nfmap: Map[String, Abi.Function] = Map()
+    var nemap: Map[String, Abi.Event] = Map()
+
+    abimap.map(x => {
+      val iter = Abi.fromJson(x._2).iterator()
+      while (iter.hasNext) {
+        iter.next() match {
+          case f: Abi.Function => {
+            val sig = Hex.toHexString(f.encodeSignature()).toLowerCase()
+            println(s"abi ${x._1} function ${f.name} --> ${sig}")
+            fmap += sig -> f
+            nfmap += f.name -> f
+          }
+          case e: Abi.Event => {
+            val sig = Hex.toHexString(e.encodeSignature()).toLowerCase()
+            println(s"abi ${x._1} event ${e.name} --> ${sig}")
+            emap += sig -> e
+            nemap += e.name -> e
+          }
+        }
+      }
+    })
+
+    (fmap, emap, nfmap, nemap)
+  }
 
   def signature(e: Abi.Entry) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 

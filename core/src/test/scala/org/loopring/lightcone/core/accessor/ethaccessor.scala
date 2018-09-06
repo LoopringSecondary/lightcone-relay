@@ -34,11 +34,11 @@ package object ethaccessor {
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
     port = config.getInt("ethereum.port"))
-  val supporter = AbiSupporter()
+  val supporter = AbiSupporter(config)
   val queueSize = 5
 
+  implicit val timeout = Timeout(5 seconds)
   val geth = new EthClientImpl(supporter, httpFlow, queueSize)
-  val timeout = Timeout(5 seconds)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"
   val lrc = "0xcd36128815ebe0b44d0374649bad2721b8751bef"
