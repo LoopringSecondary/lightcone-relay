@@ -25,9 +25,10 @@ object BalanceManagerCachingFacilitators {
 
   implicit val getBalancesReqFacilitator = new ActorCachingFacilitator[GetBalancesReq, GetBalancesResp, CacheBalanceInfo] {
     def genCacheRequest(req: GetBalancesReq, uncachedResp: GetBalancesResp): Option[CacheBalanceInfo] = {
-      Some(CacheBalanceInfo(
-        address = uncachedResp.address,
-        balances = uncachedResp.balances))
+      if (uncachedResp.balances.nonEmpty)
+        Some(CacheBalanceInfo(address = uncachedResp.address, balances = uncachedResp.balances))
+      else
+        None
     }
 
     def genSourceRequest(req: GetBalancesReq, cachedResp: GetBalancesResp): Option[GetBalancesReq] = {
@@ -43,7 +44,7 @@ object BalanceManagerCachingFacilitators {
 
     def mergeResponses(req: GetBalancesReq, cachedResp: GetBalancesResp, uncachedResp: GetBalancesResp): GetBalancesResp = {
       val mergedResp = GetBalancesResp()
-        .withAddress(cachedResp.address)
+        .withAddress(req.address)
         .withBalances(cachedResp.balances ++ uncachedResp.balances)
       mergedResp
     }
@@ -51,9 +52,10 @@ object BalanceManagerCachingFacilitators {
 
   implicit val getAllowancesReqFacilitator = new ActorCachingFacilitator[GetAllowancesReq, GetAllowancesResp, CacheBalanceInfo] {
     def genCacheRequest(req: GetAllowancesReq, uncachedResp: GetAllowancesResp): Option[CacheBalanceInfo] = {
-      Some(CacheBalanceInfo(
-        address = uncachedResp.address,
-        allowances = uncachedResp.allowances))
+      if (uncachedResp.allowances.nonEmpty)
+        Some(CacheBalanceInfo(address = uncachedResp.address, allowances = uncachedResp.allowances))
+      else
+        None
     }
 
     def genSourceRequest(req: GetAllowancesReq, cachedResp: GetAllowancesResp): Option[GetAllowancesReq] = {
@@ -71,17 +73,20 @@ object BalanceManagerCachingFacilitators {
 
     def mergeResponses(req: GetAllowancesReq, cachedResp: GetAllowancesResp, uncachedResp: GetAllowancesResp): GetAllowancesResp = {
       GetAllowancesResp()
-        .withAddress(cachedResp.address)
+        .withAddress(req.address)
         .withAllowances(cachedResp.allowances ++ uncachedResp.allowances)
     }
   }
 
   implicit val getBalanceAndAllowanceReqFacilitator = new ActorCachingFacilitator[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, CacheBalanceInfo] {
     def genCacheRequest(req: GetBalanceAndAllowanceReq, uncachedResp: GetBalanceAndAllowanceResp): Option[CacheBalanceInfo] = {
-      Some(CacheBalanceInfo(
-        address = uncachedResp.address,
-        balances = uncachedResp.balances,
-        allowances = uncachedResp.allowances))
+      if (uncachedResp.balances.nonEmpty || uncachedResp.allowances.nonEmpty)
+        Some(CacheBalanceInfo(
+          address = uncachedResp.address,
+          balances = uncachedResp.balances,
+          allowances = uncachedResp.allowances))
+      else
+        None
     }
 
     def genSourceRequest(req: GetBalanceAndAllowanceReq, cachedResp: GetBalanceAndAllowanceResp): Option[GetBalanceAndAllowanceReq] = {
@@ -102,7 +107,7 @@ object BalanceManagerCachingFacilitators {
 
     def mergeResponses(req: GetBalanceAndAllowanceReq, cachedResp: GetBalanceAndAllowanceResp, uncachedResp: GetBalanceAndAllowanceResp): GetBalanceAndAllowanceResp = {
       GetBalanceAndAllowanceResp()
-        .withAddress(cachedResp.address)
+        .withAddress(req.address)
         .withAllowances(cachedResp.allowances ++ uncachedResp.allowances)
         .withBalances(cachedResp.balances ++ uncachedResp.balances)
     }

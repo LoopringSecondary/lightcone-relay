@@ -16,13 +16,18 @@
 
 package org.loopring.lightcone.core.cache
 
+import org.loopring.lightcone.core.cache.redishash.RedisHashCache
 import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.cache.CacheBalanceInfo
+import redis.RedisCluster
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-trait BalanceCache {
-  def GetBalances(req: GetBalancesReq): Future[Option[GetBalancesResp]]
-  def GetAllowances(req: GetAllowancesReq): Future[Option[GetAllowancesResp]]
-  def GetBalanceAndAllowances(req: GetBalancesReq): Future[Option[GetBalanceAndAllowanceResp]]
-
+trait BalanceCache extends RedisHashCache {
+  val redis: RedisCluster
+  implicit val ec: ExecutionContext
+  def getBalances(req: GetBalancesReq): Future[GetBalancesResp]
+  def getAllowances(req: GetAllowancesReq): Future[GetAllowancesResp]
+  def getBalanceAndAllowances(req: GetBalanceAndAllowanceReq): Future[GetBalanceAndAllowanceResp]
+  def addCache(cacheInfo: CacheBalanceInfo): Future[Boolean]
 }
