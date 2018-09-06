@@ -61,7 +61,7 @@ class AssembleRingMinedImpl extends Assembler[RingMined] {
    */
 
   // todo: safeBig处理负数还是有点问题
-  def convert(list: Seq[Any]): Seq[RingMined] = {
+  def convert(list: Seq[Any]): RingMined = {
 
     if (list.length != 5) {
       throw new Exception("length of decoded ringmined invalid")
@@ -123,7 +123,7 @@ class AssembleRingMinedImpl extends Assembler[RingMined] {
     val ring = RingMined().withFills(fills)
     println(ring.toProtoString)
 
-    Seq(ring)
+    ring
   }
 
   def txAddHeader(src: RingMined, tx: FullTransaction): RingMined = ???

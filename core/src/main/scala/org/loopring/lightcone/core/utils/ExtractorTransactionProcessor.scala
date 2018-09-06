@@ -81,7 +81,7 @@ class ExtractorTransactionProcessorImpl @Inject() (
 
       abi.name match {
         case abiSupporter.FN_SUBMIT_RING =>
-          ringAssembler.convert(decodedseq)
+          Seq(ringAssembler.convert(decodedseq))
       }
     } else {
       Seq()
@@ -99,9 +99,9 @@ class ExtractorTransactionProcessorImpl @Inject() (
 
       abi.name match {
         case abiSupporter.EV_RING_MINED =>
-          ringMinedAssembler.convert(decodedseq)
+          Seq(ringMinedAssembler.convert(decodedseq))
         case abiSupporter.EV_TRANSFER =>
-          transferEventAssembler.convert(decodedseq)
+          Seq(transferEventAssembler.convert(decodedseq))
         case _ => Seq()
       }
     } else {

@@ -22,7 +22,7 @@ import org.loopring.lightcone.proto.ring.Ring
 
 class AssembleRingImpl() extends Assembler[Ring] {
 
-  def convert(list: Seq[Any]): Seq[Ring] = {
+  def convert(list: Seq[Any]): Ring = {
     if (list.length != 9) {
       throw new Exception("length of ring invalid")
     }
@@ -113,7 +113,7 @@ class AssembleRingImpl() extends Assembler[Ring] {
     // todo: delete after debug and test
     println(ring.toProtoString)
 
-    Seq(ring)
+    ring
   }
 
   def txAddHeader(src: Ring, tx: FullTransaction): Ring = ???

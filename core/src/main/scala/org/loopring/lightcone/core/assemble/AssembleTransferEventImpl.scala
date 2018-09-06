@@ -16,35 +16,21 @@
 
 package org.loopring.lightcone.core.assemble
 
-import org.loopring.lightcone.proto.block_chain_event.{ AddressBalanceChanged, FullTransaction }
+import org.loopring.lightcone.proto.block_chain_event.{ Transfer, FullTransaction }
 
-class AssembleTransferEventImpl extends Assembler[AddressBalanceChanged] {
+class AssembleTransferEventImpl extends Assembler[Transfer] {
 
-  def convert(list: Seq[Any]): Seq[AddressBalanceChanged] = {
+  def convert(list: Seq[Any]): Transfer = {
     if (list.length != 3) {
       throw new Exception("length of transfer event invalid")
     }
 
-    val sender = scalaAny2Hex(list(0))
-    val receiver = scalaAny2Hex(list(1))
-    val value = scalaAny2Bigint(list(2))
-
-    val sendEvt = AddressBalanceChanged()
-      .withOwner(sender)
-      .withIncome(false)
-      .withValue(value.toString)
-
-    val recvEvt = AddressBalanceChanged()
-      .withOwner(receiver)
-      .withIncome(true)
-      .withValue(value.toString)
-
-    println(sendEvt.toProtoString)
-    println(recvEvt.toProtoString)
-
-    Seq(sendEvt, recvEvt)
+    Transfer()
+      .withSender(scalaAny2Hex(list(1)))
+      .withReceiver(scalaAny2Hex(list(0)))
+      .withValue(scalaAny2Hex(list(2)))
   }
 
-  def txAddHeader(src: AddressBalanceChanged, tx: FullTransaction): AddressBalanceChanged = ???
-  def txFullFilled(src: AddressBalanceChanged, tx: FullTransaction): AddressBalanceChanged = ???
+  def txAddHeader(src: Transfer, tx: FullTransaction): Transfer = ???
+  def txFullFilled(src: Transfer, tx: FullTransaction): Transfer = ???
 }

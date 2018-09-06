@@ -26,7 +26,7 @@ trait Assembler[T] {
 
   def txAddHeader(src: T, tx: FullTransaction): T
   def txFullFilled(src: T, tx: FullTransaction): T
-  def convert(list: Seq[Any]): Seq[T]
+  def convert(list: Seq[Any]): T
 
   def javaObj2Hex(src: Object): String = src match {
     case bs: Array[Byte] => Hex.toHexString(bs)

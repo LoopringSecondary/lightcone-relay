@@ -48,6 +48,14 @@ message AddressBalanceChanged {
     TxHeader tx_header = 5;
 }
 
+message Transfer {
+    string token = 1;
+    string sender = 2;
+    string receiver = 3;
+    string value = 4;
+    TxHeader tx_header = 5;
+}
+
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
     string ring_hash = 2;
