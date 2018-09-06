@@ -26,19 +26,19 @@ class TransferEventConverter extends ContractConverter[AddressBalanceChanged] wi
       throw new Exception("length of transfer event invalid")
     }
 
-    val sender = scalaAny2Hex(list(0)).asProtoByteString()
-    val receiver = scalaAny2Hex(list(1)).asProtoByteString()
-    val value = scalaAny2Bigint(list(2)).asProtoByteString()
+    val sender = scalaAny2Hex(list(0))
+    val receiver = scalaAny2Hex(list(1))
+    val value = scalaAny2Bigint(list(2))
 
     val sendEvt = AddressBalanceChanged()
       .withOwner(sender)
       .withIncome(false)
-      .withValue(value)
+      .withValue(value.toString)
 
     val recvEvt = AddressBalanceChanged()
       .withOwner(receiver)
       .withIncome(true)
-      .withValue(value)
+      .withValue(value.toString)
 
     println(sendEvt.toProtoString)
     println(recvEvt.toProtoString)

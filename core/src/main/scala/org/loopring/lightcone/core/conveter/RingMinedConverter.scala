@@ -71,12 +71,12 @@ class RingMinedConverter() extends ContractConverter[RingMined] with TypeConvert
       throw new Exception("length of decoded ringmined invalid")
     }
 
-    val ringindex = scalaAny2Bigint(list(0)).asProtoByteString()
-    val ringhash = scalaAny2Hex(list(1)).asProtoByteString()
-    val miner = scalaAny2Hex(list(2)).asProtoByteString()
-    val feeReceipt = scalaAny2Hex(list(3)).asProtoByteString()
+    val ringindex = scalaAny2Bigint(list(0))
+    val ringhash = scalaAny2Hex(list(1))
+    val miner = scalaAny2Hex(list(2))
+    val feeReceipt = scalaAny2Hex(list(3))
     val orderinfoList = list(4) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex(_).asProtoByteString())
+      case arr: Array[Object] => arr.map(javaObj2Hex)
       case _ => throw new Exception("ringmined orderinfo list type error")
     }
 
@@ -93,22 +93,22 @@ class RingMinedConverter() extends ContractConverter[RingMined] with TypeConvert
       val nxtOrderhashIdx = if (i.equals(length - 1)) 0 else (i + 1) * 7
 
       val lrcFeeOrReward = orderinfoList(start + 5)
-      val lrcFee = if (safeBig(lrcFeeOrReward.toByteArray).bigInteger.compareTo(BigInt(0)) > 0) {
+      val lrcFee = if (safeBig(lrcFeeOrReward.getBytes()).bigInteger.compareTo(BigInt(0)) > 0) {
         lrcFeeOrReward
       } else {
-        BigInt(0).asProtoByteString()
+        BigInt(0).toString()
       }
 
       val split = orderinfoList(start + 6)
-      val (splitS, splitB) = if (safeBig(split.toByteArray).bigInteger.compareTo(BigInt(0)) > 0) {
-        (split, BigInt(0).asProtoByteString())
+      val (splitS, splitB) = if (safeBig(split.getBytes()).bigInteger.compareTo(BigInt(0)) > 0) {
+        (split, BigInt(0).toString())
       } else {
-        (BigInt(0).asProtoByteString(), split)
+        (BigInt(0).toString(), split)
       }
 
       fills +:= OrderFilled()
         .withRingHash(ringhash)
-        .withRingIndex(ringindex)
+        .withRingIndex(ringindex.toString)
         .withFillIndex(i)
         .withOrderHash(orderinfoList(orderhashIdx))
         .withOwner(orderinfoList(start + 1))
@@ -119,19 +119,15 @@ class RingMinedConverter() extends ContractConverter[RingMined] with TypeConvert
         .withAmountS(orderinfoList(start + 3))
         .withAmountB(orderinfoList(nxtOrderhashIdx + 3))
         .withLrcReward(orderinfoList(start + 4))
-        .withLrcFee(lrcFee)
-        .withSplitS(splitS)
-        .withSplitB(splitB)
+        .withLrcFee(lrcFee.toString)
+        .withSplitS(splitS.toString)
+        .withSplitB(splitB.toString)
     }
 
     val ring = RingMined().withFills(fills)
     println(ring.toProtoString)
 
     Seq(ring)
-  }
-
-  def safeBig2ByteString(str: String): ByteString = {
-    ByteString.copyFrom(safeBig(str.getBytes()).toByteArray)
   }
 
   // safeAbs 当合约返回负数时做异或取反操作

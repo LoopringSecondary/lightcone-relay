@@ -17,23 +17,20 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-
+import com.google.inject._
+import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.spongycastle.util.encoders.Hex
-import com.google.inject._
-import com.typesafe.config.Config
 
 class EthClientImpl @Inject() (
-  val config: Config,
   val abiSupport: AbiSupporter,
-  val ethereumClientFlow: HttpFlow)(
+  val ethereumClientFlow: HttpFlow,
+  @Named("ethereum_conn_queuesize") val queueSize: Int)(
   implicit
   val system: ActorSystem)
 
   extends EthClient with JsonRpcSupport {
-
-  val queueSize = config.getInt("ethereum.queueSize")
 
   case class DebugParams(
     timeout: String,
@@ -96,6 +93,10 @@ class EthClientImpl @Inject() (
       Seq(args, req.tag)
     }
 
+  def sendRawTransaction(req: SendRawTransactionReq) =
+    httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
+      Seq(req.data)
+    }
   // def getEstimatedGas() = ???
 
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???

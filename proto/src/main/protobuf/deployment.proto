@@ -143,11 +143,25 @@ message RingFinderSettings {
     int64 scheduleDelay = 3;
 }
 
+message RingSubmitterSettings {
+    string keystore_pwd = 1;
+    string keystore_file = 2;
+    int32 chain_id = 3;
+    string contract = 4;
+}
+
+message RingEvaluatorSettings {
+    int64 wallet_split = 1;
+    map<int32, int32> gas_used_of_orders = 2;
+}
+
 message RingMinerSettings {
     string address = 1;
     repeated string roles = 2;
-    repeated string marketIds = 3;
-    int64 scheduleDelay = 4;
+    repeated string market_ids = 3;
+    int64 schedule_delay = 4;
+    RingSubmitterSettings submitter_settings = 5;
+    RingEvaluatorSettings evaluator_settings = 6;
 }
 
 // todo
@@ -171,11 +185,13 @@ message DynamicSettings {
     OrderWriterSettings order_writer_settings = 14;
     OrderAccessorSettings order_accessor_settings = 15;
 
+
     repeated OrderBookManagerSettings order_book_manager_settings_seq = 102;
     repeated OrderBookReaderSettings order_book_reader_settings_seq = 103;
     repeated RingFinderSettings ring_finder_settings_seq = 104;
     repeated RingMinerSettings ring_miner_settings_seq = 105;
     map<string, MarketConfig> markets_settings = 106;
+
 }
 
 

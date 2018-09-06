@@ -23,40 +23,40 @@ import com.google.protobuf.ByteString
 package object etypes {
 
   implicit class RichByteArray(bytes: Array[Byte]) {
-
     def asAddress(): Address = Address(bytes)
 
     def asHash(): Hash = Hash(bytes)
 
-    def asBigInt(): BigInt = {
-      val str = new String(bytes).toLowerCase
-      if (!str.startsWith("0x")) BigInt(bytes)
-      else BigInt(str.substring(2))
+    def asBigInt(): BigInt = new String(bytes).asBigInt
+
+    def asBigInteger(): BigInteger = new String(bytes).asBigInteger
+  }
+
+  implicit class RichString(hex: String) {
+
+    def asAddress: Address = hex.getBytes.asAddress()
+
+    def asHash: Hash = hex.getBytes.asHash()
+
+    def asBigInt: BigInt = {
+      if (!hex.toLowerCase.startsWith("0x")) BigInt(hex, 16)
+      else BigInt(hex.substring(2), 16)
     }
 
-    def asBigInteger(): BigInteger = {
-      val str = new String(bytes).toLowerCase
-      if (!str.startsWith("0x")) new BigInteger(bytes)
-      else new BigInteger(str.substring(2))
-    }
+    def asBigInteger: BigInteger = hex.asBigInt.bigInteger
 
     def asProtoByteString(): ByteString = {
-      ByteString.copyFrom(bytes)
+      ByteString.copyFrom(hex.getBytes())
     }
   }
 
-  implicit class RichString(str: String) {
+  implicit class RichBigint(i: BigInt) {
 
     def asProtoByteString(): ByteString = {
-      ByteString.copyFrom(str.getBytes())
+      ByteString.copyFrom(i.toByteArray)
     }
-  }
 
-  implicit class RichBigint(num: BigInt) {
-
-    def asProtoByteString(): ByteString = {
-      ByteString.copyFrom(num.toByteArray)
-    }
+    def toHex: String = "0x" + i.toString(16)
   }
 
 }

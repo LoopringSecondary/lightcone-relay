@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core.cache.actorcache
 
-import org.loopring.lightcone.lib.cache._
+import scala.reflect.Manifest
 
-import redis._
-import com.google.inject._
-
-final class OrderRedisCache @Inject() (
-  redis: RedisCluster)
-  extends OrderCache {
-
+trait ActorCachingFacilitator[R, T, C] {
+  def genSourceRequest(req: R, cachedResp: T): Option[R]
+  def mergeResponses(req: R, cachedResp: T, uncachedResp: T): T
+  def genCacheRequest(req: R, uncachedResp: T): Option[C]
 }

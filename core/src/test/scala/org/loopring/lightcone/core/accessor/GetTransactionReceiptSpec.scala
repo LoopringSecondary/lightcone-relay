@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.core.ethaccessor
+import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionReceiptReq
 import org.scalatest.FlatSpec
 
@@ -29,10 +29,10 @@ class GetTransactionReceiptSpec extends FlatSpec {
   "receipt" should "contain logs" in {
     val req = GetTransactionReceiptReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
-      resp <- ethaccessor.geth.getTransactionReceipt(req)
+      resp <- geth.getTransactionReceipt(req)
     } yield resp.result
 
-    val tx = Await.result(resultFuture, ethaccessor.timeout.duration)
+    val tx = Await.result(resultFuture, timeout.duration)
 
     info(tx.toString)
   }

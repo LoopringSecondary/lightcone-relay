@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core.utils
 
-import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.proto.eth_jsonrpc.SendRawTransactionRes
 
-import redis._
-import com.google.inject._
+import scala.concurrent.Future
 
-final class OrderRedisCache @Inject() (
-  redis: RedisCluster)
-  extends OrderCache {
-
+trait RingSubmitter {
+  def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes]
+  def getSubmitterAddress(): String
 }

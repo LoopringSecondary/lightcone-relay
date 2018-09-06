@@ -46,6 +46,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
     port = config.getInt("ethereum.port"))
+  val queueSize = 5
 
   implicit val tokenlist = TokenList(list = Seq[Token](
     Token(
@@ -66,7 +67,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
 
   implicit val timeout = Timeout(200 milli)
   implicit val supporter = AbiSupporter()
-  implicit val geth = new EthClientImpl(config, supporter, httpFlow)
+  implicit val geth = new EthClientImpl(supporter, httpFlow, queueSize)
   implicit val ringConverter = new RingConverter()
   implicit val ringminedConverter = new RingMinedConverter()
   implicit val transferEventConverter = new TransferEventConverter()

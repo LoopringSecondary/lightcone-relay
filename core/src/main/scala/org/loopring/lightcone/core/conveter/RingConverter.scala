@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.conveter
 
-import org.loopring.lightcone.proto.order.RawOrder
+import org.loopring.lightcone.proto.order.{ RawOrder, Order }
 import org.loopring.lightcone.proto.ring.Ring
 import org.loopring.lightcone.core.etypes._
 
@@ -30,7 +30,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     val addressList = list(0) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Hex(_).asProtoByteString())
+          case son: Array[Object] => son.map(javaObj2Hex)
           case _ => throw new Exception("submitRing sub addresses type error")
         })
       }
@@ -40,7 +40,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     val bigintList = list(1) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint(_).asProtoByteString())
+          case son: Array[Object] => son.map(javaObj2Bigint)
           case _ => throw new Exception("submitRing sub bigintArgs type error")
         })
       }
@@ -50,7 +50,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     val uintArgList = list(2) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint(_))
+          case son: Array[Object] => son.map(javaObj2Bigint)
           case _ => throw new Exception("submitRing sub uintArgs type error")
         })
       }
@@ -58,22 +58,22 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
     }
 
     val buyNoMoreThanAmountBList = list(3) match {
-      case arr: Array[Object] => arr.map(javaObj2Boolean(_))
+      case arr: Array[Object] => arr.map(javaObj2Boolean)
       case _ => throw new Exception("submitRing buyNoMoreThanAmountB type error")
     }
 
     val vList = list(4) match {
-      case arr: Array[Object] => arr.map(javaObj2Bigint(_))
+      case arr: Array[Object] => arr.map(javaObj2Bigint)
       case _ => throw new Exception("submitRing vlist type error")
     }
 
     val rList = list(5) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex(_).asProtoByteString())
+      case arr: Array[Object] => arr.map(javaObj2Hex)
       case _ => throw new Exception("submitRing rlist type error")
     }
 
     val sList = list(6) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex(_).asProtoByteString())
+      case arr: Array[Object] => arr.map(javaObj2Hex)
       case _ => throw new Exception("submitRing slist type error")
     }
 
@@ -81,30 +81,30 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
     val feeSelection = scalaAny2Bigint(list(8))
 
-    var orders: Seq[RawOrder] = Seq()
+    var raworders: Seq[RawOrder] = Seq()
     for (i <- 0 to 1) {
       val subAddrList = addressList(i)
       val subBigintList = bigintList(i)
 
-      orders +:= RawOrder()
+      raworders +:= RawOrder()
         .withOwner(subAddrList(0))
         .withTokenS(subAddrList(1))
         .withWalletAddress(subAddrList(2))
         .withAuthAddr(subAddrList(3))
-        .withAmountS(subBigintList(0))
-        .withAmountB(subBigintList(1))
-        .withValidSince(subBigintList(2).toByteArray.asBigInt().toLong)
-        .withValidUntil(subBigintList(3).toByteArray.asBigInt().toLong)
-        .withLrcFee(subBigintList(4))
-        .withMarginSplitPercentage(uintArgList(i)(0).doubleValue())
+        .withAmountS(subBigintList(0).toString)
+        .withAmountB(subBigintList(1).toString)
+        .withValidSince(subBigintList(2).bigInteger.longValue())
+        .withValidUntil(subBigintList(3).bigInteger.longValue())
+        .withLrcFee(subBigintList(4).toString())
+        .withMarginSplitPercentage(uintArgList(i)(0).bigInteger.intValue())
         .withBuyNoMoreThanAmountB(buyNoMoreThanAmountBList(i))
         .withV(vList(i).intValue())
         .withR(rList(i))
         .withS(sList(i))
     }
 
-    val maker = orders(0).withTokenB(addressList(1)(1))
-    val taker = orders(1).withTokenB(addressList(0)(1))
+    val maker = Order().withRawOrder(raworders(0).withTokenB(addressList(1)(1)))
+    val taker = Order().withRawOrder(raworders(1).withTokenB(addressList(0)(1)))
 
     val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)

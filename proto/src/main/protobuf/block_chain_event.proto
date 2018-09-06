@@ -33,35 +33,35 @@ message TxHeader {
 }
 
 message AddressBalanceChanged {
-    bytes token = 1;
-    bytes owner = 2;
-    bytes value = 3;
+    string token = 1;
+    string owner = 2;
+    string value = 3;
     bool income = 4;
     TxHeader tx_header = 5;
 }
 
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
-    bytes ring_hash = 2;
-    repeated bytes order_hash = 3;
+    string ring_hash = 2;
+    repeated string order_hash = 3;
     TxHeader tx_header = 4;
 }
 
 message OrderFilled {
-    bytes ring_index = 1;
-    bytes ring_hash = 2;
-    bytes pre_order_hash = 3;
-    bytes order_hash = 4;
-    bytes next_order_hash = 5;
-    bytes owner = 6;
-    bytes token_s = 7;
-    bytes token_b = 8;
-    bytes amount_s = 9;
-    bytes amount_b = 10;
-    bytes lrc_reward = 11;
-    bytes lrc_fee = 12;
-    bytes split_s = 13;
-    bytes split_b = 14;
+    string ring_index = 1;
+    string ring_hash = 2;
+    string pre_order_hash = 3;
+    string order_hash = 4;
+    string next_order_hash = 5;
+    string owner = 6;
+    string token_s = 7;
+    string token_b = 8;
+    string amount_s = 9;
+    string amount_b = 10;
+    string lrc_reward = 11;
+    string lrc_fee = 12;
+    string split_s = 13;
+    string split_b = 14;
     int32 fill_index = 15;
     TxHeader tx_header = 16;
 }

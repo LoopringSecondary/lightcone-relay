@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.core.ethaccessor
+import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetBalanceReq
 import org.scalatest.FlatSpec
 
@@ -28,15 +28,15 @@ class BalanceOfSpec extends FlatSpec {
 
   "balance" should "encode params and return amount of big number" in {
     val req = GetBalanceReq()
-      .withOwner(ethaccessor.owner)
-      .withToken(ethaccessor.lrc)
+      .withOwner(owner)
+      .withToken(lrc)
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- ethaccessor.geth.getBalance(req)
+      resp <- geth.getBalance(req)
     } yield resp
 
-    val tx = Await.result(resultFuture, ethaccessor.timeout.duration)
+    val tx = Await.result(resultFuture, timeout.duration)
 
     info(tx.result)
   }
