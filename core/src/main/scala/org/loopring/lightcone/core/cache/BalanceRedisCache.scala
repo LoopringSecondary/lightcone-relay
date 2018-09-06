@@ -47,6 +47,7 @@ object BalanceRedisCache {
   val balanceField = "b"
   val balanceFieldPrefix = balanceField + delimeter
 
+  //定义serializer
   implicit val balanceSerializer = new RedisHashGetSerializer[GetBalancesReq, BalanceField, GetBalancesResp] {
     override def cacheKey(req: GetBalancesReq): String = keyPrefix + req.address.toLowerCase()
 
