@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.conveter
+package org.loopring.lightcone.core.assemble
 
-import org.spongycastle.util.encoders.Hex
-import java.math.BigInteger
 import java.lang.{ Boolean => jbool }
+import java.math.BigInteger
 
-trait TypeConverter {
+import org.loopring.lightcone.proto.block_chain_event.FullTransaction
+import org.spongycastle.util.encoders.Hex
+
+trait Assembler[T] {
+
+  def txAddHeader(src: T, tx: FullTransaction): T
+  def txFullFilled(src: T, tx: FullTransaction): T
+  def convert(list: Seq[Any]): Seq[T]
 
   def javaObj2Hex(src: Object): String = src match {
     case bs: Array[Byte] => Hex.toHexString(bs)
@@ -46,5 +52,18 @@ trait TypeConverter {
     case b: BigInteger => b
     case _ => throw new Exception("scala any convert to scala bigint error")
   }
-}
 
+  // safeAbs 当合约返回负数时做异或取反操作
+  def safeBig(bytes: Array[Byte]): BigInt = {
+    if (bytes(0) > 128) {
+      new BigInteger(bytes).xor(maxUint256).not()
+    } else {
+      BigInt(bytes)
+    }
+  }
+
+  val maxUint256: BigInteger = {
+    val bytes = (1 to 32).map(_ => Byte.MaxValue).toArray
+    new BigInteger(bytes)
+  }
+}

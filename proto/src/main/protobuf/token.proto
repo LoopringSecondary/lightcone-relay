@@ -31,8 +31,11 @@ message Token {
     string symbol = 2;
     int32 decimal = 3;
     string source = 4;
-    bool deny = 5;
-    bool market = 6;
-    string ico_price = 7;    // useless
-    string total_suply = 8;  // useless
+    bool market = 5;
+    string ico_price = 6;    // useless
+    string total_suply = 7;  // useless
+}
+
+message TokenList {
+    repeated Token list = 1;
 }

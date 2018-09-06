@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.conveter
+package org.loopring.lightcone.core.assemble
 
-import java.math.BigInteger
+import org.loopring.lightcone.proto.block_chain_event.{ FullTransaction, OrderFilled, RingMined }
 
-import com.google.protobuf.ByteString
-import org.loopring.lightcone.proto.block_chain_event.{ OrderFilled, RingMined }
-import org.loopring.lightcone.core.etypes._
-
-class RingMinedConverter() extends ContractConverter[RingMined] with TypeConverter {
+class AssembleRingMinedImpl extends Assembler[RingMined] {
 
   /**
    * demo
@@ -130,18 +126,7 @@ class RingMinedConverter() extends ContractConverter[RingMined] with TypeConvert
     Seq(ring)
   }
 
-  // safeAbs 当合约返回负数时做异或取反操作
-  def safeBig(bytes: Array[Byte]): BigInt = {
-    if (bytes(0) > 128) {
-      new BigInteger(bytes).xor(maxUint256).not()
-    } else {
-      BigInt(bytes)
-    }
-  }
-
-  val maxUint256: BigInteger = {
-    val bytes = (1 to 32).map(_ => Byte.MaxValue).toArray
-    new BigInteger(bytes)
-  }
+  def txAddHeader(src: RingMined, tx: FullTransaction): RingMined = ???
+  def txFullFilled(src: RingMined, tx: FullTransaction): RingMined = ???
 
 }

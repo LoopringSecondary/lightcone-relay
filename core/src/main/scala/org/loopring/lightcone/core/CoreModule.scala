@@ -28,12 +28,17 @@ import com.typesafe.config.Config
 import net.codingwell.scalaguice._
 import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.assemble._
 import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
-import org.loopring.lightcone.core.conveter._
 import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.lib.cache.ByteArrayCache
+import org.loopring.lightcone.proto.block_chain_event.{ AddressBalanceChanged, RingMined }
+import org.loopring.lightcone.proto.ring.Ring
+import org.loopring.lightcone.proto.token.TokenList
 import redis._
+
 import scala.concurrent.{ ExecutionContext, _ }
 import scala.concurrent.duration._
 
@@ -70,10 +75,13 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[BalanceCache].to[cache.BalanceRedisCache]
     bind[OrderCache].to[cache.OrderRedisCache]
 
-    bind[RingConverter].toInstance(new RingConverter())
-    bind[RingMinedConverter].toInstance(new RingMinedConverter())
-    bind[TransferEventConverter].toInstance(new TransferEventConverter())
+    bind[Assembler[Ring]].to[AssembleRingImpl]
+    bind[Assembler[RingMined]].to[AssembleRingMinedImpl]
+    bind[Assembler[AddressBalanceChanged]].to[AssembleTransferEventImpl]
+
     bind[TokenList].toInstance(TokenList(list = Seq()))
+    bind[ExtractorBlockDetector].to[ExtractorBlockDetectorImpl].in[Singleton]
+    bind[ExtractorTransactionProcessor].to[ExtractorTransactionProcessor].in[Singleton]
   }
 
   @Provides
@@ -116,12 +124,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout,
-    tokenList: TokenList,
-    accessor: EthClient,
-    abiSupporter: AbiSupporter,
-    ringConverter: RingConverter,
-    ringMinedConverter: RingMinedConverter,
-    transferEventConverter: TransferEventConverter) = {
+    detector: ExtractorBlockDetector,
+    processor: ExtractorTransactionProcessor) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }
 

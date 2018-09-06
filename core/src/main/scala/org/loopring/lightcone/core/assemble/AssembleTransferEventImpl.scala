@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.conveter
+package org.loopring.lightcone.core.assemble
 
-import org.loopring.lightcone.proto.block_chain_event.AddressBalanceChanged
-import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.proto.block_chain_event.{ AddressBalanceChanged, FullTransaction }
 
-class TransferEventConverter extends ContractConverter[AddressBalanceChanged] with TypeConverter {
+class AssembleTransferEventImpl extends Assembler[AddressBalanceChanged] {
 
   def convert(list: Seq[Any]): Seq[AddressBalanceChanged] = {
     if (list.length != 3) {
@@ -46,7 +45,6 @@ class TransferEventConverter extends ContractConverter[AddressBalanceChanged] wi
     Seq(sendEvt, recvEvt)
   }
 
-  def fullFilled(): AddressBalanceChanged = {
-    AddressBalanceChanged()
-  }
+  def txAddHeader(src: AddressBalanceChanged, tx: FullTransaction): AddressBalanceChanged = ???
+  def txFullFilled(src: AddressBalanceChanged, tx: FullTransaction): AddressBalanceChanged = ???
 }

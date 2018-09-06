@@ -16,19 +16,21 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
-import akka.testkit.{ ImplicitSender, TestKit }
+import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.core.accessor.EthClientImpl
-import org.loopring.lightcone.core.conveter.{ RingConverter, RingMinedConverter, TransferEventConverter }
+import org.loopring.lightcone.core.assemble.{AssembleRingImpl, AssembleRingMinedImpl, AssembleTransferEventImpl}
+import org.loopring.lightcone.core.assembler.{RingMinedConverter, TransferEventConverter}
+import org.loopring.lightcone.core.utils.{AssembleRingMinedImpl, AssembleTransferEventImpl}
 import org.loopring.lightcone.lib.abi.AbiSupporter
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token.Token
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 import scala.concurrent.Promise
@@ -68,9 +70,9 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   implicit val timeout = Timeout(200 milli)
   implicit val supporter = AbiSupporter()
   implicit val geth = new EthClientImpl(supporter, httpFlow, queueSize)
-  implicit val ringConverter = new RingConverter()
-  implicit val ringminedConverter = new RingMinedConverter()
-  implicit val transferEventConverter = new TransferEventConverter()
+  implicit val ringConverter = new AssembleRingImpl()
+  implicit val ringminedConverter = new AssembleRingMinedImpl()
+  implicit val transferEventConverter = new AssembleTransferEventImpl()
 
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
 

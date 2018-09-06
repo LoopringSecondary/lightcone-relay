@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.conveter
+package org.loopring.lightcone.core.assemble
 
-import org.loopring.lightcone.proto.order.{ RawOrder, Order }
+import org.loopring.lightcone.proto.block_chain_event.FullTransaction
+import org.loopring.lightcone.proto.order.{ Order, RawOrder }
 import org.loopring.lightcone.proto.ring.Ring
-import org.loopring.lightcone.core.etypes._
 
-class RingConverter() extends ContractConverter[Ring] with TypeConverter {
+class AssembleRingImpl() extends Assembler[Ring] {
 
   def convert(list: Seq[Any]): Seq[Ring] = {
     if (list.length != 9) {
@@ -115,4 +115,7 @@ class RingConverter() extends ContractConverter[Ring] with TypeConverter {
 
     Seq(ring)
   }
+
+  def txAddHeader(src: Ring, tx: FullTransaction): Ring = ???
+  def txFullFilled(src: Ring, tx: FullTransaction): Ring = ???
 }

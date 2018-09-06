@@ -5,6 +5,7 @@ option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
 import "ring.proto";
+import "eth_jsonrpc.proto";
 
 enum TxStatus {
     TX_STATUS_UNKNOWN = 0;
@@ -12,6 +13,13 @@ enum TxStatus {
     TX_STATUS_SUCCESS = 2;
     TX_STATUS_FAILED = 3;
     TX_STATUS_DISMISS = 4;  // 该状态不一定有用
+}
+
+message FullTransaction {
+    Transaction tx = 1;
+    TraceTransaction trace= 2;
+    TransactionReceipt receipt = 3;
+    // todo block
 }
 
 message TxHeader {
