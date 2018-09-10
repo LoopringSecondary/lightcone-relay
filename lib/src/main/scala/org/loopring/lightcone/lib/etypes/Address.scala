@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.etypes
-
-import org.spongycastle.util.encoders.Hex
+package org.loopring.lightcone.lib.etypes
 
 object Address {
   val ADDRESS_LENGTH = 42

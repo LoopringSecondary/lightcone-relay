@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.accessor
 import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.EthGetBalanceReq
 import org.scalatest.FlatSpec
-import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.lib.etypes._
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global

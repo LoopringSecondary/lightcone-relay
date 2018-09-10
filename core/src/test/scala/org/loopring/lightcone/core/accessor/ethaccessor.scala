@@ -22,7 +22,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.core.accessor.EthClientImpl
-import org.loopring.lightcone.lib.abi.AbiSupporter
+import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
 
 import scala.concurrent.Promise
 import scala.concurrent.duration._
@@ -34,11 +34,12 @@ package object ethaccessor {
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
     port = config.getInt("ethereum.port"))
-  val supporter = AbiSupporter(config)
+  val erc20Abi = new Erc20Abi(config)
+  val loopringAbi = new LoopringAbi(config)
   val queueSize = 5
 
   implicit val timeout = Timeout(5 seconds)
-  val geth = new EthClientImpl(supporter, httpFlow, queueSize)
+  val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"
   val lrc = "0xcd36128815ebe0b44d0374649bad2721b8751bef"

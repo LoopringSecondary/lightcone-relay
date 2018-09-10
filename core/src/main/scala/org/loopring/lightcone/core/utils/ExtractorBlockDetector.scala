@@ -44,7 +44,7 @@ class ExtractorBlockDetectorImpl @Inject() (
   val config: Config,
   val accessor: EthClient) extends ExtractorBlockDetector {
 
-  val currentBlock = BigInt(0)
+  val currentBlock = BigInt(43206)
 
   def getBlock(): Future[BlockWithTxHash] = for {
     _ <- Future {}

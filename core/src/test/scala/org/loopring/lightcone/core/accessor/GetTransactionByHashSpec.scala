@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.accessor
 
 import org.loopring.lightcone.core.ethaccessor._
-import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionByHashReq
 import org.scalatest.FlatSpec
 
