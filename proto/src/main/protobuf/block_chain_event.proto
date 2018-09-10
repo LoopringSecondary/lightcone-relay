@@ -64,6 +64,18 @@ message Approve {
     TxHeader tx_header = 4;
 }
 
+message WethDeposit {
+    string owner = 1;
+    string value = 2;
+    TxHeader tx_header = 3;
+}
+
+message WethWithdrawal {
+    string owner = 1;
+    string value = 2;
+    TxHeader tx_header = 3;
+}
+
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
     string ring_hash = 2;
