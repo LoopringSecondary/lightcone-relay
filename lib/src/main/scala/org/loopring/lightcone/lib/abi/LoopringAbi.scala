@@ -296,6 +296,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val ret = Cutoff()
+      .withOwner(header.from)
       .withCutoff(scalaAny2Bigint(list(0)).intValue())
       .withTxHeader(header)
 
@@ -310,6 +311,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val ret = Cutoff()
+      .withOwner(header.from)
       .withCutoff(scalaAny2Bigint(list(1)).intValue())
       .withTxHeader(header)
 
@@ -323,6 +325,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val ret = CutoffPair()
+      .withOwner(header.from)
       .withToken1(scalaAny2Hex(list(0)))
       .withToken2(scalaAny2Hex(list(1)))
       .withCutoff(scalaAny2Bigint(list(2)).intValue())
@@ -341,6 +344,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     // o 为indexed == header.from
 
     val ret = CutoffPair()
+      .withOwner(header.from)
       .withToken1(scalaAny2Hex(list(1)))
       .withToken2(scalaAny2Hex(list(2)))
       .withCutoff(scalaAny2Bigint(list(3)).intValue())

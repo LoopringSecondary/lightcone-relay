@@ -20,13 +20,13 @@ import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
-import org.loopring.lightcone.proto.block_chain_event.{ Transfer, TxHeader }
-import org.spongycastle.util.encoders.Hex
+import org.loopring.lightcone.proto.block_chain_event.{ Approve, Transfer, TxHeader }
 
 class Erc20Abi @Inject() (config: Config) extends ContractAbi {
 
   val FN_APPROVE = "approve"
   val FN_TRANSFER = "transfer"
+  val FN_TRANSFER_FROM = "transferFrom"
 
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
@@ -45,7 +45,9 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
     res.name match {
-      case FN_TRANSFER => Seq(assembleTransferFn(res.list, header))
+      case FN_TRANSFER => Seq(assembleTransferFunction(res.list, header))
+      case FN_TRANSFER_FROM => Seq(assembleTransferFromFunction(res.list, header))
+      case FN_APPROVE => Seq(assembleApproveFunction(res.list, header))
       case _ => Seq()
     }
   }
@@ -53,28 +55,88 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
     val res = decodeLog(log)
     res.name match {
-      case EN_TRANSFER => Seq(assembleTransferEn(res.list, header))
+      case EN_TRANSFER => Seq(assembleTransferEvent(res.list, header))
+      case EN_APPROVAL => Seq(assembleApprovalEvent(res.list, header))
       case _ => Seq()
     }
   }
 
-  def assembleTransferFn(list: Seq[Any], header: TxHeader): Transfer = {
+  def assembleTransferFunction(list: Seq[Any], header: TxHeader): Transfer = {
+    if (list.length != 2) {
+      throw new Exception("length of transfer function invalid")
+    }
+
+    val ret = Transfer()
+      .withReceiver(scalaAny2Hex(list(0)))
+      .withValue(scalaAny2Hex(list(1)))
+      .withSender(header.from)
+      .withTxHeader(header)
+
+    print(ret.toProtoString)
+    ret
+  }
+
+  def assembleTransferFromFunction(list: Seq[Any], header: TxHeader): Transfer = {
+    if (list.length != 3) {
+      throw new Exception("length of transfer from function invalid")
+    }
+
+    val ret = Transfer()
+      .withSender(scalaAny2Hex(list(0)))
+      .withReceiver(scalaAny2Hex(list(1)))
+      .withValue(scalaAny2Hex(list(2)))
+      .withTxHeader(header)
+
+    print(ret)
+
+    ret
+  }
+
+  def assembleTransferEvent(list: Seq[Any], header: TxHeader): Transfer = {
     if (list.length != 3) {
       throw new Exception("length of transfer event invalid")
     }
 
-    Transfer()
-      .withReceiver(scalaAny2Hex(list(0)))
-      .withSender(scalaAny2Hex(list(1)))
+    val ret = Transfer()
+      .withSender(scalaAny2Hex(list(0)))
+      .withReceiver(scalaAny2Hex(list(1)))
       .withValue(scalaAny2Hex(list(2)))
       .withTxHeader(header)
+
+    print(ret)
+
+    ret
   }
 
-  // todo
-  def assembleTransferFromFn(list: Seq[Any], header: TxHeader): Transfer = ???
+  def assembleApproveFunction(list: Seq[Any], header: TxHeader): Approve = {
+    if (list.length != 2) {
+      throw new Exception("length of approve function invalid")
+    }
 
-  // todo
-  def assembleTransferEn(list: Seq[Any], header: TxHeader): Transfer = {
-    Transfer().withTxHeader(header)
+    val ret = Approve()
+      .withOwner(header.from)
+      .withSpender(scalaAny2Hex(list(0)))
+      .withValue(scalaAny2Bigint(list(1)).toString())
+      .withTxHeader(header)
+
+    print(ret.toProtoString)
+
+    ret
+  }
+
+  def assembleApprovalEvent(list: Seq[Any], header: TxHeader): Approve = {
+    if (list.length != 3) {
+      throw new Exception("length of approve event invalid")
+    }
+
+    val ret = Approve()
+      .withOwner(scalaAny2Hex(list(0)))
+      .withSpender(scalaAny2Hex(list(1)))
+      .withValue(scalaAny2Bigint(list(2)).toString())
+      .withTxHeader(header)
+
+    print(ret.toProtoString)
+
+    ret
   }
 }
