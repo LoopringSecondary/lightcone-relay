@@ -66,7 +66,7 @@ class CacheObsoleter()(implicit
       val event = Purge.AllOrderForAddress()
         //        .withAddress(cutoffPair.owner)
         .withCutoff(cutoffPair.cutoff)
-        .withMarket(cutoffPair.market)
+      // .withMarket(cutoffPair.market)
       mediator ! Publish(name, event)
 
     case forkEvent: ChainRolledBack =>
