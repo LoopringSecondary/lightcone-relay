@@ -105,9 +105,11 @@ class ExtractorTransactionProcessorImpl @Inject() (
       case _ => throw new Exception("transaction is empty")
     }
 
-    receiptOpt match {
+    header = receiptOpt match {
       case Some(x) => x.fillTxHeader(header)
       case _ => throw new Exception("receipt is empty")
     }
+
+    header
   }
 }

@@ -19,6 +19,7 @@ package org.loopring.lightcone.lib.abi
 import java.math.BigInteger
 import java.lang.{ Boolean => jbool }
 
+import com.typesafe.config.Config
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -28,49 +29,51 @@ trait ContractAbi {
   val prefix = "0x"
   val FunctionSigLength = 8
 
-  val abi: Abi
+  def abi: Abi = null
 
-  val supportedFunctions: Seq[String] = Seq()
-  val supportedEvents: Seq[String] = Seq()
+  def supportedFunctions: Seq[String] = Seq()
+  def supportedEvents: Seq[String] = Seq()
 
-  val (
-    sigFuncMap: Map[String, Abi.Function],
-    sigEvtMap: Map[String, Abi.Event],
-    nameFuncMap: Map[String, Abi.Function],
-    nameEvtMap: Map[String, Abi.Event]
-    ) = {
-    var fmap: Map[String, Abi.Function] = Map()
-    var emap: Map[String, Abi.Event] = Map()
-    var nfmap: Map[String, Abi.Function] = Map()
-    var nemap: Map[String, Abi.Event] = Map()
-
+  def sigFuncMap: Map[String, Abi.Function] = {
     supportedFunctions.map(x => {
       val f = abi.findFunction(predicate(x))
-      fmap += signature(f) -> f
-      nfmap += x -> f
+      Hex.toHexString(f.encodeSignature()) -> f
     })
+  }.toMap
 
+  def sigEvtMap: Map[String, Abi.Event] = {
     supportedEvents.map(x => {
       val e = abi.findEvent(predicate(x))
-      emap += signature(e) -> e
-      nemap += x -> e
+      Hex.toHexString(e.encodeSignature()) -> e
     })
+  }.toMap
 
-    (fmap, emap, nfmap, nemap)
-  }
+  def nameFuncMap: Map[String, Abi.Function] = {
+    supportedFunctions.map(x => {
+      val f = abi.findFunction(predicate(x))
+      f.name -> f
+    })
+  }.toMap
+
+  def nameEvtMap: Map[String, Abi.Event] = {
+    supportedEvents.map(x => {
+      val e = abi.findEvent(predicate(x))
+      e.name -> e
+    })
+  }.toMap
 
   def predicate[T <: Abi.Entry](name: String): Predicate[T] = (x) => x.name.equals(name)
   def signature[T <: Abi.Entry](e: T) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 
-  def findFunctionByName(name: String) = nameFuncMap(name)
-  def findEventByName(name: String) = nameEvtMap(name)
+  def findFunctionByName(name: String) = abi.findFunction(predicate(name))
+  def findEventByName(name: String) = abi.findEvent(predicate(name))
 
   def findTransactionFunctionSig(txInput: String) = withoutPrefix(txInput).substring(0, FunctionSigLength)
   def findReceiptEventSig(firstTopic: String) = withoutPrefix(firstTopic)
   def isSupportedFunctionSig(sig: String) = sigFuncMap.contains(sig)
   def isSupportedEventSig(sig: String) = sigEvtMap.contains(sig)
-  def findFunctionWithSig(sig: String) = sigFuncMap(sig)
-  def findEventWithSig(sig: String) = sigEvtMap(sig)
+  def findFunctionWithSig(sig: String) = sigFuncMap.get(sig)
+  def findEventWithSig(sig: String) = sigEvtMap.get(sig)
   def isSupportedFunction(txInput: String) = sigFuncMap.contains(findTransactionFunctionSig(txInput))
   def isSupportedEvent(firstTopic: String) = sigEvtMap.contains(findReceiptEventSig(firstTopic))
 
@@ -78,26 +81,26 @@ trait ContractAbi {
 
   def decodeInput(txinput: String): decodeResult = {
     val sig = findTransactionFunctionSig(txinput)
-    if (isSupportedFunctionSig(sig)) {
-      val decodedinput = getInputBytes(txinput)
-      val abi = findFunctionWithSig(sig)
-      val list = abi.decode(decodedinput).toArray().toSeq
-      decodeResult(abi.name, list)
-    } else {
-      decodeResult()
+    findFunctionWithSig(sig) match {
+      case Some(abi) => {
+        val decodedinput = getInputBytes(txinput)
+        val list = abi.decode(decodedinput).toArray().toSeq
+        decodeResult(abi.name, list)
+      }
+      case _ => decodeResult()
     }
   }
 
   def decodeLog(log: Log): decodeResult = {
     val sig = findReceiptEventSig(log.topics.head)
-    if (isSupportedEventSig(sig)) {
-      val decodeddata = getLogDataBytes(log.data)
-      val decodedtopics = log.topics.map(x => getLogDataBytes(x)).toArray
-      val abi = findEventWithSig(sig)
-      val list = abi.decode(decodeddata, decodedtopics).toArray().toSeq
-      decodeResult(abi.name, list)
-    } else {
-      decodeResult()
+    findEventWithSig(sig) match {
+      case Some(abi) => {
+        val decodeddata = getLogDataBytes(log.data)
+        val decodedtopics = log.topics.map(x => getLogDataBytes(x)).toArray
+        val list = abi.decode(decodeddata, decodedtopics).toArray().toSeq
+        decodeResult(abi.name, list)
+      }
+      case _ => decodeResult()
     }
   }
 

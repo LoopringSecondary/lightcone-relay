@@ -26,21 +26,22 @@ import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.order.{Order, RawOrder}
 import org.loopring.lightcone.proto.ring.Ring
 
-class LoopringAbi @Inject()(config: Config) extends ContractAbi {
-
-  val abi = Abi.fromJson(config.getString("abi.impl"))
+class LoopringAbi @Inject()(val config: Config) extends ContractAbi {
 
   val FN_SUBMIT_RING = "submitRing"
-
   val EN_RINGMINED = "RingMined"
 
+  override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
   override val supportedFunctions: Seq[String] = Seq(
     FN_SUBMIT_RING,
   )
-
   override val supportedEvents: Seq[String] = Seq(
     EN_RINGMINED,
   )
+  override val sigFuncMap: Map[String, Abi.Function] = super.sigFuncMap
+  override val sigEvtMap: Map[String, Abi.Event] = super.sigEvtMap
+  override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
+  override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
 
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
@@ -221,7 +222,7 @@ class LoopringAbi @Inject()(config: Config) extends ContractAbi {
     ring
   }
 
-  // safeAbs 当合约返回负数时做异或取反操作
+  // 对负数异或取反，这两个方法只有该文件用到
   def safeBig(bytes: Array[Byte]): BigInt = {
     if (bytes(0) > 128) {
       new BigInteger(bytes).xor(maxUint256).not()

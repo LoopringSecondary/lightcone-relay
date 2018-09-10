@@ -21,10 +21,9 @@ import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.block_chain_event.{ Transfer, TxHeader }
+import org.spongycastle.util.encoders.Hex
 
 class Erc20Abi @Inject() (config: Config) extends ContractAbi {
-
-  val abi = Abi.fromJson(config.getString("abi.erc20"))
 
   val FN_APPROVE = "approve"
   val FN_TRANSFER = "transfer"
@@ -32,11 +31,16 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
 
+  override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
   override val supportedFunctions: Seq[String] = Seq(
     FN_APPROVE, FN_TRANSFER)
-
   override val supportedEvents: Seq[String] = Seq(
     EN_APPROVAL, EN_TRANSFER)
+
+  override val sigFuncMap: Map[String, Abi.Function] = super.sigFuncMap
+  override val sigEvtMap: Map[String, Abi.Event] = super.sigEvtMap
+  override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
+  override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
 
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
