@@ -21,7 +21,7 @@ import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
 import redis.RedisCluster
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait BalanceCache extends RedisHashCache {
   val redis: RedisCluster

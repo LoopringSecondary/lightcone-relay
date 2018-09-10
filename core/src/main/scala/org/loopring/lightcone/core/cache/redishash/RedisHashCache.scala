@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.cache.redishash
 
 import redis.RedisCluster
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /*
 

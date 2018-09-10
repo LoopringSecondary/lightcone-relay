@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.cache
 
 import com.google.inject._
-import org.loopring.lightcone.core.cache.redishash.{RedisHashGetSerializer, RedisHashSetSerializer}
+import org.loopring.lightcone.core.cache.redishash.{ RedisHashGetSerializer, RedisHashSetSerializer }
 import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.cache.CacheBalanceInfo
