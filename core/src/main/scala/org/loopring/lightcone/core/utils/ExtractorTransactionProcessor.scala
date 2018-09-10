@@ -41,6 +41,7 @@ class ExtractorTransactionProcessorImpl @Inject() (
   val tokenList: TokenList,
   val accessor: EthClient,
   val erc20Abi: Erc20Abi,
+  val wethAbi: WethAbi,
   val loopringAbi: LoopringAbi) extends ExtractorTransactionProcessor {
 
   // todo: get protocol address(delegate, impl, token register...) on chain
@@ -87,11 +88,13 @@ class ExtractorTransactionProcessorImpl @Inject() (
 
   def unpackSingleInput(input: String, header: TxHeader): Seq[Any] = {
     erc20Abi.decodeInputAndAssemble(input, header) ++
+      wethAbi.decodeInputAndAssemble(input, header) ++
       loopringAbi.decodeInputAndAssemble(input, header)
   }
 
   def unpackSingleEvent(log: Log, header: TxHeader): Seq[Any] = {
     erc20Abi.decodeLogAndAssemble(log, header) ++
+      wethAbi.decodeLogAndAssemble(log, header) ++
       loopringAbi.decodeLogAndAssemble(log, header)
   }
 

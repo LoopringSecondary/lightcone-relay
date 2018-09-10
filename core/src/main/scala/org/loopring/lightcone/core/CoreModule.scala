@@ -53,6 +53,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
     bind[Timeout].toInstance(new Timeout(2 seconds))
     bind[Erc20Abi].to[Erc20Abi].in[Singleton]
+    bind[WethAbi].to[WethAbi].in[Singleton]
     bind[LoopringAbi].to[LoopringAbi].in[Singleton]
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
