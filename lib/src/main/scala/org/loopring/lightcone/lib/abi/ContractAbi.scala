@@ -153,4 +153,9 @@ trait ContractAbi {
     case b: BigInteger => b
     case _ => throw new Exception("scala any convert to scala bigint error")
   }
+
+  def scalaAny2Bool(src: Any): Boolean = src match {
+    case b: Boolean => b
+    case _ => throw new Exception("scala any convert to scala bool error")
+  }
 }

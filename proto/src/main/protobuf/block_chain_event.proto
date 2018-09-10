@@ -5,6 +5,7 @@ option java_package = "org.loopring.lightcone.proto";
 package com.loopring.lightcone.proto;
 
 import "ring.proto";
+import "order.proto";
 import "eth_jsonrpc.proto";
 
 enum TxStatus {
@@ -92,21 +93,26 @@ message RingMined {
     TxHeader tx_header = 3;
 }
 
+message CancelOrder {
+    RawOrder order = 1;
+    string cancel_amount = 2;
+    TxHeader tx_header = 3;
+}
+
 message OrderCancelled {
-    bytes order_hash = 1;
-    bytes amount = 2;
+    string order_hash = 1;
+    string amount = 2;
     TxHeader tx_header = 3;
 }
 
 message Cutoff {
-    bytes owner = 1;
     int32 cutoff = 2;
     TxHeader tx_header = 3;
 }
 
 message CutoffPair {
-    bytes owner = 1;
-    string market = 2;
+    string token1 = 1;
+    string token2 = 2;
     int32 cutoff = 3;
     TxHeader tx_header = 4;
 }
