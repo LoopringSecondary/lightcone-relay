@@ -57,6 +57,13 @@ message Transfer {
     TxHeader tx_header = 5;
 }
 
+message Approve {
+    string owner = 1;
+    string spender = 2;
+    string value = 3;
+    TxHeader tx_header = 4;
+}
+
 // 来源于pending filter&&rpc raw transaction，都往ringMemPool发送
 message RingDetectedInMemPoll {
     string ring_hash = 2;
@@ -106,15 +113,17 @@ message OrderCancelled {
 }
 
 message Cutoff {
+    string owner = 1;
     int32 cutoff = 2;
     TxHeader tx_header = 3;
 }
 
 message CutoffPair {
-    string token1 = 1;
-    string token2 = 2;
-    int32 cutoff = 3;
-    TxHeader tx_header = 4;
+    string owner = 1;
+    string token1 = 2;
+    string token2 = 3;
+    int32 cutoff = 4;
+    TxHeader tx_header = 5;
 }
 
 message ChainRolledBack {
