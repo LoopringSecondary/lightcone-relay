@@ -51,21 +51,15 @@ class BlockchainEventExtractor()(implicit
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    forkseq <- handleForkEvent()
-    list <- forkseq.size match {
-      case 0 => handleUnforkEvent()
-      case _ => Future(Seq())
+    forkevt <- detector.getForkEvent()
+    list <- if(forkevt.fork.equals(true)) {
+      Future(Seq(forkevt))
+    } else {
+      handleBlock()
     }
   } yield list.map(route)
 
-  def handleForkEvent(): Future[Seq[Any]] = for {
-    forkevt <- detector.getForkEvent()
-  } yield forkevt match {
-    case f: ChainRolledBack if f.fork.equals(true) => Seq(f)
-    case _ => Seq()
-  }
-
-  def handleUnforkEvent(): Future[Seq[Any]] = for {
+  def handleBlock(): Future[Seq[Any]] = for {
     block <- detector.getBlock()
     minedTxs <- processor.getMinedTransactions(block.transactions)
     minedSeq = minedTxs.map(processor.unpackMinedTransaction)
