@@ -39,7 +39,6 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-contrib" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-    // "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
