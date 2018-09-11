@@ -26,6 +26,8 @@ import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.order.{ Order, RawOrder }
 import org.loopring.lightcone.proto.ring.Ring
 
+import scala.io.Source
+
 class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
   val FN_SUBMIT_RING = "submitRing"
@@ -38,7 +40,13 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   val EN_CUTOFF_ALL = "AllOrdersCancelled"
   val EN_CUTOFF_PAIR = "OrdersCancelled"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
+  // override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
+  override def abi: Abi = {
+    val path = config.getString("abi.basedir") + config.getString("abi.erc20")
+    val str = Source.fromFile(path).getLines().map(_.trim).reduce(_ + _)
+    Abi.fromJson(str)
+  }
+
   override def supportedFunctions: Seq[String] = Seq(
     FN_SUBMIT_RING, FN_CANCEL_ORDER, FN_CUTOFF_ALL, FN_CUTOFF_PAIR)
   override def supportedEvents: Seq[String] = Seq(

@@ -22,6 +22,8 @@ import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.block_chain_event.{ Approve, Transfer, TxHeader }
 
+import scala.io.Source
+
 class Erc20Abi @Inject() (config: Config) extends ContractAbi {
 
   val FN_APPROVE = "approve"
@@ -31,7 +33,13 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
+  // override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
+  override def abi: Abi = {
+    val path = config.getString("abi.basedir") + config.getString("abi.erc20")
+    val str = Source.fromFile(path).getLines().map(_.trim).reduce(_ + _)
+    Abi.fromJson(str)
+  }
+
   override def supportedFunctions: Seq[String] = Seq(
     FN_APPROVE, FN_TRANSFER)
   override def supportedEvents: Seq[String] = Seq(
