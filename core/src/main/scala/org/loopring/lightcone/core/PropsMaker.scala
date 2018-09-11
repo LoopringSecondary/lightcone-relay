@@ -16,19 +16,8 @@
 
 package org.loopring.lightcone.core
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
 import akka.actor._
 
-object ActorUtil {
-  implicit class ActorInjector(injector: Injector) {
-    def getActor(name: String): ActorRef = {
-      injector.getInstance(Key.get(classOf[ActorRef], Names.named(name)))
-    }
-
-    def getProps[S <: AnyRef](name: String): S => Props = {
-      injector.getInstance(Key.get(classOf[S => Props], Names.named(name)))
-    }
-  }
-}
+// class PropsMaker[S <: AnyRef] (settings:S) {
+// 	def make(settings: S): Props
+// }
