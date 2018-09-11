@@ -171,7 +171,7 @@ message RingMinerSettings {
 
 // todo
 message TokenRegistrySettings {
-
+    repeated string roles = 2;
 }
 
 message DynamicSettings {

@@ -35,8 +35,8 @@ object RingMiner
   val name = "ring_miner"
   override val isSingleton = true
 
-  def getCommon(s: RingMinerSettings) =
-    base.CommonSettings(Some(s.address), s.roles, 1)
+  def getMetadata(s: RingMinerSettings) =
+    base.DeploymentMetadata(s.roles, 1, s.address)
 }
 
 class RingMiner(

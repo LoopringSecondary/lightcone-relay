@@ -30,8 +30,8 @@ object OrderReadCoordinator
   extends base.Deployable[OrderReadCoordinatorSettings] {
   val name = "order_read_coordinator"
 
-  def getCommon(s: OrderReadCoordinatorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderReadCoordinatorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
 class OrderReadCoordinator(

@@ -31,8 +31,8 @@ object BlockchainEventExtractor
   val name = "block_event_extractor"
   override val isSingleton = true
 
-  def getCommon(s: BlockchainEventExtractorSettings) =
-    base.CommonSettings(None, s.roles, 1)
+  def getMetadata(s: BlockchainEventExtractorSettings) =
+    base.DeploymentMetadata(s.roles)
 }
 
 class BlockchainEventExtractor(

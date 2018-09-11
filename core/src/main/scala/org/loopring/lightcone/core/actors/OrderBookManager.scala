@@ -29,8 +29,8 @@ object OrderBookManager
   val name = "order_book_manager"
   override val isSingleton = true
 
-  def getCommon(s: OrderBookManagerSettings) =
-    base.CommonSettings(Some(s.id), s.roles, 1)
+  def getMetadata(s: OrderBookManagerSettings) =
+    base.DeploymentMetadata(s.roles, 1, s.id)
 }
 
 class OrderBookManager(

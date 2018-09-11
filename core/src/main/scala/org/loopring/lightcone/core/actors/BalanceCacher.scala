@@ -30,8 +30,8 @@ object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
   val name = "balance_cacher"
 
-  def getCommon(s: BalanceCacherSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: BalanceCacherSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
 class BalanceCacher(

@@ -27,8 +27,8 @@ object BalanceReader
   extends base.Deployable[BalanceReaderSettings] {
   val name = "balance_reader"
 
-  def getCommon(s: BalanceReaderSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: BalanceReaderSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
 class BalanceReader(

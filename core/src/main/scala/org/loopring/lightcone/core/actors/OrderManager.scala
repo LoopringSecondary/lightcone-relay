@@ -27,8 +27,8 @@ object OrderManager
   extends base.Deployable[OrderManagerSettings] {
   val name = "order_manager"
 
-  def getCommon(s: OrderManagerSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderManagerSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
 class OrderManager(

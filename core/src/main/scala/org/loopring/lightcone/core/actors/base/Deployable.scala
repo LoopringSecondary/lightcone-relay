@@ -36,7 +36,7 @@ abstract class Deployable[S] {
     injector: Injector) =
     injector.getPropsForSettings(name)(dynamicSettings, settingsMap)
 
-  def getCommon(s: S): CommonSettings
+  def getMetadata(s: S): DeploymentMetadata
 
   private var minor_id = 0
   private def nextId: Int = {
@@ -45,13 +45,13 @@ abstract class Deployable[S] {
   }
 
   case class SettingsWrapper[S](
-    common: CommonSettings,
+    meta: DeploymentMetadata,
     settings: S) {
     def numLocalInstances(implicit cluster: Cluster): Int = {
-      val roles = common.roles.toSet
-      if (roles.isEmpty) common.instances
+      val roles = meta.roles.toSet
+      if (roles.isEmpty) meta.instances
       else if (roles.intersect(cluster.selfRoles.toSet).isEmpty) 0
-      else common.instances
+      else meta.instances
     }
   }
 
@@ -83,9 +83,9 @@ abstract class Deployable[S] {
     val oldSettingsMap = settingsMap
 
     settingsMap = settingsSeq.map { s =>
-      val common = getCommon(s)
-      val wrapper = SettingsWrapper(common, s)
-      common.id.getOrElse("") -> wrapper
+      val meta = getMetadata(s)
+      val wrapper = SettingsWrapper(meta, s)
+      meta.id -> wrapper
     }.toMap
 
     val ids = oldSettingsMap.keys ++ settingsMap.keys

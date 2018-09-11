@@ -30,8 +30,8 @@ object EthereumAccessor
   extends base.Deployable[EthereumAccessorSettings] {
   val name = "ethereum_accessor"
 
-  def getCommon(s: EthereumAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: EthereumAccessorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
 class EthereumAccessor(
