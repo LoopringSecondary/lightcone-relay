@@ -22,7 +22,7 @@ import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.cache.Purge
 import org.loopring.lightcone.proto.deployment.MarketConfig
-import org.loopring.lightcone.proto.order.OrderLevel1Status.{ ORDER_STATUS_EXPIRED, ORDER_STATUS_FULL, ORDER_STATUS_HARD_CANCELLED, ORDER_STATUS_NEW, ORDER_STATUS_SOFT_CANCELLED }
+import org.loopring.lightcone.proto.order.OrderLevel1Status._
 import org.loopring.lightcone.proto.order._
 
 import scala.collection.mutable
@@ -108,7 +108,7 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
     orderQuery <- Future.successful(query)
     res <- (orderAccessor ? GetTopOrders(query = Some(orderQuery))).mapTo[TopOrders]
   } yield {
-    res.order map { o =>
+    res.order foreach { o =>
       val sellPrice = Rational(o.rawOrder.get.amountS.asBigInt, o.rawOrder.get.amountB.asBigInt)
       //todo:确认order需要如何转换成updatedOrder
       val updatedOrder = UpdatedOrder()
@@ -153,15 +153,11 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
   override def purgeOrders(purge: Purge.AllAfterBlock): Future[Unit] = ???
 
   override def purgeOrders(orderHashes: Seq[String]): Future[Unit] = for {
-    //    orderAny <- orderAccessor ? GetOrder(orderHash = orderHash)
-    updatedOrders <- readCoordinator ? UpdateOrdersById(orderHashes = orderHashes)
+    updatedOrdersAny <- readCoordinator ? UpdateOrdersById(orderHashes = orderHashes)
   } yield {
-    //todo:
-    //    updatedOrders match {
-    //      case OneOrder(Some(order)) => {
-    //
-    //        this.updateOrder(order)
-    //      }
-    //    }
+    updatedOrdersAny match {
+      case updatedOrders: UpdatedOrders => updatedOrders.orders.foreach(this.updateOrder)
+      case _ =>
+    }
   }
 }

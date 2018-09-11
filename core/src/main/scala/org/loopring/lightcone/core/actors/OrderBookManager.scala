@@ -82,9 +82,9 @@ class OrderBookManager @Inject() ()(implicit
     case m: Purge.AllAfterBlock =>
       managerHelper.purgeOrders(m)
     case m: Purge.All =>
-      managerHelper.purgeOrders(m)
-    //      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
-    //      managerHelper.resetOrders(query)
+      //      managerHelper.purgeOrders(m)
+      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
+      managerHelper.resetOrders(query)
     case _ =>
   }
 

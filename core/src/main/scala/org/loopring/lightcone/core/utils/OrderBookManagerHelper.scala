@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.utils
 
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.cache.Purge
-import org.loopring.lightcone.proto.order.{ Order, OrderQuery, UpdatedOrder }
+import org.loopring.lightcone.proto.order.{ OrderQuery, UpdatedOrder }
 
 import scala.concurrent.Future
 
