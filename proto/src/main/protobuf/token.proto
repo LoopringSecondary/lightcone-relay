@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.lib.collection
+syntax = "proto3";
 
-trait HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package com.loopring.lightcone.proto.eth;
+
+///////////////////////////////////////////
+//
+//
+//
+///////////////////////////////////////////
+
+message Token {
+    string protocol = 1;
+    string symbol = 2;
+    int32 decimal = 3;
+    string source = 4;
+    bool market = 5;
+    string ico_price = 6;    // useless
+    string total_suply = 7;  // useless
 }
 
-final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
+message TokenList {
+    repeated Token list = 1;
 }

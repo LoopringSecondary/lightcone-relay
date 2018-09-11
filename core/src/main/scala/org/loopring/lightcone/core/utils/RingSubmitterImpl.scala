@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.utils
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.loopring.lightcone.core.accessor.EthClient
-import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.web3j.crypto._
 import org.web3j.tx.ChainId

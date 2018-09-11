@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.etypes
+package org.loopring.lightcone.lib.etypes
 
-object Hash {
-  val HASH_LENGTH = 42
+object Address {
+  val ADDRESS_LENGTH = 42
 }
 
-case class Hash(val bytes: Array[Byte]) {
+case class Address(val bytes: Array[Byte]) {
   def isValid: Boolean =
-    bytes != null && bytes.length.equals(Hash.HASH_LENGTH)
+    bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
 
   override def toString: String = new String(bytes)
 }

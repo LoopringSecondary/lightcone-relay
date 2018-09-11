@@ -12,6 +12,8 @@ message Ring {
     bytes r = 3;
     bytes s = 4;
     string hash = 5;
+    string feeReceipt = 6;
+    int32 feeSelection = 7;
 }
 
 message RingToSettle {
