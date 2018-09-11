@@ -75,8 +75,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[OrderCache].to[cache.OrderRedisCache]
 
     bind[TokenList].toInstance(TokenList(list = Seq()))
-    bind[ExtractorBlockDetector].to[ExtractorBlockDetectorImpl].in[Singleton]
-    bind[ExtractorTransactionProcessor].to[ExtractorTransactionProcessor].in[Singleton]
+    bind[BlockHelper].to[BlockHelperImpl].in[Singleton]
+    bind[TransactionHelper].to[TransactionHelperImpl].in[Singleton]
   }
 
   @Provides
@@ -119,8 +119,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout,
-    detector: ExtractorBlockDetector,
-    processor: ExtractorTransactionProcessor) = {
+    blockHelper: BlockHelper,
+    transactionHelper: TransactionHelper) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }
 

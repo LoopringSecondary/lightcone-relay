@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
-import org.loopring.lightcone.core.utils.{ ExtractorBlockDetector, ExtractorTransactionProcessor }
+import org.loopring.lightcone.core.utils.{ BlockHelper, TransactionHelper }
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
@@ -36,8 +36,8 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-  val processor: ExtractorTransactionProcessor,
-  val detector: ExtractorBlockDetector) extends RepeatedJobActor {
+  val blockHelper: BlockHelper,
+  val txHelper: TransactionHelper) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
@@ -51,8 +51,8 @@ class BlockchainEventExtractor()(implicit
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    forkevt <- detector.getForkEvent()
-    list <- if(forkevt.fork.equals(true)) {
+    forkevt <- blockHelper.getForkEvent()
+    list <- if (forkevt.fork.equals(true)) {
       Future(Seq(forkevt))
     } else {
       handleBlock()
@@ -60,12 +60,12 @@ class BlockchainEventExtractor()(implicit
   } yield list.map(route)
 
   def handleBlock(): Future[Seq[Any]] = for {
-    block <- detector.getBlock()
-    minedTxs <- processor.getMinedTransactions(block.transactions)
-    minedSeq = minedTxs.map(processor.unpackMinedTransaction)
+    block <- blockHelper.getBlock()
+    minedTxs <- txHelper.getMinedTransactions(block.transactions)
+    minedSeq = minedTxs.map(txHelper.unpackMinedTransaction)
 
-    pendingTxs <- processor.getPendingTransactions(block.transactions)
-    pendingSeq = pendingTxs.map(processor.unpackPendingTransaction)
+    pendingTxs <- txHelper.getPendingTransactions(block.transactions)
+    pendingSeq = pendingTxs.map(txHelper.unpackPendingTransaction)
 
     list = minedSeq ++ pendingSeq
   } yield list

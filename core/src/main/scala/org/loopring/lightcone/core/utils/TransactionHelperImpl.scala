@@ -26,23 +26,12 @@ import org.loopring.lightcone.proto.token.TokenList
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait ExtractorTransactionProcessor {
-
-  def getMinedTransactions(hashseq: Seq[String]): Future[Seq[FullTransaction]]
-  def getPendingTransactions(hashSeq: Seq[String]): Future[Seq[Transaction]]
-  def unpackMinedTransaction(tx: FullTransaction): Seq[Any]
-  def unpackPendingTransaction(tx: Transaction): Seq[Any]
-  def unpackSingleInput(input: String, header: TxHeader): Seq[Any]
-  def unpackSingleEvent(log: Log, header: TxHeader): Seq[Any]
-  def isContractAddressSupported(txTo: String): Boolean
-}
-
-class ExtractorTransactionProcessorImpl @Inject() (
+class TransactionHelperImpl @Inject() (
   val tokenList: TokenList,
   val accessor: EthClient,
   val erc20Abi: Erc20Abi,
   val wethAbi: WethAbi,
-  val loopringAbi: LoopringAbi) extends ExtractorTransactionProcessor {
+  val loopringAbi: LoopringAbi) extends TransactionHelper {
 
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.list.map(x => safeAddress(x.protocol))

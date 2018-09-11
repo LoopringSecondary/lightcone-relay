@@ -25,24 +25,9 @@ import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class Block(
-  blockHash: String,
-  parentHash: String,
-  blockNumber: String,
-  blockTime: String)
-
-trait ExtractorBlockDetector {
-  def getBlock(): Future[BlockWithTxHash]
-  def getCurrentBlock(): Future[BigInt]
-  def setCurrentBlock(block: Block): Future[Unit]
-  def getForkBlock(): Future[BigInt]
-  def isBlockForked(): Future[Boolean]
-  def getForkEvent(): Future[ChainRolledBack]
-}
-
-class ExtractorBlockDetectorImpl @Inject() (
+class BlockHelperImpl @Inject() (
   val config: Config,
-  val accessor: EthClient) extends ExtractorBlockDetector {
+  val accessor: EthClient) extends BlockHelper {
 
   // cancel order: 43163
   // submit ring: 43206
