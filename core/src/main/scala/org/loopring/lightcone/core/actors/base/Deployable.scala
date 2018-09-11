@@ -28,24 +28,30 @@ import akka.event.Logging
 import com.google.inject._
 import org.loopring.lightcone.core.ActorUtil._
 
-abstract class Deployable[S <: AnyRef] {
+abstract class Deployable[S] {
   val name: String
   val isSingleton = false
-  def props(injector: Injector) = injector.getProps(name)
+  def props(dynamicSettings: DynamicSettings, settings: S)(
+    implicit
+    injector: Injector) =
+    injector.getPropsForSettings(name)(dynamicSettings, settingsMap)
 
-  def getCommon(s: S): CommonSettings
+  def getMetadata(s: S): DeploymentMetadata
 
-  private val rand = new scala.util.Random()
-  private def nextRand = rand.nextInt(100000000)
+  private var minor_id = 0
+  private def nextId: Int = {
+    minor_id += 1
+    minor_id
+  }
 
   case class SettingsWrapper[S](
-    common: CommonSettings,
+    meta: DeploymentMetadata,
     settings: S) {
-    def numInstances(implicit cluster: Cluster): Int = {
-      val roles = common.roles.toSet
-      if (roles.isEmpty) common.instances
+    def numLocalInstances(implicit cluster: Cluster): Int = {
+      val roles = meta.roles.toSet
+      if (roles.isEmpty) meta.instances
       else if (roles.intersect(cluster.selfRoles.toSet).isEmpty) 0
-      else common.instances
+      else meta.instances
     }
   }
 
@@ -61,30 +67,34 @@ abstract class Deployable[S <: AnyRef] {
     else cluster.system.actorSelection(s"/user/${name}_${id}_*")
   }
 
-  def deploy(injector: Injector, settings: Option[S])(
+  def deploy(settings: Option[S])(
     implicit
+    dynamicSettings: DynamicSettings,
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
-    deploy(injector, settings.toSeq)
+    deploy(settings.toSeq)
   }
 
-  def deploy(injector: Injector, settingsSeq: Seq[S])(
+  def deploy(settingsSeq: Seq[S])(
     implicit
+    dynamicSettings: DynamicSettings,
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
     settingsMap = settingsSeq.map { s =>
-      val common = getCommon(s)
-      val wrapper = SettingsWrapper(common, s)
-      common.id.getOrElse("") -> wrapper
+      val meta = getMetadata(s)
+      val wrapper = SettingsWrapper(meta, s)
+      meta.id -> wrapper
     }.toMap
 
-    val keys = oldSettingsMap.keys ++ settingsMap.keys
+    val ids = oldSettingsMap.keys ++ settingsMap.keys
 
-    keys.map { k =>
-      k -> (oldSettingsMap.get(k), settingsMap.get(k))
+    ids.map { id =>
+      id -> (oldSettingsMap.get(id), settingsMap.get(id))
     } foreach {
       case (id, (_old, _new)) =>
-        deployActor(injector, id, _old, _new)
+        deployActor(dynamicSettings, id, _old, _new)
     }
 
     println(s"--------> killing router: /user/r_${name}_*")
@@ -99,7 +109,7 @@ abstract class Deployable[S <: AnyRef] {
               ClusterSingletonProxy.props(
                 singletonManagerPath = s"/user/${name}_${id}_0",
                 settings = ClusterSingletonProxySettings(cluster.system)),
-              name = s"r_${name}_${id}_${nextRand}")
+              name = s"r_${name}_${id}_${nextId}")
           } else {
             cluster.system.actorOf(
               ClusterRouterGroup(
@@ -108,23 +118,25 @@ abstract class Deployable[S <: AnyRef] {
                   totalInstances = Int.MaxValue,
                   routeesPaths = List(s"/user/${name}_${id}_*"),
                   allowLocalRoutees = true)).props,
-              name = s"r_${name}_${id}_${nextRand}")
+              name = s"r_${name}_${id}_${nextId}")
           }
         println("--------> deployed router: " + actor.path)
-
         (id -> actor)
     }.toMap
   }
 
   def deployActor(
-    injector: Injector,
+    dynamicSettings: DynamicSettings,
     id: String,
     _old: Option[SettingsWrapper[S]],
-    _new: Option[SettingsWrapper[S]])(implicit cluster: Cluster): Unit = {
+    _new: Option[SettingsWrapper[S]])(
+    implicit
+    injector: Injector,
+    cluster: Cluster): Unit = {
 
     def getInstances(w: Option[SettingsWrapper[S]]) = {
-      val num = w.map(_.numInstances).getOrElse(0)
-      if (isSingleton && num > 1) 1 else num
+      val num = w.map(_.numLocalInstances).getOrElse(0)
+      if (isSingleton && num > 0) 1 else num
     }
 
     val newInstances = getInstances(_new)
@@ -138,22 +150,19 @@ abstract class Deployable[S <: AnyRef] {
     }
 
     (0 until instances) foreach { i =>
-      val name = getActorName(id, nextRand)
+      val name = getActorName(id, nextId)
       val actor =
         if (isSingleton) {
           cluster.system.actorOf(
             ClusterSingletonManager.props(
-              singletonProps = props(injector),
+              singletonProps = props(dynamicSettings, _new.get.settings),
               terminationMessage = PoisonPill,
               settings = ClusterSingletonManagerSettings(cluster.system)),
             name = name)
         } else {
-          cluster.system.actorOf(props(injector), name)
+          cluster.system.actorOf(props(dynamicSettings, _new.get.settings), name)
         }
-      println("--------> deployed actor: " + actor.path)
     }
-    // The first msg to newly depoloyed actor should be its settings
-    _new.foreach { w => actorSelection(id) ! w.settings }
   }
 
 }

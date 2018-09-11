@@ -31,17 +31,18 @@ object OrderUpdateCoordinator
   extends base.Deployable[OrderUpdateCoordinatorSettings] {
   val name = "order_update_coordinator"
 
-  def getCommon(s: OrderUpdateCoordinatorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderUpdateCoordinatorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderUpdateCoordinator()(implicit
+class OrderUpdateCoordinator(
+  dynamicSettings: DynamicSettings,
+  settings: OrderUpdateCoordinatorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderUpdateCoordinatorSettings =>
     case _ =>
   }
 }

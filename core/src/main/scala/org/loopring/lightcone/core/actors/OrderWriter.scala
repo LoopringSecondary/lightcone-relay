@@ -32,17 +32,18 @@ object OrderWriter
   extends base.Deployable[OrderWriterSettings] {
   val name = "order_writer"
 
-  def getCommon(s: OrderWriterSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderWriterSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderWriter()(implicit
+class OrderWriter(
+  dynamicSettings: DynamicSettings,
+  settings: OrderWriterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderWriterSettings =>
     case req: SubmitOrderReq => {
       if (req.rawOrder.isEmpty) {
         new ErrorResp()

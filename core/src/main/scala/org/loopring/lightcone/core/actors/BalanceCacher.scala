@@ -30,23 +30,21 @@ object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
   val name = "balance_cacher"
 
-  def getCommon(s: BalanceCacherSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: BalanceCacherSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class BalanceCacher(cache: BalanceCache)(implicit
+class BalanceCacher(
+  dynamicSettings: DynamicSettings,
+  settings: BalanceCacherSettings,
+  cache: BalanceCache)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
-  var settings: BalanceCacherSettings = null
-
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: BalanceCacherSettings =>
-      this.settings = settings
-
     case m: GetBalancesReq =>
 
       sender() ! GetBalancesResp()

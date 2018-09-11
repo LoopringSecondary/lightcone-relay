@@ -29,11 +29,13 @@ object OrderBookManager
   val name = "order_book_manager"
   override val isSingleton = true
 
-  def getCommon(s: OrderBookManagerSettings) =
-    base.CommonSettings(Some(s.id), s.roles, 1)
+  def getMetadata(s: OrderBookManagerSettings) =
+    base.DeploymentMetadata(s.roles, 1, s.id)
 }
 
-class OrderBookManager()(implicit
+class OrderBookManager(
+  dynamicSettings: DynamicSettings,
+  settings: OrderBookManagerSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
@@ -41,8 +43,6 @@ class OrderBookManager()(implicit
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: OrderBookManagerSettings =>
-
     case m: Purge.Order =>
 
     case m: Purge.AllOrderForAddress =>

@@ -18,8 +18,8 @@ package org.loopring.lightcone.core.routing
 import akka.actor._
 
 trait RouterMap {
-  protected def getRouterNamed(name: String, param: String = ""): ActorRef =
-    routers(name)(param)
+  protected def getRouterNamed(name: String, id: String = ""): ActorRef =
+    routers(name)(id)
 
   private var routers: Map[String, Map[String, ActorRef]] = Map.empty
 

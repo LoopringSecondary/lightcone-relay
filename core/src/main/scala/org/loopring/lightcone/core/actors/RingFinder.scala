@@ -34,17 +34,17 @@ object RingFinder
   val name = "ring_finder"
   override val isSingleton = true
 
-  def getCommon(s: RingFinderSettings) =
-    base.CommonSettings(Some(s.id), s.roles, 1)
+  def getMetadata(s: RingFinderSettings) =
+    base.DeploymentMetadata(s.roles, 1, s.id)
 }
 
-class RingFinder()(implicit
+class RingFinder(
+  dynamicSettings: DynamicSettings,
+  settings: RingFinderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends RepeatedJobActor
   with ActorLogging {
-
-  var settings: RingFinderSettings = null
 
   lazy val id = settings.id
   lazy val orderBookManager: ActorRef = Routers.orderBookManager(id)
@@ -52,11 +52,9 @@ class RingFinder()(implicit
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
 
-  override def receive: Receive = super.receive orElse {
-    case settings: RingFinderSettings =>
-      this.settings = settings
-      initAndStartNextRound(settings.scheduleDelay)
+  initAndStartNextRound(settings.scheduleDelay)
 
+  override def receive: Receive = super.receive orElse {
     case m: NotifyRingSettlementDecisions =>
       orderManager ! MarkOrdersDeferred(deferOrders =
         m.ringSettlementDecisions

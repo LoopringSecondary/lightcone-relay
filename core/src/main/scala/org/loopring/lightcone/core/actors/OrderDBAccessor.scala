@@ -35,17 +35,19 @@ object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
   val name = "order_db_accessor"
 
-  def getCommon(s: OrderDBAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderDBAccessorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderDBAccessor(db: OrderDatabase)(implicit
+class OrderDBAccessor(
+  dynamicSettings: DynamicSettings,
+  settings: OrderDBAccessorSettings,
+  db: OrderDatabase)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>

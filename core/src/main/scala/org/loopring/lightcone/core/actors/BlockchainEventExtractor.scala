@@ -31,19 +31,18 @@ object BlockchainEventExtractor
   val name = "block_event_extractor"
   override val isSingleton = true
 
-  def getCommon(s: BlockchainEventExtractorSettings) =
-    base.CommonSettings(None, s.roles, 1)
+  def getMetadata(s: BlockchainEventExtractorSettings) =
+    base.DeploymentMetadata(s.roles)
 }
 
-class BlockchainEventExtractor()(implicit
+class BlockchainEventExtractor(
+  dynamicSettings: DynamicSettings,
+  settings: BlockchainEventExtractorSettings)(implicit
   val blockHelper: BlockHelper,
   val txHelper: TransactionHelper) extends RepeatedJobActor {
 
-  var settingsOpt: Option[BlockchainEventExtractorSettings] = None
-
   override def receive: Receive = {
     case settings: BlockchainEventExtractorSettings =>
-      settingsOpt = Some(settings)
       initAndStartNextRound(settings.scheduleDelay)
     case newRound: StartNewRound =>
       handleRepeatedJob()

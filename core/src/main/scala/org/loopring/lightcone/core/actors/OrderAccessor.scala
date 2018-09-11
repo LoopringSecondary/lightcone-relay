@@ -36,17 +36,18 @@ object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
   val name = "order_accessor"
 
-  def getCommon(s: OrderAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderAccessorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderAccessor()(implicit
+class OrderAccessor(
+  dynamicSettings: DynamicSettings,
+  settings: OrderAccessorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderAccessorSettings =>
     case any => Routers.orderDBAccessor forward any
   }
 }

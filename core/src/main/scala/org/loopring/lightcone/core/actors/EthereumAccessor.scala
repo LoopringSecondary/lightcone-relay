@@ -30,17 +30,18 @@ object EthereumAccessor
   extends base.Deployable[EthereumAccessorSettings] {
   val name = "ethereum_accessor"
 
-  def getCommon(s: EthereumAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: EthereumAccessorSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class EthereumAccessor()(implicit
+class EthereumAccessor(
+  dynamicSettings: DynamicSettings,
+  settings: EthereumAccessorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: EthereumAccessorSettings =>
     case _ =>
   }
 }

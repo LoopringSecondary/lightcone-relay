@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.actors
+package org.loopring.lightcone.core.managing
 
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import akka.actor._
+import akka.cluster._
 import org.loopring.lightcone.core.routing.Routers
 import akka.cluster.pubsub._
 import akka.cluster.pubsub.DistributedPubSubMediator._
@@ -26,16 +27,25 @@ import scala.concurrent.duration._
 import com.typesafe.config.Config
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.proto.deployment._
+import akka.cluster.singleton._
+import akka.cluster.routing._
 
-object ClusterManager extends base.NullConfigDeployable {
+object ClusterManager {
   val name = "cluster_manager"
-  override val isSingleton = true
+
+  def deploy()(implicit cluster: Cluster) = {
+    val actor = cluster.system.actorOf(
+      ClusterSingletonManager.props(
+        singletonProps = Props(new ClusterManager),
+        terminationMessage = PoisonPill,
+        settings = ClusterSingletonManagerSettings(cluster.system)),
+      name = name)
+
+    Map("" -> actor)
+  }
 }
 
-class ClusterManager()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
-  extends Actor {
+class ClusterManager extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
   def receive: Receive = {

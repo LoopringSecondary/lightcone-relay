@@ -34,11 +34,13 @@ object BalanceManager
   val name = "balance_manager"
   override val isSingleton = true //按照分片id，应当是singleton的
 
-  def getCommon(s: BalanceManagerSettings) =
-    base.CommonSettings(Some(s.id), s.roles, s.instances)
+  def getMetadata(s: BalanceManagerSettings) =
+    base.DeploymentMetadata(s.roles, s.instances, s.id)
 }
 
-class BalanceManager()(
+class BalanceManager(
+  dynamicSettings: DynamicSettings,
+  settings: BalanceManagerSettings)(
   implicit
   ec: ExecutionContext,
   timeout: Timeout)
@@ -48,14 +50,10 @@ class BalanceManager()(
     cacheActor = Routers.balanceCacher,
     sourceActor = Routers.ethereumAccessor)
 
-  var settings: BalanceManagerSettings = null
-  def id = settings.id
+  // def id = settings.id
 
   import BalanceManagerCachingFacilitators._
   def receive: Receive = {
-    case settings: BalanceManagerSettings =>
-      this.settings = settings
-
     case req: GetBalancesReq =>
       caching.askFor[GetBalancesReq, GetBalancesResp, CacheBalanceInfo](
         req).pipeTo(sender)

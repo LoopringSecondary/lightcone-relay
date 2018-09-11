@@ -27,8 +27,8 @@ object TokenRegister
 
   def props = Props(classOf[TokenRegister])
 
-  def getCommon(s: TokenRegistrySettings) =
-    base.CommonSettings(Some(""), Seq.empty, 0)
+  def getMetadata(s: TokenRegistrySettings) =
+    base.DeploymentMetadata(s.roles)
 }
 
 class TokenRegister() extends Actor {

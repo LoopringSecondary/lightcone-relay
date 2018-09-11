@@ -33,11 +33,14 @@ object OrderCacher
   extends base.Deployable[OrderCacherSettings] {
   val name = "order_cacher"
 
-  def getCommon(s: OrderCacherSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderCacherSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderCacher(cache: OrderCache)(
+class OrderCacher(
+  dynamicSettings: DynamicSettings,
+  settings: OrderCacherSettings,
+  cache: OrderCache)(
   implicit
   ec: ExecutionContext,
   timeout: Timeout) extends Actor {
@@ -55,7 +58,6 @@ class OrderCacher(cache: OrderCache)(
   // }
 
   def receive: Receive = {
-    case settings: OrderCacherSettings =>
     case req: GetOrdersFromCache =>
     // redis.get(req.orderHashes.head) onComplete {
     //   case Success(_) =>

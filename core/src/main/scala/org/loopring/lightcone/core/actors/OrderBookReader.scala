@@ -30,17 +30,18 @@ object OrderBookReader
   extends base.Deployable[OrderBookReaderSettings] {
   val name = "order_book_reader"
 
-  def getCommon(s: OrderBookReaderSettings) =
-    base.CommonSettings(Option(s.id), s.roles, s.instances)
+  def getMetadata(s: OrderBookReaderSettings) =
+    base.DeploymentMetadata(s.roles, s.instances, s.id)
 }
 
-class OrderBookReader()(implicit
+class OrderBookReader(
+  dynamicSettings: DynamicSettings,
+  settings: OrderBookReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderBookReaderSettings =>
     case _ =>
   }
 }

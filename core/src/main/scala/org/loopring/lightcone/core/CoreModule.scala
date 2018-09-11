@@ -34,6 +34,7 @@ import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
 import org.loopring.lightcone.proto.token.TokenList
+import org.loopring.lightcone.proto.deployment._
 import redis._
 
 import scala.concurrent.{ ExecutionContext, _ }
@@ -82,12 +83,13 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(injector: Injector, config: Config)(implicit
+  def getNodeManager(config: Config)(implicit
+    injector: Injector,
     cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
-      Props(new managing.NodeManager(injector, config)), "node_manager")
+      Props(new managing.NodeManager(config)), "node_manager")
   }
 
   @Provides
@@ -95,7 +97,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: BalanceCacherSettings) =>
+      Props(new BalanceCacher(dynamicSettings, settings, cache))
   }
 
   @Provides
@@ -103,7 +107,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceManager()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: BalanceManagerSettings) =>
+      Props(new BalanceManager(dynamicSettings, settings))
   }
 
   @Provides
@@ -111,7 +117,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceReader()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: BalanceReaderSettings) =>
+      Props(new BalanceReader(dynamicSettings, settings))
   }
 
   @Provides
@@ -121,7 +129,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     timeout: Timeout,
     blockHelper: BlockHelper,
     transactionHelper: TransactionHelper) = {
-    Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: BlockchainEventExtractorSettings) =>
+      Props(new BlockchainEventExtractor(dynamicSettings, settings))
   }
 
   @Provides
@@ -129,15 +139,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getCacheObsoleterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new CacheObsoleter()) // .withDispatcher("ring-dispatcher")
-  }
-
-  @Provides
-  @Named("cluster_manager")
-  def getClusterManagerProps()(implicit
-    ec: ExecutionContext,
-    timeout: Timeout) = {
-    Props(new ClusterManager()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: CacheObsoleterSettings) =>
+      Props(new CacheObsoleter(dynamicSettings, settings))
   }
 
   @Provides
@@ -145,7 +149,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getEthereumAccessorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new EthereumAccessor()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: EthereumAccessorSettings) =>
+      Props(new EthereumAccessor(dynamicSettings, settings))
   }
 
   @Provides
@@ -153,7 +159,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderAccessorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderAccessor()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderAccessorSettings) =>
+      Props(new OrderAccessor(dynamicSettings, settings))
   }
 
   @Provides
@@ -161,7 +169,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderBookManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderBookManager()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderBookManagerSettings) =>
+      Props(new OrderBookManager(dynamicSettings, settings))
   }
 
   @Provides
@@ -169,7 +179,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderBookReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderBookReader()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderBookReaderSettings) =>
+      Props(new OrderBookReader(dynamicSettings, settings))
   }
 
   @Provides
@@ -177,7 +189,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderCacherProps(cache: OrderCache)(implicit
     context: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderCacherSettings) =>
+      Props(new OrderCacher(dynamicSettings, settings, cache))
   }
 
   @Provides
@@ -185,7 +199,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderChangeLogWriterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderChangeLogWriter()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderChangeLogWriterSettings) =>
+      Props(new OrderChangeLogWriter(dynamicSettings, settings))
   }
 
   @Provides
@@ -193,7 +209,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderDBAccessorSettings) =>
+      Props(new OrderDBAccessor(dynamicSettings, settings, db))
   }
 
   @Provides
@@ -201,7 +219,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderManager()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderManagerSettings) =>
+      Props(new OrderManager(dynamicSettings, settings))
   }
 
   @Provides
@@ -209,7 +229,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderReadCoordinatorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReadCoordinator()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderReadCoordinatorSettings) =>
+      Props(new OrderReadCoordinator(dynamicSettings, settings))
   }
 
   @Provides
@@ -217,7 +239,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderReaderSettings) =>
+      Props(new OrderReader(dynamicSettings, settings))
   }
 
   @Provides
@@ -225,7 +249,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderUpdateCoordinatorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderUpdateCoordinator()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderUpdateCoordinatorSettings) =>
+      Props(new OrderUpdateCoordinator(dynamicSettings, settings))
   }
 
   @Provides
@@ -233,7 +259,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderUpdaterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderUpdater()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderUpdaterSettings) =>
+      Props(new OrderUpdater(dynamicSettings, settings))
   }
 
   @Provides
@@ -241,7 +269,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderWriterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderWriter()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: OrderWriterSettings) =>
+      Props(new OrderWriter(dynamicSettings, settings))
   }
 
   @Provides
@@ -249,7 +279,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getRingFinderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingFinder()) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: RingFinderSettings) =>
+      Props(new RingFinder(dynamicSettings, settings))
   }
 
   @Provides
@@ -257,7 +289,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
+    (dynamicSettings: DynamicSettings,
+    settings: RingMinerSettings) =>
+      Props(new RingMiner(dynamicSettings, settings, ethClient))
   }
 
 }

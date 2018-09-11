@@ -27,17 +27,18 @@ object OrderManager
   extends base.Deployable[OrderManagerSettings] {
   val name = "order_manager"
 
-  def getCommon(s: OrderManagerSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderManagerSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 }
 
-class OrderManager()(implicit
+class OrderManager(
+  dynamicSettings: DynamicSettings,
+  settings: OrderManagerSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderManagerSettings =>
     case OrdersSaved =>
     case OrdersSoftCancelled =>
     case OrderCancelled =>

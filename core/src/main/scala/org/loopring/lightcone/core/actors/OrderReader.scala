@@ -33,19 +33,19 @@ object OrderReader
   extends base.Deployable[OrderReaderSettings] {
   val name = "order_reader"
 
-  def getCommon(s: OrderReaderSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderReaderSettings) =
+    base.DeploymentMetadata(s.roles, s.instances)
 
 }
 
-class OrderReader()(implicit
+class OrderReader(
+  dynamicSettings: DynamicSettings,
+  settings: OrderReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderReaderSettings =>
-
     case req: GetOrderReq =>
       val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
       oneOrderResult.mapTo[OneOrder] onComplete {
