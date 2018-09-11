@@ -40,18 +40,16 @@ object OrderBookManager
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class OrderBookManager @Inject() ()(implicit
+class OrderBookManager()(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
   var settings: OrderBookManagerSettings = null
 
   var id = settings.id
-  lazy val orderAccessor = Routers.orderAccessor
-  lazy val readCoordinator = Routers.orderReadCoordinator
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
-  def query = OrderQuery(market = id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
+  def resetQuery = OrderQuery(market = id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
 
   val managerHelper = new OrderBookManagerHelperImpl(marketConfig())
 
@@ -61,7 +59,7 @@ class OrderBookManager @Inject() ()(implicit
     case settings: OrderBookManagerSettings =>
       this.settings = settings
       //orderbookmanager依赖于manageHelper的数据完整，需要等待初始化完成
-      Await.result(managerHelper.resetOrders(query), timeout.duration)
+      Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
 
     case m: GetCrossingOrderSets =>
       val (minPrice, maxPrice) = managerHelper.crossingPrices(canMatching)
@@ -88,7 +86,7 @@ class OrderBookManager @Inject() ()(implicit
     case m: Purge.All =>
       //      managerHelper.purgeOrders(m)
       //      managerHelper.resetOrders(query)
-      Await.result(managerHelper.resetOrders(query), timeout.duration)
+      Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
     case _ =>
   }
 
@@ -101,11 +99,12 @@ class OrderBookManager @Inject() ()(implicit
           if (level1Status == OrderLevel1Status.ORDER_STATUS_NEW
             && postponed <= currentTime
             && level3Status == OrderLevel3Status.ORDER_STATUS_ACTIVE)
+            //todo:增加灰尘单的过滤，需要依赖于marketcap
             true
           else
             false
       }
-    case _ => false //todo:
+    case _ => false
   }
 
 }
