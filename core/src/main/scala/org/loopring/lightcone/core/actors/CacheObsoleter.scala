@@ -49,6 +49,8 @@ class CacheObsoleter(
   var lastHeartBeatTime = 0l
   val mediator = DistributedPubSub(context.system).mediator
 
+  initAndStartNextRound(settings.deadTime)
+
   override def receive: Receive = super.receive orElse {
     case balanceChanged: AddressBalanceChanged =>
     //      mediator ! Publish(name, Purge.Balance(address = balanceChanged.owner))
