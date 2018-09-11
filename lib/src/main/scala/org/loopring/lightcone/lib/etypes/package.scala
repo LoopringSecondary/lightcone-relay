@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core
+package org.loopring.lightcone.lib
 
 import java.math.BigInteger
+
+import com.google.protobuf.ByteString
 
 package object etypes {
 
@@ -42,9 +44,18 @@ package object etypes {
     }
 
     def asBigInteger: BigInteger = hex.asBigInt.bigInteger
+
+    def asProtoByteString(): ByteString = {
+      ByteString.copyFrom(hex.getBytes())
+    }
   }
 
-  implicit class RichBigInt(i: BigInt) {
+  implicit class RichBigint(i: BigInt) {
+
+    def asProtoByteString(): ByteString = {
+      ByteString.copyFrom(i.toByteArray)
+    }
+
     def toHex: String = "0x" + i.toString(16)
   }
 

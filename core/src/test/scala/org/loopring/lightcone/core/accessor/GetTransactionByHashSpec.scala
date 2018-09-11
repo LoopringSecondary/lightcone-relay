@@ -16,7 +16,8 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.core.etypes._
+import org.loopring.lightcone.core.ethaccessor._
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetTransactionByHashReq
 import org.scalatest.FlatSpec
 
@@ -29,7 +30,7 @@ class GetTransactionByHashSpec extends FlatSpec {
   "transaction hash" should "contain gasLimit but without gasUsed" in {
     val req = GetTransactionByHashReq("0x3d07177d16e336c815802781ab3f5ca53b088726ec31be66bd19269b050413db")
     val resultFuture = for {
-      resp <- ethClient.getTransactionByHash(req)
+      resp <- geth.getTransactionByHash(req)
     } yield resp.result
 
     val tx = Await.result(resultFuture, timeout.duration).get
@@ -37,6 +38,6 @@ class GetTransactionByHashSpec extends FlatSpec {
     info(tx.toString)
     info(tx.from.getBytes().asAddress.toString)
     info(tx.hash.getBytes().asHash.toString)
-    info(tx.value.getBytes().asBigInt.toString)
+    info(tx.value)
   }
 }

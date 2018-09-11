@@ -20,10 +20,12 @@ import akka.actor._
 import com.google.inject._
 import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
 import org.spongycastle.util.encoders.Hex
 
 class EthClientImpl @Inject() (
-  val abi: ContractABI,
+  val erc20Abi: Erc20Abi,
+  val loopringAbi: LoopringAbi,
   val ethereumClientFlow: HttpFlow,
   @Named("ethereum_conn_queuesize") val queueSize: Int)(
   implicit
@@ -78,7 +80,7 @@ class EthClientImpl @Inject() (
 
   def getBalance(req: GetBalanceReq) =
     httpPost[GetBalanceRes](ETH_CALL) {
-      val function = findErc20Function("balanceOf")
+      val function = erc20Abi.balanceOf
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
@@ -86,7 +88,7 @@ class EthClientImpl @Inject() (
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = findErc20Function("allowance")
+      val function = erc20Abi.allowance
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)

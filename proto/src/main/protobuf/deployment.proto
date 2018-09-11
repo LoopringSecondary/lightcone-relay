@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 import "google/protobuf/any.proto";
 
@@ -46,6 +46,7 @@ message BalanceReaderSettings {
 
 message BlockchainEventExtractorSettings {
     repeated string roles = 1;
+    int64 scheduleDelay = 2;
 }
 
 message CacheObsoleterSettings {
@@ -162,6 +163,11 @@ message RingMinerSettings {
     int64 schedule_delay = 4;
     RingSubmitterSettings submitter_settings = 5;
     RingEvaluatorSettings evaluator_settings = 6;
+}
+
+// todo
+message TokenRegistrySettings {
+
 }
 
 message DynamicSettings {

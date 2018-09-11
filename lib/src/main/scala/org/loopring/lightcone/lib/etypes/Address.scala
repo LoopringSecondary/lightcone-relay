@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.lib.collection
+package org.loopring.lightcone.lib.etypes
 
-trait HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt
+object Address {
+  val ADDRESS_LENGTH = 42
 }
 
-final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
+case class Address(val bytes: Array[Byte]) {
+  def isValid: Boolean =
+    bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
+
+  override def toString: String = new String(bytes)
 }
