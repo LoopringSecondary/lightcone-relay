@@ -17,32 +17,23 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
-import org.apache.commons.collections4.Predicate
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.lib.solidity.Abi
+import akka.stream._
+import akka.stream.scaladsl._
 import scala.concurrent._
 import scalapb.json4s.JsonFormat
 import org.json4s._
 import org.json4s.native.Serialization
-import akka.stream._
 import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
 
 // TODO(fukun): use a connection pool?
 trait JsonRpcSupport {
   implicit val system: ActorSystem
-  val abi: ContractABI
   val ethereumClientFlow: HttpFlow
   val queueSize: Int
 
   implicit lazy val materializer = ActorMaterializer()
   implicit lazy val executionContext = system.dispatcher
-  implicit lazy val erc20Abi = abi.get("erc20")
 
   val id: Int = 1
   val JSON_RPC_VERSION = "2.0"
@@ -99,8 +90,5 @@ trait JsonRpcSupport {
       resp = JsonFormat.parser.fromJsonString[R](jsonStr)
     } yield resp
   }
-
-  protected def findErc20Function(name: String) =
-    erc20Abi.findFunction(_.name.equals(name))
 
 }

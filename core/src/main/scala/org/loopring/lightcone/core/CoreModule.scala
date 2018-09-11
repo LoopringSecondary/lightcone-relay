@@ -16,29 +16,28 @@
 
 package org.loopring.lightcone.core
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
 import akka.actor._
 import akka.cluster._
-import akka.stream.ActorMaterializer
-import org.loopring.lightcone.core.actors._
-import org.loopring.lightcone.core.accessor._
-import org.loopring.lightcone.core.cache._
-import com.typesafe.config.Config
-import akka.util.Timeout
-import scala.concurrent._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import org.loopring.lightcone.core.database._
-import redis._
-import akka.stream._
-import scala.util._
 import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
 import akka.http.scaladsl._
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import com.google.inject._
+import com.google.inject.name._
+import com.typesafe.config.Config
+import net.codingwell.scalaguice._
+import org.loopring.lightcone.core.accessor._
+import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
+import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.core.utils._
+import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
-import org.loopring.lightcone.core.cache.ByteArrayRedisCache
+import org.loopring.lightcone.proto.token.TokenList
+import redis._
+
+import scala.concurrent.{ ExecutionContext, _ }
+import scala.concurrent.duration._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -47,21 +46,26 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     implicit val cluster = Cluster(system)
 
     bind[Config].toInstance(config)
-    bind[ContractABI].toInstance(new ContractABI(config.getConfig("abi")))
-
     bind[ActorSystem].toInstance(system)
     bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
     bind[Timeout].toInstance(new Timeout(2 seconds))
+    bind[Erc20Abi].to[Erc20Abi].in[Singleton]
+    bind[WethAbi].to[WethAbi].in[Singleton]
+    bind[LoopringAbi].to[LoopringAbi].in[Singleton]
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
-    bind[HttpFlow].toInstance {
-      Http().cachedHostConnectionPool[Promise[HttpResponse]](
+    val httpFlow = Http()
+      .cachedHostConnectionPool[Promise[HttpResponse]](
         host = config.getString("ethereum.host"),
         port = config.getInt("ethereum.port"))
-    }
+
+    bind[HttpFlow].toInstance(httpFlow)
+
+    bind[Int].annotatedWith(Names.named("ethereum_conn_queuesize"))
+      .toInstance(config.getInt("ethereum.queueSize"))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
     bind[OrderDatabase].to[MySQLOrderDatabase]
@@ -70,6 +74,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     bind[BalanceCache].to[cache.BalanceRedisCache]
     bind[OrderCache].to[cache.OrderRedisCache]
 
+    bind[TokenList].toInstance(TokenList(list = Seq()))
+    bind[BlockHelper].to[BlockHelperImpl].in[Singleton]
+    bind[TransactionHelper].to[TransactionHelperImpl].in[Singleton]
   }
 
   @Provides
@@ -111,7 +118,9 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Named("block_event_extractor")
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
-    timeout: Timeout) = {
+    timeout: Timeout,
+    blockHelper: BlockHelper,
+    transactionHelper: TransactionHelper) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
   }
 
@@ -245,9 +254,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("ring_miner")
-  def getRingMinerProps()(implicit
+  def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingMiner()) // .withDispatcher("ring-dispatcher")
+    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
   }
+
 }

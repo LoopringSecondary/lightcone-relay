@@ -18,6 +18,11 @@ package org.loopring.lightcone.core.cache
 
 import org.loopring.lightcone.lib.cache._
 
-final class OrderRedisCache extends OrderCache {
+import redis._
+import com.google.inject._
+
+final class OrderRedisCache @Inject() (
+  redis: RedisCluster)
+  extends OrderCache {
 
 }

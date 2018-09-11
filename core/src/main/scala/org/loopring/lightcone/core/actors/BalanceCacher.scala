@@ -48,6 +48,7 @@ class BalanceCacher(cache: BalanceCache)(implicit
       this.settings = settings
 
     case m: GetBalancesReq =>
+
       sender() ! GetBalancesResp()
 
     case m: GetAllowancesReq =>

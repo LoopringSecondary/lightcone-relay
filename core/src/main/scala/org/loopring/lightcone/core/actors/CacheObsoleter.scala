@@ -54,35 +54,36 @@ class CacheObsoleter()(implicit
       initAndStartNextRound(settings.deadTime)
 
     case balanceChanged: AddressBalanceChanged =>
-      mediator ! Publish(name, Purge.Balance(address = balanceChanged.owner))
+    //      mediator ! Publish(name, Purge.Balance(address = balanceChanged.owner))
 
     case cutoff: Cutoff =>
       val event = Purge.AllOrderForAddress()
-        .withAddress(cutoff.owner)
+        //        .withAddress(cutoff.owner)
         .withCutoff(cutoff.cutoff)
       mediator ! Publish(name, event)
 
     case cutoffPair: CutoffPair =>
       val event = Purge.AllOrderForAddress()
-        .withAddress(cutoffPair.owner)
+        //        .withAddress(cutoffPair.owner)
         .withCutoff(cutoffPair.cutoff)
-        .withMarket(cutoffPair.market)
+      // .withMarket(cutoffPair.market)
       mediator ! Publish(name, event)
 
     case forkEvent: ChainRolledBack =>
       val event = Purge.AllAfterBlock()
-        .withBlockNumber(forkEvent.forkBlockNumber)
+      //        .withBlockNumber(forkEvent.forkBlockNumber)
       mediator ! Publish(name, event)
 
     case orderCalceled: OrderCancelled =>
       val event = Purge.Order()
-        .withOrderHash(orderCalceled.orderHash)
+      //        .withOrderHash(orderCalceled.orderHash)
       mediator ! Publish(name, event)
 
     case ringMined: RingMined =>
       ringMined.fills foreach {
         filled =>
-          val event = Purge.Order().withOrderHash(filled.orderHash)
+          val event = Purge.Order()
+          //            .withOrderHash(filled.orderHash)
           mediator ! Publish(name, event)
       }
 

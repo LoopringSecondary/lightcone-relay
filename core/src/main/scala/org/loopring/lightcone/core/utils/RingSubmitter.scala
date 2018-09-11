@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.lib.collection
+package org.loopring.lightcone.core.utils
 
-trait HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt
-}
+import org.loopring.lightcone.proto.eth_jsonrpc.SendRawTransactionRes
 
-final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
+import scala.concurrent.Future
+
+trait RingSubmitter {
+  def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes]
+  def getSubmitterAddress(): String
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 import public "common.proto";
 
@@ -118,16 +118,20 @@ message OrdersSoftCancelled {
 message OrderStatusChanged {
     repeated string order_hashes = 1;
 }
+message OrderSettleAmount {
+    string order_hash = 1;
+    string amount = 2;
+}
 message MarkOrdersSettling {
-    repeated string order_hashes = 1;
+    repeated OrderSettleAmount orders_settle_amount = 1;
 }
 message MarkOrdersBeingMatched {
     repeated string order_hashes = 1;
 }
 
 message DeferOrder {
-    string orderhash = 1;
-    int64 deferredTime = 2;
+    string order_hash = 1;
+    int64 deferred_time = 2;
 }
 
 message MarkOrdersDeferred {
@@ -141,12 +145,12 @@ message UpdateOrdersById {
 message Order {
     RawOrder raw_order = 1;
     int64 updated_block = 2;
-    bytes dealtAmountS = 3;
-    bytes dealtAmountB = 4;
-    bytes splitAmountS = 5;
-    bytes splitAmountB = 6;
-    bytes cancelledAmountS = 7;
-    bytes cancelledAmountB = 8;
+    string dealtAmountS = 3;
+    string dealtAmountB = 4;
+    string splitAmountS = 5;
+    string splitAmountB = 6;
+    string cancelledAmountS = 7;
+    string cancelledAmountB = 8;
     OrderStatus status = 9;
     int32 broadcast_time = 10;
 }
@@ -191,26 +195,26 @@ enum SoftCancelType {
 }
 
 message RawOrder {
-    bytes protocol = 1;
-    bytes delegate_address = 2;
-    bytes auth_addr = 3;
-    bytes auth_private_key = 4;
-    bytes wallet_address = 5;
-    bytes token_s = 6;
-    bytes token_b = 7;
-    bytes amount_s = 8;
-    bytes amount_b = 9;
+    string protocol = 1;
+    string delegate_address = 2;
+    string auth_addr = 3;
+    string auth_private_key = 4;
+    string wallet_address = 5;
+    string token_s = 6;
+    string token_b = 7;
+    string amount_s = 8;
+    string amount_b = 9;
     int64 valid_since = 10;
     int64 valid_until = 11;
-    bytes lrc_fee = 12;
+    string lrc_fee = 12;
     bool buy_no_more_than_amount_b = 13;
-    double margin_split_percentage = 14;
+    int32 margin_split_percentage = 14;
     int32 v = 15;
-    bytes r = 16;
-    bytes s = 17;
+    string r = 16;
+    string s = 17;
     double price = 18;
-    bytes owner = 19;
-    bytes hash = 20;
+    string owner = 19;
+    string hash = 20;
     string market = 21;
     int64 create_time = 22;
     int64 pow_nonce = 23;

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 ////import "data.proto"; // 要引用其他.proto文件的message，使用import关键字
 //// import public "data.proto" // public 会告诉example不仅仅使用data里面的message，还会使用data里面import进来的message
 //                              // 一般情况下建议单独再引用一次，除非类似API定义V2，需要复用之前V1的message
