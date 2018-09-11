@@ -29,7 +29,7 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ Await, ExecutionContext }
 
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {
@@ -51,6 +51,8 @@ class OrderBookManager @Inject() ()(implicit
   lazy val readCoordinator = Routers.orderReadCoordinator
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
+  def query = OrderQuery(market = id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
+
   val managerHelper = new OrderBookManagerHelperImpl(marketConfig())
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
@@ -58,14 +60,12 @@ class OrderBookManager @Inject() ()(implicit
   def receive: Receive = {
     case settings: OrderBookManagerSettings =>
       this.settings = settings
-      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
-      //todo:await
-      val f = managerHelper.resetOrders(query)
+      //orderbookmanager依赖于manageHelper的数据完整，需要等待初始化完成
+      Await.result(managerHelper.resetOrders(query), timeout.duration)
 
     case m: GetCrossingOrderSets =>
       val (minPrice, maxPrice) = managerHelper.crossingPrices(canMatching)
       val tokenOrders = managerHelper.crossingOrdersBetweenPrices(minPrice, maxPrice)
-
       sender() ! CrossingOrderSets(
         sellTokenAOrders = tokenOrders.tokenAOrders.filter(canMatching).map(_.order).toSeq,
         sellTokenBOrders = tokenOrders.tokenBOrders.filter(canMatching).map(_.order).toSeq)
@@ -75,21 +75,37 @@ class OrderBookManager @Inject() ()(implicit
 
     case m: Purge.Order =>
       managerHelper.purgeOrders(Seq(m.orderHash))
+
     case m: Purge.AllOrderForAddress =>
       managerHelper.purgeOrders(m)
+
     case m: Purge.AllForAddresses =>
       managerHelper.purgeOrders(m)
+
     case m: Purge.AllAfterBlock =>
       managerHelper.purgeOrders(m)
+
     case m: Purge.All =>
       //      managerHelper.purgeOrders(m)
-      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
-      managerHelper.resetOrders(query)
+      //      managerHelper.resetOrders(query)
+      Await.result(managerHelper.resetOrders(query), timeout.duration)
     case _ =>
   }
 
   val canMatching: PartialFunction[OrderWithStatus, Boolean] = {
-    case _ => true //todo:
+    case OrderWithStatus(order, postponed) =>
+      order.status match {
+        case None => true
+        case Some(OrderStatus(level1Status, level2Status, level3Status)) =>
+          val currentTime = System.currentTimeMillis
+          if (level1Status == OrderLevel1Status.ORDER_STATUS_NEW
+            && postponed <= currentTime
+            && level3Status == OrderLevel3Status.ORDER_STATUS_ACTIVE)
+            true
+          else
+            false
+      }
+    case _ => false //todo:
   }
 
 }

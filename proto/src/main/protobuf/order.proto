@@ -27,7 +27,7 @@ message GetOrdersReq {
 
 message OrderQuery {
     repeated string status = 1;
-    string delegate_address = 2;
+    string delegate = 2;
     string owner = 3;
     string market = 4;
 //    string order_hash = 5;

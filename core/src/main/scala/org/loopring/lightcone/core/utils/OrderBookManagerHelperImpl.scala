@@ -128,6 +128,7 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
     orderQuery <- Future.successful(query)
     res <- (orderAccessor ? GetTopOrders(query = Some(orderQuery))).mapTo[TopOrders]
   } yield {
+    this.orderbook = mutable.TreeMap[Rational, TokenOrders]()
     res.order foreach { o =>
       val sellPrice = Rational(o.rawOrder.get.amountS.asBigInt, o.rawOrder.get.amountB.asBigInt)
       //todo:确认order需要如何转换成updatedOrder
