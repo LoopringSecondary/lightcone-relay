@@ -5,6 +5,8 @@ import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.MappingsHelper._
 import xerial.sbt.Sonatype.SonatypeKeys._
+import sbtrelease.ReleaseStateTransformations._
+import sbtrelease.ReleasePlugin.autoImport._
 
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
@@ -33,5 +35,19 @@ object Settings {
     startYear := Some(2018),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     shellPrompt in ThisBuild := { state => "sbt (%s)> ".format(Project.extract(state).currentProject.id) },
-    publishTo := sonatypePublishTo.value)
+    publishTo := sonatypePublishTo.value,
+    releaseCrossBuild := false,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      releaseStepCommandAndRemaining("publishSigned"),
+      setNextVersion,
+      commitNextVersion,
+      releaseStepCommand("sonatypeReleaseAll"),
+      pushChanges))
 }
