@@ -19,7 +19,6 @@ package org.loopring.lightcone.lib.abi
 import java.math.BigInteger
 import java.lang.{ Boolean => jbool }
 
-import com.typesafe.config.Config
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log

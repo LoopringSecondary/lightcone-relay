@@ -32,7 +32,6 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
   val EN_DEPOSIT = "Deposit"
   val EN_WITHDRAWAL = "Withdrawal"
 
-  // override def abi: Abi = Abi.fromJson(config.getString("abi.weth"))
   override def abi: Abi = {
     val path = config.getString("abi.basedir") + config.getString("abi.weth")
     val str = Source.fromFile(path).getLines().map(_.trim).reduce(_ + _)

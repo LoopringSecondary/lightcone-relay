@@ -33,7 +33,6 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
 
-  // override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
   override def abi: Abi = {
     val path = config.getString("abi.basedir") + config.getString("abi.erc20")
     val str = Source.fromFile(path).getLines().map(_.trim).reduce(_ + _)
