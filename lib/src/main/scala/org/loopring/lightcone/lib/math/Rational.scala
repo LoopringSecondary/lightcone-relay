@@ -97,6 +97,8 @@ class Rational(numerator: BigInt, denominator: BigInt)
     }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
+
+  override def hashCode(): Int = super.hashCode() //todo:
 }
 
 object Rational {

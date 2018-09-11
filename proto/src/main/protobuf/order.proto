@@ -26,7 +26,7 @@ message GetOrdersReq {
 }
 
 message OrderQuery {
-    string status = 1;
+    repeated string status = 1;
     string delegate_address = 2;
     string owner = 3;
     string market = 4;

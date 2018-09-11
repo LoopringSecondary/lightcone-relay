@@ -18,9 +18,11 @@ package org.loopring.lightcone.core.actors
 
 import akka.actor._
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContext
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import com.google.inject.Inject
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.cache._
@@ -34,7 +36,7 @@ object BalanceCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceCacher(cache: BalanceCache)(implicit
+class BalanceCacher @Inject() (cache: BalanceCache)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
@@ -48,17 +50,28 @@ class BalanceCacher(cache: BalanceCache)(implicit
       this.settings = settings
 
     case m: GetBalancesReq =>
-
-      sender() ! GetBalancesResp()
+      val sender1 = sender()
+      for {
+        resp <- cache.getBalances(m)
+      } yield sender1 ! resp
 
     case m: GetAllowancesReq =>
-      sender() ! GetAllowancesResp()
+      val sender1 = sender()
+      for {
+        resp <- cache.getAllowances(m)
+      } yield sender1 ! resp
 
     case m: GetBalanceAndAllowanceReq =>
-      sender() ! GetBalanceAndAllowanceResp()
+      val sender1 = sender()
+      for {
+        resp <- cache.getBalanceAndAllowances(m)
+      } yield sender1 ! resp
 
     case m: CacheBalanceInfo =>
-      sender() ! CachedBalanceInfo()
+      val sender1 = sender()
+      for {
+        resp <- cache.addCache(m)
+      } yield sender1 ! resp
 
     case purgeEvent: Purge.Balance =>
 
