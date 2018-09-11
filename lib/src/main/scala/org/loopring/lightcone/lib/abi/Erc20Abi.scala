@@ -32,15 +32,10 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_TRANSFER = "Transfer"
 
   override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
-  override val supportedFunctions: Seq[String] = Seq(
+  override def supportedFunctions: Seq[String] = Seq(
     FN_APPROVE, FN_TRANSFER)
-  override val supportedEvents: Seq[String] = Seq(
+  override def supportedEvents: Seq[String] = Seq(
     EN_APPROVAL, EN_TRANSFER)
-
-  override val sigFuncMap: Map[String, Abi.Function] = super.sigFuncMap
-  override val sigEvtMap: Map[String, Abi.Event] = super.sigEvtMap
-  override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
-  override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
 
   val balanceOf: Abi.Function = abi.findFunction(predicate("balanceOf"))
   val allowance: Abi.Function = abi.findFunction(predicate("allowance"))

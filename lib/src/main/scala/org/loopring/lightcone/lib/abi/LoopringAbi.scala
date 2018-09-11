@@ -39,15 +39,10 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   val EN_CUTOFF_PAIR = "OrdersCancelled"
 
   override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
-  override val supportedFunctions: Seq[String] = Seq(
+  override def supportedFunctions: Seq[String] = Seq(
     FN_SUBMIT_RING, FN_CANCEL_ORDER, FN_CUTOFF_ALL, FN_CUTOFF_PAIR)
-  override val supportedEvents: Seq[String] = Seq(
+  override def supportedEvents: Seq[String] = Seq(
     EN_RING_MINED, EN_ORDER_CANCELLED, EN_CUTOFF_ALL, EN_CUTOFF_PAIR)
-
-  override val sigFuncMap: Map[String, Abi.Function] = super.sigFuncMap
-  override val sigEvtMap: Map[String, Abi.Event] = super.sigEvtMap
-  override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
-  override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
 
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)

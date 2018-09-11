@@ -22,7 +22,7 @@ import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.block_chain_event._
 
-class WethAbi @Inject() (config: Config) extends ContractAbi {
+class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
   val FN_DEPOSIT = "deposit"
   val FN_WITHDRAW = "withdraw"
@@ -31,32 +31,37 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
   val EN_WITHDRAWAL = "Withdrawal"
 
   override def abi: Abi = Abi.fromJson(config.getString("abi.weth"))
-  override val supportedFunctions: Seq[String] = Seq(
-    FN_DEPOSIT, FN_WITHDRAW)
-  override val supportedEvents: Seq[String] = Seq(
-    EN_DEPOSIT, EN_WITHDRAWAL)
+  override def supportedFunctions: Seq[String] = {
+    super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
+  }
+  override def supportedEvents: Seq[String] = {
+    super.supportedEvents.seq ++ Seq(EN_DEPOSIT, EN_WITHDRAWAL)
+  }
 
-  override val sigFuncMap: Map[String, Abi.Function] = super.sigFuncMap
-  override val sigEvtMap: Map[String, Abi.Event] = super.sigEvtMap
-  override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
-  override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
+  override def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
+    val erc20seq = super.decodeInputAndAssemble(input, header)
 
-  def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
-    res.name match {
+    val wethseq = res.name match {
       case FN_DEPOSIT => Seq(assembleDepositFunction(res.list, header))
       case FN_WITHDRAW => Seq(assembleWithdrawalFunction(res.list, header))
       case _ => Seq()
     }
+
+    erc20seq ++ wethseq
   }
 
-  def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
+  override def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
+    val erc20seq = super.decodeLogAndAssemble(log, header)
+
     val res = decodeLog(log)
-    res.name match {
+    val wethseq = res.name match {
       case EN_DEPOSIT => Seq(assembleDepositEvent(res.list, header))
       case EN_WITHDRAWAL => Seq(assembleWithdrawalEvent(res.list, header))
       case _ => Seq()
     }
+
+    erc20seq ++ wethseq
   }
 
   // function deposit() public payable

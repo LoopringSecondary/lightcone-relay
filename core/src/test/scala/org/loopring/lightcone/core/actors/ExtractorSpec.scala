@@ -69,7 +69,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
   implicit val detector = new BlockHelperImpl(config, geth)
-  implicit val processor = new TransactionHelperImpl(tokenlist, geth, erc20Abi, wethAbi, loopringAbi)
+  implicit val processor = new TransactionHelperImpl(tokenlist, geth, erc20Abi, loopringAbi)
   implicit val timeout = Timeout(200 second)
 
   val extractor = system.actorOf(Props(new BlockchainEventExtractor()), "extractor")
@@ -81,7 +81,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       val round = StartNewRound()
 
       extractor ! round
-      Thread.sleep(5000)
+      Thread.sleep(10000)
     }
   }
 }
