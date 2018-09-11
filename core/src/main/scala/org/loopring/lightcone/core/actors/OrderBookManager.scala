@@ -19,20 +19,17 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
-import akka.pattern.ask
 import akka.util.Timeout
 import com.google.inject.Inject
-import org.loopring.lightcone.core.etypes._
 import org.loopring.lightcone.core.managing.NodeData
 import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.lib.math.Rational
+import org.loopring.lightcone.core.utils.{OrderBookManagerHelperImpl, OrderWithStatus}
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.orderbook.{CrossingOrderSets, GetCrossingOrderSets}
 
-import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {
@@ -43,21 +40,6 @@ object OrderBookManager
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-/**
- * orderbookmanager
- *
- * 订单采用sortedset存储，其中tokena/tokenb 为score，订单hash为value
- *
- *
- * 订单的最新状态需要保存在内存中，但是启动时，从redis中同步订单状态，包括在撮合状态等
- * 没有使用事件溯源，需要确认操作顺序
- *
- *
- *
- * @param cache
- * @param ec
- * @param timeout
- */
 class OrderBookManager @Inject() ()(implicit
   ec: ExecutionContext,
   timeout: Timeout)
@@ -66,57 +48,30 @@ class OrderBookManager @Inject() ()(implicit
 
   var id = settings.id
   lazy val orderAccessor = Routers.orderAccessor
+  lazy val readCoordinator = Routers.orderReadCoordinator
 
-  //todo:decimal
-  val tokenADecimal = 1000000
-  val tokenBDecimal = 100000000
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
-
-  //todo:test hashcode
-  //AmountA/AmountB
-  var orderbook = mutable.TreeMap[Rational, Map[String, Order]]()
-  var orderStatus = mutable.TreeMap[String, String]()
+  val managerHelper = new OrderBookManagerHelperImpl(marketConfig())
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
     case settings: OrderBookManagerSettings =>
       this.settings = settings
+      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
       //todo:await
-      initAndGetOrders()
+      val f = managerHelper.resetOrders(query)
 
     case m: GetCrossingOrderSets =>
-      //可以成交的最大最小价格
-      var minPrice: Rational = null
-      var maxPrice: Rational = null
-      orderbook.foreach { o =>
-        {
-          if (null == minPrice && o._2.size > 1) {
-            minPrice = o._1
-          }
-          if (o._2.size > 1) {
-            maxPrice = o._1
-          }
-        }
-      }
-      val orders = orderbook.filter(o => o._1 >= minPrice && o._1 <= maxPrice).flatMap(o1 => {
-        val orderMap = o1._2
-        orderMap.map(m => {
-          (m._1, m._2)
-        })
-      }).groupBy(_._1).map { m =>
-        (m._1, m._2.values.toSeq)
-      }
+      val (minPrice, maxPrice) = managerHelper.crossingPrices(canMatching)
+      val tokenOrders = managerHelper.crossingOrdersBetweenPrices(minPrice, maxPrice)
 
       sender() ! CrossingOrderSets(
-        sellTokenAOrders = orders(marketConfig().tokenA),
-        sellTokenBOrders = orders(marketConfig().tokenB))
+        sellTokenAOrders = tokenOrders.tokenAOrders.filter(canMatching).map(_.order).toSeq,
+        sellTokenBOrders = tokenOrders.tokenBOrders.filter(canMatching).map(_.order).toSeq)
 
-    case m: OrdersUpdated =>
-      m.orders.foreach{o => {
-        val sellPrice = Rational(o.rawOrder.get.amountS.asBigInt, o.rawOrder.get.amountB.asBigInt)
-        orderbook.synchronized(orderbook.put(sellPrice, orderbook.getOrElseUpdate(sellPrice, Map()) ++ Map(o.rawOrder.get.tokenS -> o)))
-      }}
+    case m: UpdatedOrders =>
+      m.orders.foreach(managerHelper.updateOrder)
 
     case m: Purge.Order =>
 
@@ -127,18 +82,13 @@ class OrderBookManager @Inject() ()(implicit
     case m: Purge.AllAfterBlock =>
 
     case m: Purge.All =>
-
+      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
+      managerHelper.resetOrders(query)
     case _ =>
   }
 
-  def initAndGetOrders(): Future[Unit] = for {
-    orderQuery <- Future.successful(OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = ""))
-    res <- (orderAccessor ? GetTopOrders(query = Some(orderQuery))).mapTo[TopOrders]
-  } yield {
-    res.order map { o =>
-      val sellPrice = Rational(o.rawOrder.get.amountS.asBigInt, o.rawOrder.get.amountB.asBigInt)
-      orderbook.synchronized(orderbook.put(sellPrice, orderbook.getOrElseUpdate(sellPrice, Map()) ++ Map(o.rawOrder.get.tokenS -> o)))
-    }
+  val canMatching: PartialFunction[OrderWithStatus, Boolean] = {
+    case _ => true //todo:
   }
 
 }

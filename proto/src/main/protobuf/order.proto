@@ -100,11 +100,18 @@ message OrdersSaved {
 message UpdateOrders {
     repeated Order orders = 1;
 }
+
 message CalculateOrdersStatus {
     repeated Order orders = 1;
 }
-message OrdersUpdated {
-    repeated Order orders = 1;
+
+message UpdatedOrder {
+    Order order = 1;
+    int64 postponed = 2;
+}
+
+message UpdatedOrders {
+    repeated UpdatedOrder orders = 1;
 }
 
 message SoftCancelOrders {
@@ -145,36 +152,48 @@ message UpdateOrdersById {
 message Order {
     RawOrder raw_order = 1;
     int64 updated_block = 2;
-    string dealtAmountS = 3;
-    string dealtAmountB = 4;
-    string splitAmountS = 5;
-    string splitAmountB = 6;
-    string cancelledAmountS = 7;
-    string cancelledAmountB = 8;
+    string dealt_amount_s = 3;
+    string dealt_amount_b = 4;
+    string split_amount_s = 5;
+    string split_amount_b = 6;
+    string cancelled_amount_s = 7;
+    string cancelled_amount_b = 8;
     OrderStatus status = 9;
     int32 broadcast_time = 10;
 }
 
-enum OrderStatus {
-    // level 1 status
-    UNKNOWN = 0;
-    NEW = 1;
-    INVALID = 2;
-    DUST = 3;
-    FULLY_FILLED = 4;
-    SOFT_CANCELLED = 5;
-    HARD_CANCELLED = 6;
-    EXPIRED = 7;
+// level 1 status
+enum OrderLevel1Status {
+    ORDER_STATUS_LEVEL1_UNKNOWN = 0;
+    ORDER_STATUS_NEW = 1;
+    ORDER_STATUS_FULL = 2;
+    ORDER_STATUS_SOFT_CANCELLED = 3;
+    ORDER_STATUS_HARD_CANCELLED = 4;
+    ORDER_STATUS_EXPIRED = 5;
+}
 
-    // level 2 status
-    OPEN = 8;
-    PENDING = 9;
+// level 2 status
+enum OrderLevel2Status {
+    ORDER_STATUS_LEVEL2_UNKNOWN = 0;
+    ORDER_STATUS_OPEN = 1;
+    ORDER_STATUS_PENDING = 2;
+    ORDER_STATUS_PARTIAL = 3;
+}
 
-    // level 3 status
-    MATCHING = 10;
-    SETTLEING = 11;
-    DEFERRED = 12;
-    TINY = 13;
+// level 3 status
+enum OrderLevel3Status {
+    ORDER_STATUS_LEVEL3_UNKNOWN = 0;
+    ORDER_STATUS_DEFERRED = 1;
+    ORDER_STATUS_TINY = 2;
+    ORDER_STATUS_MATCHING = 3;
+    ORDER_STATUS_SETTLEING = 4;
+    ORDER_STATUS_ACTIVE = 5;
+}
+
+message OrderStatus {
+    OrderLevel1Status level1_status = 1;
+    OrderLevel2Status level2_status = 2;
+    OrderLevel3Status level3_status = 3;
 }
 
 enum OrderType {
@@ -219,7 +238,7 @@ message RawOrder {
     int64 create_time = 22;
     int64 pow_nonce = 23;
     MarketSide side = 24;
-    OrderType orderType = 25;
+    OrderType order_type = 25;
 }
 
 message SoftCancelSign {
@@ -236,11 +255,12 @@ message NotifyRollbackOrders {
 
 message OrderChangeLog {
     bytes order_hash = 1;
-    bytes dealtAmountS = 3;
-    bytes dealtAmountB = 4;
-    bytes splitAmountS = 5;
-    bytes splitAmountB = 6;
-    bytes cancelledAmountS = 7;
-    bytes cancelledAmountB = 8;
+    bytes dealt_amount_s = 3;
+    bytes dealt_amount_b = 4;
+    bytes split_amount_s = 5;
+    bytes split_amount_b = 6;
+    bytes cancelled_amount_s = 7;
+    bytes cancelled_amount_b = 8;
     OrderStatus status = 9;
 }
+
