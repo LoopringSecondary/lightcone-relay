@@ -42,7 +42,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
   // override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
   override def abi: Abi = {
-    val path = config.getString("abi.basedir") + config.getString("abi.erc20")
+    val path = config.getString("abi.basedir") + config.getString("abi.loopring")
     val str = Source.fromFile(path).getLines().map(_.trim).reduce(_ + _)
     Abi.fromJson(str)
   }
