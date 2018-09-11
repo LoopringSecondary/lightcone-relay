@@ -40,37 +40,57 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
   val orderAccessor = Routers.orderAccessor
   val readCoordinator = Routers.orderReadCoordinator
 
-  override def updateOrder(order: UpdatedOrder): Unit = {
-    val rawOrder = order.order.get.rawOrder.get
+  override def updateOrder(updatedOrder: UpdatedOrder): Unit = {
+    val rawOrder = updatedOrder.order.get.rawOrder.get
     val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
     //根据o.status的状态，执行不同的操作，新增、更新、删除、暂停等
-    order.order.get.status match {
-      case None => orderbook.synchronized {
-        val orderWithStatus = OrderWithStatus(order.order.get, order.postponed)
-        var tokenOrders = orderbook.getOrElseUpdate(sellPrice, TokenOrders())
-        tokenOrders = if (rawOrder.tokenS == marketConfig.tokenA) {
-          val tokenAOrders = tokenOrders.tokenAOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
-          tokenOrders.copy(tokenAOrders = tokenAOrders + orderWithStatus)
-        } else {
-          val tokenBOrders = tokenOrders.tokenBOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
-          tokenOrders.copy(tokenBOrders = tokenBOrders + orderWithStatus)
-        }
-        orderbook.put(sellPrice, tokenOrders)
-      }
-      case Some(OrderStatus(ORDER_STATUS_FULL, _, _)) => //完全匹配，需要从orderbook中删除
-        orderbook.synchronized {
-          var tokenOrders = orderbook.getOrElseUpdate(sellPrice, TokenOrders())
-          tokenOrders = if (rawOrder.tokenS == marketConfig.tokenA)
-            tokenOrders.copy(tokenAOrders = tokenOrders.tokenAOrders.filter(_.order.rawOrder.get.hash != rawOrder.hash))
-          else
-            tokenOrders.copy(tokenBOrders = tokenOrders.tokenBOrders.filter(_.order.rawOrder.get.hash != rawOrder.hash))
-          orderbook.put(sellPrice, tokenOrders)
-        }
-      case Some(OrderStatus(ORDER_STATUS_SOFT_CANCELLED, _, _)) => //同上
-      case Some(OrderStatus(ORDER_STATUS_HARD_CANCELLED, _, _)) => //同上
-      case Some(OrderStatus(ORDER_STATUS_EXPIRED, _, _)) => //同上
-      case Some(OrderStatus(ORDER_STATUS_NEW, _, _)) => //同None
+    updatedOrder.order.get.status match {
+      case None =>
+        this.addOrder(OrderWithStatus(updatedOrder.order.get, updatedOrder.postponed))
 
+      case Some(OrderStatus(ORDER_STATUS_FULL, _, _)) => //完全成交，需要从orderbook中删除
+        this.delOrder(updatedOrder.order.get.rawOrder.get)
+
+      case Some(OrderStatus(ORDER_STATUS_SOFT_CANCELLED, _, _)) => //软删除，从orderbook中删除
+        this.delOrder(updatedOrder.order.get.rawOrder.get)
+
+      case Some(OrderStatus(ORDER_STATUS_HARD_CANCELLED, _, _)) => //硬删除，从orderbook中删除
+        this.delOrder(updatedOrder.order.get.rawOrder.get)
+
+      case Some(OrderStatus(ORDER_STATUS_EXPIRED, _, _)) => //过期，删除
+        this.delOrder(updatedOrder.order.get.rawOrder.get)
+
+      case Some(OrderStatus(ORDER_STATUS_NEW, _, _)) => //新订单，加入到orderbook
+        this.addOrder(OrderWithStatus(updatedOrder.order.get, 0l))
+    }
+  }
+
+  private def addOrder(orderWithStatus: OrderWithStatus) = {
+    val rawOrder = orderWithStatus.order.rawOrder.get
+    val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+    orderbook.synchronized {
+      //      val orderWithStatus = OrderWithStatus(order.order.get, order.postponed)
+      var tokenOrders = orderbook.getOrElseUpdate(sellPrice, TokenOrders())
+      tokenOrders = if (rawOrder.tokenS == marketConfig.tokenA) {
+        val tokenAOrders = tokenOrders.tokenAOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
+        tokenOrders.copy(tokenAOrders = tokenAOrders + orderWithStatus)
+      } else {
+        val tokenBOrders = tokenOrders.tokenBOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
+        tokenOrders.copy(tokenBOrders = tokenBOrders + orderWithStatus)
+      }
+      orderbook.put(sellPrice, tokenOrders)
+    }
+  }
+
+  private def delOrder(rawOrder: RawOrder) = {
+    val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+    orderbook.synchronized {
+      var tokenOrders = orderbook.getOrElseUpdate(sellPrice, TokenOrders())
+      tokenOrders = if (rawOrder.tokenS == marketConfig.tokenA)
+        tokenOrders.copy(tokenAOrders = tokenOrders.tokenAOrders.filter(_.order.rawOrder.get.hash != rawOrder.hash))
+      else
+        tokenOrders.copy(tokenBOrders = tokenOrders.tokenBOrders.filter(_.order.rawOrder.get.hash != rawOrder.hash))
+      orderbook.put(sellPrice, tokenOrders)
     }
   }
 
