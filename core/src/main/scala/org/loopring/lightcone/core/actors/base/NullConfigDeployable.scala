@@ -31,9 +31,10 @@ abstract class NullConfigDeployable extends Deployable[NullConfig] {
   def getCommon(s: NullConfig): CommonSettings = getCommon()
   def getCommon() = CommonSettings(None, Seq.empty, 1)
 
-  def deploy(injector: Injector)(
+  def deploy()(
     implicit
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] =
-    deploy(injector, Seq(NullConfig()))
+    deploy(Seq(NullConfig()))
 }
 

@@ -82,12 +82,13 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(injector: Injector, config: Config)(implicit
+  def getNodeManager(config: Config)(implicit
+    injector: Injector,
     cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
-      Props(new managing.NodeManager(injector, config)), "node_manager")
+      Props(new managing.NodeManager(config)), "node_manager")
   }
 
   @Provides

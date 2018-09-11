@@ -61,14 +61,16 @@ abstract class Deployable[S <: AnyRef] {
     else cluster.system.actorSelection(s"/user/${name}_${id}_*")
   }
 
-  def deploy(injector: Injector, settings: Option[S])(
+  def deploy(settings: Option[S])(
     implicit
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
-    deploy(injector, settings.toSeq)
+    deploy(settings.toSeq)
   }
 
-  def deploy(injector: Injector, settingsSeq: Seq[S])(
+  def deploy(settingsSeq: Seq[S])(
     implicit
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
