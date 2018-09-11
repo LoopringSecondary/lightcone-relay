@@ -57,12 +57,12 @@ class TransactionHelperImpl @Inject() (
     val mainseq = unpackSingleInput(src.getTx.input, mainheader)
 
     val callseq = src.trace match {
-      case Some(x) => x.calls.map(n => unpackSingleInput(n.input, n.fillTxHeader(mainheader)))
+      case Some(x) => x.calls.map(n => unpackSingleInput(n.input, n.fillTxHeader(mainheader))).reduceLeft((a, b) => a ++ b)
       case _ => Seq()
     }
 
     val evtseq = src.receipt match {
-      case Some(x) => x.logs.map(n => unpackSingleEvent(n, n.fillTxHeader(mainheader)))
+      case Some(x) => x.logs.map(n => unpackSingleEvent(n, n.fillTxHeader(mainheader))).reduceLeft((a, b) => a ++ b)
       case _ => Seq()
     }
 

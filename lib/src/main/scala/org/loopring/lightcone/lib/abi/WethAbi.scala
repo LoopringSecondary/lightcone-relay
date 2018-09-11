@@ -24,7 +24,7 @@ import org.loopring.lightcone.proto.block_chain_event._
 
 import scala.io.Source
 
-class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
+class WethAbi @Inject() (config: Config) extends ContractAbi {
 
   val FN_DEPOSIT = "deposit"
   val FN_WITHDRAW = "withdraw"
@@ -39,14 +39,16 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
   }
 
   override def supportedFunctions: Seq[String] = {
-    super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
+    //super.supportedFunctions.seq ++
+    Seq(FN_DEPOSIT, FN_WITHDRAW)
   }
   override def supportedEvents: Seq[String] = {
-    super.supportedEvents.seq ++ Seq(EN_DEPOSIT, EN_WITHDRAWAL)
+    //super.supportedEvents.seq ++
+    Seq(EN_DEPOSIT, EN_WITHDRAWAL)
   }
 
-  override def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
-    val erc20seq = super.decodeInputAndAssemble(input, header)
+  def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
+    //val erc20seq = super.decodeInputAndAssemble(input, header)
 
     val res = decodeInput(input)
     val wethseq = res.name match {
@@ -55,11 +57,12 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
       case _ => Seq()
     }
 
-    erc20seq ++ wethseq
+    //erc20seq// ++
+    wethseq
   }
 
-  override def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
-    val erc20seq = super.decodeLogAndAssemble(log, header)
+  def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
+    //val erc20seq = super.decodeLogAndAssemble(log, header)
 
     val res = decodeLog(log)
     val wethseq = res.name match {
@@ -68,7 +71,8 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
       case _ => Seq()
     }
 
-    erc20seq ++ wethseq
+    //erc20seq ++
+    wethseq
   }
 
   // function deposit() public payable
