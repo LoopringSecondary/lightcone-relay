@@ -20,12 +20,13 @@ import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
+import org.loopring.lightcone.proto.cache.Purge
 import org.loopring.lightcone.proto.deployment.MarketConfig
-import org.loopring.lightcone.proto.order.OrderLevel1Status.{ORDER_STATUS_EXPIRED, ORDER_STATUS_FULL, ORDER_STATUS_HARD_CANCELLED, ORDER_STATUS_NEW, ORDER_STATUS_SOFT_CANCELLED}
+import org.loopring.lightcone.proto.order.OrderLevel1Status.{ ORDER_STATUS_EXPIRED, ORDER_STATUS_FULL, ORDER_STATUS_HARD_CANCELLED, ORDER_STATUS_NEW, ORDER_STATUS_SOFT_CANCELLED }
 import org.loopring.lightcone.proto.order._
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class TokenOrders(tokenAOrders: Set[OrderWithStatus] = Set(), tokenBOrders: Set[OrderWithStatus] = Set())
 case class OrderWithStatus(order: Order, postponed: Long)
@@ -37,6 +38,7 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
   //key:AmountA/AmountB
   var orderbook = mutable.TreeMap[Rational, TokenOrders]()
   val orderAccessor = Routers.orderAccessor
+  val readCoordinator = Routers.orderReadCoordinator
 
   override def updateOrder(order: UpdatedOrder): Unit = {
     val rawOrder = order.order.get.rawOrder.get
@@ -112,5 +114,54 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
       val updatedOrder = UpdatedOrder()
       this.updateOrder(updatedOrder)
     }
+  }
+
+  override def purgeOrders(purge: Purge.AllOrderForAddress): Future[Unit] = for {
+    orderHashes <- Future.successful {
+      orderbook.flatMap {
+        case (_, tokenOrders) =>
+          val tokenAOrders = tokenOrders.tokenAOrders
+            .filter(_.order.rawOrder.get.owner == purge.address)
+            .map(_.order.rawOrder.get.hash)
+          val tokenBOrders = tokenOrders.tokenBOrders
+            .filter(_.order.rawOrder.get.owner == purge.address)
+            .map(_.order.rawOrder.get.hash)
+          tokenAOrders ++ tokenBOrders
+      }.toSeq
+    }
+    _ <- this.purgeOrders(orderHashes)
+  } yield ()
+
+  override def purgeOrders(purge: Purge.AllForAddresses): Future[Unit] = for {
+    orderHashes <- Future.successful {
+      orderbook.flatMap {
+        case (_, tokenOrders) =>
+          val tokenAOrders = tokenOrders.tokenAOrders
+            .filter(o => purge.addresses.contains(o.order.rawOrder.get.owner))
+            .map(_.order.rawOrder.get.hash)
+          val tokenBOrders = tokenOrders.tokenBOrders
+            .filter(o => purge.addresses.contains(o.order.rawOrder.get.owner))
+            .map(_.order.rawOrder.get.hash)
+          tokenAOrders ++ tokenBOrders
+      }.toSeq
+    }
+    _ <- this.purgeOrders(orderHashes)
+  } yield ()
+
+  override def purgeOrders(purge: Purge.All): Future[Unit] = this.resetOrders(query = OrderQuery()) //todo:
+
+  override def purgeOrders(purge: Purge.AllAfterBlock): Future[Unit] = ???
+
+  override def purgeOrders(orderHashes: Seq[String]): Future[Unit] = for {
+    //    orderAny <- orderAccessor ? GetOrder(orderHash = orderHash)
+    updatedOrders <- readCoordinator ? UpdateOrdersById(orderHashes = orderHashes)
+  } yield {
+    //todo:
+    //    updatedOrders match {
+    //      case OneOrder(Some(order)) => {
+    //
+    //        this.updateOrder(order)
+    //      }
+    //    }
   }
 }

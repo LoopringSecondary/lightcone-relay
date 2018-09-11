@@ -23,11 +23,11 @@ import akka.util.Timeout
 import com.google.inject.Inject
 import org.loopring.lightcone.core.managing.NodeData
 import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.core.utils.{OrderBookManagerHelperImpl, OrderWithStatus}
+import org.loopring.lightcone.core.utils.{ OrderBookManagerHelperImpl, OrderWithStatus }
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import org.loopring.lightcone.proto.orderbook.{CrossingOrderSets, GetCrossingOrderSets}
+import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 
 import scala.concurrent.ExecutionContext
 
@@ -74,16 +74,17 @@ class OrderBookManager @Inject() ()(implicit
       m.orders.foreach(managerHelper.updateOrder)
 
     case m: Purge.Order =>
-
+      managerHelper.purgeOrders(Seq(m.orderHash))
     case m: Purge.AllOrderForAddress =>
-
+      managerHelper.purgeOrders(m)
     case m: Purge.AllForAddresses =>
-
+      managerHelper.purgeOrders(m)
     case m: Purge.AllAfterBlock =>
-
+      managerHelper.purgeOrders(m)
     case m: Purge.All =>
-      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
-      managerHelper.resetOrders(query)
+      managerHelper.purgeOrders(m)
+    //      val query = OrderQuery(market = "", delegateAddress = settings.delegate, status = Seq(""), orderType = "")
+    //      managerHelper.resetOrders(query)
     case _ =>
   }
 

@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.utils
 
 import org.loopring.lightcone.lib.math.Rational
+import org.loopring.lightcone.proto.cache.Purge
 import org.loopring.lightcone.proto.order.{ Order, OrderQuery, UpdatedOrder }
 
 import scala.concurrent.Future
@@ -26,4 +27,9 @@ trait OrderBookManagerHelper {
   def crossingOrdersBetweenPrices(minPrice: Rational, maxPrice: Rational): TokenOrders
   def crossingPrices(canMatching: PartialFunction[OrderWithStatus, Boolean]): (Rational, Rational) //minPrice, maxPrice
   def resetOrders(query: OrderQuery): Future[Unit]
+  def purgeOrders(orderHashes: Seq[String]): Future[Unit]
+  def purgeOrders(purge: Purge.AllOrderForAddress): Future[Unit]
+  def purgeOrders(purge: Purge.AllForAddresses): Future[Unit]
+  def purgeOrders(purge: Purge.All): Future[Unit]
+  def purgeOrders(purge: Purge.AllAfterBlock): Future[Unit]
 }
