@@ -38,6 +38,7 @@ object CacheObsoleter
 }
 
 class CacheObsoleter(
+  dynamicSettings: DynamicSettings,
   settings: CacheObsoleterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

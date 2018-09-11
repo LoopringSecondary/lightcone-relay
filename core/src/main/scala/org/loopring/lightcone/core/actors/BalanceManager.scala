@@ -38,7 +38,9 @@ object BalanceManager
     base.CommonSettings(Some(s.id), s.roles, s.instances)
 }
 
-class BalanceManager(settings: BalanceManagerSettings)(
+class BalanceManager(
+  dynamicSettings: DynamicSettings,
+  settings: BalanceManagerSettings)(
   implicit
   ec: ExecutionContext,
   timeout: Timeout)

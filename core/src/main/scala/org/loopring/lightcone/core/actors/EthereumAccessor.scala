@@ -35,6 +35,7 @@ object EthereumAccessor
 }
 
 class EthereumAccessor(
+  dynamicSettings: DynamicSettings,
   settings: EthereumAccessorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

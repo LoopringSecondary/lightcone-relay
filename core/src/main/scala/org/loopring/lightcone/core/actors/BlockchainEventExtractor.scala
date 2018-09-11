@@ -36,6 +36,7 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor(
+  dynamicSettings: DynamicSettings,
   settings: BlockchainEventExtractorSettings)(implicit
   val blockHelper: BlockHelper,
   val txHelper: TransactionHelper) extends RepeatedJobActor {

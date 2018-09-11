@@ -34,6 +34,7 @@ object OrderChangeLogWriter
 }
 
 class OrderChangeLogWriter(
+  dynamicSettings: DynamicSettings,
   settings: OrderChangeLogWriterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

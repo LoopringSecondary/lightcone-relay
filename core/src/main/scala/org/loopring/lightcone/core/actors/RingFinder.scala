@@ -39,6 +39,7 @@ object RingFinder
 }
 
 class RingFinder(
+  dynamicSettings: DynamicSettings,
   settings: RingFinderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

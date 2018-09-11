@@ -36,6 +36,7 @@ object OrderUpdater
 }
 
 class OrderUpdater(
+  dynamicSettings: DynamicSettings,
   settings: OrderUpdaterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

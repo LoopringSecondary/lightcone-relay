@@ -41,6 +41,7 @@ object OrderAccessor
 }
 
 class OrderAccessor(
+  dynamicSettings: DynamicSettings,
   settings: OrderAccessorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

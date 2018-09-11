@@ -39,6 +39,7 @@ object OrderReader
 }
 
 class OrderReader(
+  dynamicSettings: DynamicSettings,
   settings: OrderReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

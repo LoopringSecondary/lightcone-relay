@@ -35,6 +35,7 @@ object OrderReadCoordinator
 }
 
 class OrderReadCoordinator(
+  dynamicSettings: DynamicSettings,
   settings: OrderReadCoordinatorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

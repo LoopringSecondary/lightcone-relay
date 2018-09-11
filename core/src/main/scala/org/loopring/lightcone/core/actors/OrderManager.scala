@@ -32,6 +32,7 @@ object OrderManager
 }
 
 class OrderManager(
+  dynamicSettings: DynamicSettings,
   settings: OrderManagerSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

@@ -28,11 +28,13 @@ import akka.event.Logging
 import com.google.inject._
 import org.loopring.lightcone.core.ActorUtil._
 
-abstract class Deployable[S <: AnyRef] {
+abstract class Deployable[S] {
   val name: String
   val isSingleton = false
-  def props(settings: S)(implicit injector: Injector) =
-    injector.getProps(name)(settingsMap)
+  def props(dynamicSettings: DynamicSettings, settings: S)(
+    implicit
+    injector: Injector) =
+    injector.getPropsForSettings(name)(dynamicSettings, settingsMap)
 
   def getCommon(s: S): CommonSettings
 
@@ -67,6 +69,7 @@ abstract class Deployable[S <: AnyRef] {
 
   def deploy(settings: Option[S])(
     implicit
+    dynamicSettings: DynamicSettings,
     injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
     deploy(settings.toSeq)
@@ -74,6 +77,7 @@ abstract class Deployable[S <: AnyRef] {
 
   def deploy(settingsSeq: Seq[S])(
     implicit
+    dynamicSettings: DynamicSettings,
     injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
@@ -90,7 +94,7 @@ abstract class Deployable[S <: AnyRef] {
       id -> (oldSettingsMap.get(id), settingsMap.get(id))
     } foreach {
       case (id, (_old, _new)) =>
-        deployActor(id, _old, _new)
+        deployActor(dynamicSettings, id, _old, _new)
     }
 
     println(s"--------> killing router: /user/r_${name}_*")
@@ -122,6 +126,7 @@ abstract class Deployable[S <: AnyRef] {
   }
 
   def deployActor(
+    dynamicSettings: DynamicSettings,
     id: String,
     _old: Option[SettingsWrapper[S]],
     _new: Option[SettingsWrapper[S]])(
@@ -150,12 +155,12 @@ abstract class Deployable[S <: AnyRef] {
         if (isSingleton) {
           cluster.system.actorOf(
             ClusterSingletonManager.props(
-              singletonProps = props(_new.get.settings),
+              singletonProps = props(dynamicSettings, _new.get.settings),
               terminationMessage = PoisonPill,
               settings = ClusterSingletonManagerSettings(cluster.system)),
             name = name)
         } else {
-          cluster.system.actorOf(props(_new.get.settings), name)
+          cluster.system.actorOf(props(dynamicSettings, _new.get.settings), name)
         }
     }
   }

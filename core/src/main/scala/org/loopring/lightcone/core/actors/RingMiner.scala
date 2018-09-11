@@ -40,6 +40,7 @@ object RingMiner
 }
 
 class RingMiner(
+  dynamicSettings: DynamicSettings,
   settings: RingMinerSettings,
   ethClient: EthClient)(implicit
   ec: ExecutionContext,

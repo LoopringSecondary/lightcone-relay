@@ -35,6 +35,7 @@ object OrderBookReader
 }
 
 class OrderBookReader(
+  dynamicSettings: DynamicSettings,
   settings: OrderBookReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

@@ -59,7 +59,7 @@ class NodeManager(
   implicit val executionContext = system.dispatcher
   implicit val timeout = Timeout(1 seconds)
 
-  Routers.setRouters("cluster_manager", ClusterManager.deploy())
+  Routers.setRouters(ClusterManager.name, ClusterManager.deploy())
 
   val http = new NodeHttpServer(config, self)
 
@@ -80,6 +80,7 @@ class NodeManager(
 
     case ProcessDynamicSettings(Some(settings)) =>
       NodeData.dynamicSettings = settings
+      implicit val dynamicSettings = settings
 
       Routers.setRouters(
         BalanceCacher.name,

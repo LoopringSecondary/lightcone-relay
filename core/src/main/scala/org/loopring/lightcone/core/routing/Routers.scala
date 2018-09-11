@@ -24,6 +24,7 @@ import akka.cluster.singleton._
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.managing.ClusterManager
 
 object Routers extends RouterMap {
   // // Router for management actors

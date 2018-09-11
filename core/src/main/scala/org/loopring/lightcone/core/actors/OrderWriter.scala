@@ -37,6 +37,7 @@ object OrderWriter
 }
 
 class OrderWriter(
+  dynamicSettings: DynamicSettings,
   settings: OrderWriterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)

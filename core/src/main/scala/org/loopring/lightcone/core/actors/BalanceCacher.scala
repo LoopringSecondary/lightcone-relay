@@ -35,6 +35,7 @@ object BalanceCacher
 }
 
 class BalanceCacher(
+  dynamicSettings: DynamicSettings,
   settings: BalanceCacherSettings,
   cache: BalanceCache)(implicit
   ec: ExecutionContext,

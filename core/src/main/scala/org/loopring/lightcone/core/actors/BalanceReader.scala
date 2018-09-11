@@ -31,7 +31,9 @@ object BalanceReader
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceReader(settings: BalanceReaderSettings)(implicit
+class BalanceReader(
+  dynamicSettings: DynamicSettings,
+  settings: BalanceReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {

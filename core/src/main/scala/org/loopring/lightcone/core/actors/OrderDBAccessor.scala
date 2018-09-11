@@ -40,6 +40,7 @@ object OrderDBAccessor
 }
 
 class OrderDBAccessor(
+  dynamicSettings: DynamicSettings,
   settings: OrderDBAccessorSettings,
   db: OrderDatabase)(implicit
   ec: ExecutionContext,

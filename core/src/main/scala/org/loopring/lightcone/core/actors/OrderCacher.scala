@@ -38,6 +38,7 @@ object OrderCacher
 }
 
 class OrderCacher(
+  dynamicSettings: DynamicSettings,
   settings: OrderCacherSettings,
   cache: OrderCache)(
   implicit
