@@ -39,41 +39,43 @@ object RingMiner
     base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner(ethClient: EthClient)(implicit
+class RingMiner(
+  settings: RingMinerSettings,
+  ethClient: EthClient)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends RepeatedJobActor {
   val lrcAddress = "0xef68e7c694f40c8202821edf525de3782458639f"
 
-  var marketIds = Seq[String]()
-  var submitter: RingSubmitter = null
-  var evaluator: RingEvaluator = null
-  var finders = Map[String, ActorRef]()
+  val marketIds = settings.marketIds
+
+  val submitter = {
+    val submitterSettings = settings.submitterSettings.get
+    new RingSubmitterImpl(
+      ethClient = ethClient,
+      contract = submitterSettings.contract,
+      chainId = submitterSettings.chainId.toByte,
+      keystorePwd = submitterSettings.keystorePwd,
+      keystoreFile = submitterSettings.keystoreFile)
+  }
+
+  val evaluator = {
+    val evaluatorSettings = settings.evaluatorSettings.get
+    new RingEvaluatorImpl(
+      submitterAddress = submitter.getSubmitterAddress(),
+      lrcAddress = lrcAddress,
+      gasUsedOfOrders = evaluatorSettings.gasUsedOfOrders,
+      walletSplit = Rational(evaluatorSettings.walletSplit))
+
+  }
+  val finders = marketIds.map { id =>
+    (id, Routers.ringFinder(id))
+  }.toMap[String, ActorRef]
+
+  initAndStartNextRound(settings.scheduleDelay)
 
   override def receive: Receive = super.receive orElse {
-    case settings: RingMinerSettings =>
-      marketIds = settings.marketIds
-      settings.submitterSettings match {
-        case Some(submitterSettings) =>
-          submitter = new RingSubmitterImpl(
-            ethClient = ethClient,
-            contract = submitterSettings.contract,
-            chainId = submitterSettings.chainId.toByte,
-            keystorePwd = submitterSettings.keystorePwd,
-            keystoreFile = submitterSettings.keystoreFile)
-        case None =>
-      }
-      settings.evaluatorSettings match {
-        case Some(evaluatorSettings) =>
-          evaluator = new RingEvaluatorImpl(
-            submitterAddress = submitter.getSubmitterAddress(),
-            lrcAddress = lrcAddress,
-            gasUsedOfOrders = evaluatorSettings.gasUsedOfOrders,
-            walletSplit = Rational(evaluatorSettings.walletSplit))
-        case None =>
-      }
-      finders = marketIds.map { id => (id, Routers.ringFinder(id)) }.toMap[String, ActorRef]
-      initAndStartNextRound(settings.scheduleDelay)
+    case _ =>
   }
 
   def handleRepeatedJob() = for {

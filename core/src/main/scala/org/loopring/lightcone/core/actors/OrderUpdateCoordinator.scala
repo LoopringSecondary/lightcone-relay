@@ -35,13 +35,13 @@ object OrderUpdateCoordinator
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderUpdateCoordinator()(implicit
+class OrderUpdateCoordinator(
+  settings: OrderUpdateCoordinatorSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderUpdateCoordinatorSettings =>
     case _ =>
   }
 }

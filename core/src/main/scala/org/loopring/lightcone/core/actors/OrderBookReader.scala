@@ -34,13 +34,13 @@ object OrderBookReader
     base.CommonSettings(Option(s.id), s.roles, s.instances)
 }
 
-class OrderBookReader()(implicit
+class OrderBookReader(
+  settings: OrderBookReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderBookReaderSettings =>
     case _ =>
   }
 }

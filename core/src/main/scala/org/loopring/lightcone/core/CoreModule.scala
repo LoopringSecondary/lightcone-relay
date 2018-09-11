@@ -34,6 +34,7 @@ import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
 import org.loopring.lightcone.proto.token.TokenList
+import org.loopring.lightcone.proto.deployment._
 import redis._
 
 import scala.concurrent.{ ExecutionContext, _ }
@@ -96,7 +97,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
+    settings: BalanceCacherSettings =>
+      Props(new BalanceCacher(settings, cache))
   }
 
   @Provides
@@ -104,7 +106,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceManager()) // .withDispatcher("ring-dispatcher")
+    settings: BalanceManagerSettings =>
+      Props(new BalanceManager(settings))
   }
 
   @Provides
@@ -112,7 +115,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceReader()) // .withDispatcher("ring-dispatcher")
+    settings: BalanceReaderSettings =>
+      Props(new BalanceReader(settings))
   }
 
   @Provides
@@ -122,7 +126,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     timeout: Timeout,
     blockHelper: BlockHelper,
     transactionHelper: TransactionHelper) = {
-    Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
+    settings: BlockchainEventExtractorSettings =>
+      Props(new BlockchainEventExtractor(settings))
   }
 
   @Provides
@@ -130,7 +135,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getCacheObsoleterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new CacheObsoleter()) // .withDispatcher("ring-dispatcher")
+    settings: CacheObsoleterSettings =>
+      Props(new CacheObsoleter(settings))
   }
 
   @Provides
@@ -138,7 +144,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getClusterManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new ClusterManager()) // .withDispatcher("ring-dispatcher")
+    Props(new ClusterManager())
   }
 
   @Provides
@@ -146,7 +152,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getEthereumAccessorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new EthereumAccessor()) // .withDispatcher("ring-dispatcher")
+    settings: EthereumAccessorSettings =>
+      Props(new EthereumAccessor(settings))
   }
 
   @Provides
@@ -154,7 +161,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderAccessorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderAccessor()) // .withDispatcher("ring-dispatcher")
+    settings: OrderAccessorSettings =>
+      Props(new OrderAccessor(settings))
   }
 
   @Provides
@@ -162,7 +170,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderBookManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderBookManager()) // .withDispatcher("ring-dispatcher")
+    settings: OrderBookManagerSettings =>
+      Props(new OrderBookManager(settings))
   }
 
   @Provides
@@ -170,7 +179,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderBookReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderBookReader()) // .withDispatcher("ring-dispatcher")
+    settings: OrderBookReaderSettings =>
+      Props(new OrderBookReader(settings))
   }
 
   @Provides
@@ -178,7 +188,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderCacherProps(cache: OrderCache)(implicit
     context: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
+    settings: OrderCacherSettings =>
+      Props(new OrderCacher(settings, cache))
   }
 
   @Provides
@@ -186,7 +197,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderChangeLogWriterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderChangeLogWriter()) // .withDispatcher("ring-dispatcher")
+    settings: OrderChangeLogWriterSettings =>
+      Props(new OrderChangeLogWriter(settings))
   }
 
   @Provides
@@ -194,7 +206,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    settings: OrderDBAccessorSettings =>
+      Props(new OrderDBAccessor(settings, db))
   }
 
   @Provides
@@ -202,7 +215,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderManagerProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderManager()) // .withDispatcher("ring-dispatcher")
+    settings: OrderManagerSettings =>
+      Props(new OrderManager(settings))
   }
 
   @Provides
@@ -210,7 +224,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderReadCoordinatorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReadCoordinator()) // .withDispatcher("ring-dispatcher")
+    settings: OrderReadCoordinatorSettings =>
+      Props(new OrderReadCoordinator(settings))
   }
 
   @Provides
@@ -218,7 +233,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderReaderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
+    settings: OrderReaderSettings =>
+      Props(new OrderReader(settings))
   }
 
   @Provides
@@ -226,7 +242,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderUpdateCoordinatorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderUpdateCoordinator()) // .withDispatcher("ring-dispatcher")
+    settings: OrderUpdateCoordinatorSettings =>
+      Props(new OrderUpdateCoordinator(settings))
   }
 
   @Provides
@@ -234,7 +251,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderUpdaterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderUpdater()) // .withDispatcher("ring-dispatcher")
+    settings: OrderUpdaterSettings =>
+      Props(new OrderUpdater(settings))
   }
 
   @Provides
@@ -242,7 +260,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getOrderWriterProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new OrderWriter()) // .withDispatcher("ring-dispatcher")
+    settings: OrderWriterSettings =>
+      Props(new OrderWriter(settings))
   }
 
   @Provides
@@ -250,7 +269,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getRingFinderProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingFinder()) // .withDispatcher("ring-dispatcher")
+    settings: RingFinderSettings =>
+      Props(new RingFinder(settings))
   }
 
   @Provides
@@ -258,7 +278,8 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
+    settings: RingMinerSettings =>
+      Props(new RingMiner(settings, ethClient))
   }
 
 }

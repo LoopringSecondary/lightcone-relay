@@ -38,7 +38,7 @@ object BalanceManager
     base.CommonSettings(Some(s.id), s.roles, s.instances)
 }
 
-class BalanceManager()(
+class BalanceManager(settings: BalanceManagerSettings)(
   implicit
   ec: ExecutionContext,
   timeout: Timeout)
@@ -48,14 +48,10 @@ class BalanceManager()(
     cacheActor = Routers.balanceCacher,
     sourceActor = Routers.ethereumAccessor)
 
-  var settings: BalanceManagerSettings = null
-  def id = settings.id
+  // def id = settings.id
 
   import BalanceManagerCachingFacilitators._
   def receive: Receive = {
-    case settings: BalanceManagerSettings =>
-      this.settings = settings
-
     case req: GetBalancesReq =>
       caching.askFor[GetBalancesReq, GetBalancesResp, CacheBalanceInfo](
         req).pipeTo(sender)

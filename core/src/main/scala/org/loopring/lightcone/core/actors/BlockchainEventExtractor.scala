@@ -35,15 +35,13 @@ object BlockchainEventExtractor
     base.CommonSettings(None, s.roles, 1)
 }
 
-class BlockchainEventExtractor()(implicit
+class BlockchainEventExtractor(
+  settings: BlockchainEventExtractorSettings)(implicit
   val blockHelper: BlockHelper,
   val txHelper: TransactionHelper) extends RepeatedJobActor {
 
-  var settingsOpt: Option[BlockchainEventExtractorSettings] = None
-
   override def receive: Receive = {
     case settings: BlockchainEventExtractorSettings =>
-      settingsOpt = Some(settings)
       initAndStartNextRound(settings.scheduleDelay)
     case newRound: StartNewRound =>
       handleRepeatedJob()

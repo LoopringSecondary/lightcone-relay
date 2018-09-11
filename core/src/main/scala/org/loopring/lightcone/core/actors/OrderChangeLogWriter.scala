@@ -26,20 +26,20 @@ import org.loopring.lightcone.proto.order.{ RawOrder, SaveOrders, SaveUpdatedOrd
 import scala.concurrent._
 
 object OrderChangeLogWriter
-  extends base.Deployable[CommonSettings] {
+  extends base.Deployable[OrderChangeLogWriterSettings] {
   val name = "order_change_log_writer"
 
-  def getCommon(s: CommonSettings) =
+  def getCommon(s: OrderChangeLogWriterSettings) =
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderChangeLogWriter()(implicit
+class OrderChangeLogWriter(
+  settings: OrderChangeLogWriterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>

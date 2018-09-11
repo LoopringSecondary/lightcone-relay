@@ -31,13 +31,13 @@ object OrderManager
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderManager()(implicit
+class OrderManager(
+  settings: OrderManagerSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderManagerSettings =>
     case OrdersSaved =>
     case OrdersSoftCancelled =>
     case OrderCancelled =>

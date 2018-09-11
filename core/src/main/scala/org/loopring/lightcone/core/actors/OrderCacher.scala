@@ -37,7 +37,9 @@ object OrderCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderCacher(cache: OrderCache)(
+class OrderCacher(
+  settings: OrderCacherSettings,
+  cache: OrderCache)(
   implicit
   ec: ExecutionContext,
   timeout: Timeout) extends Actor {
@@ -55,7 +57,6 @@ class OrderCacher(cache: OrderCache)(
   // }
 
   def receive: Receive = {
-    case settings: OrderCacherSettings =>
     case req: GetOrdersFromCache =>
     // redis.get(req.orderHashes.head) onComplete {
     //   case Success(_) =>

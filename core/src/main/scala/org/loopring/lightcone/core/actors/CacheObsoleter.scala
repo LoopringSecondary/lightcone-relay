@@ -37,22 +37,19 @@ object CacheObsoleter
     base.CommonSettings(None, s.roles, 1)
 }
 
-class CacheObsoleter()(implicit
+class CacheObsoleter(
+  settings: CacheObsoleterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends RepeatedJobActor {
 
   import context.dispatcher
   val name = CacheObsoleter.name
-  var deadtime = 0l
+  var deadtime = settings.deadTime
   var lastHeartBeatTime = 0l
   val mediator = DistributedPubSub(context.system).mediator
 
   override def receive: Receive = super.receive orElse {
-    case settings: CacheObsoleterSettings =>
-      deadtime = settings.deadTime
-      initAndStartNextRound(settings.deadTime)
-
     case balanceChanged: AddressBalanceChanged =>
     //      mediator ! Publish(name, Purge.Balance(address = balanceChanged.owner))
 

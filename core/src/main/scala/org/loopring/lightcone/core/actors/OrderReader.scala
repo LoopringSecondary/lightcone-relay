@@ -38,14 +38,13 @@ object OrderReader
 
 }
 
-class OrderReader()(implicit
+class OrderReader(
+  settings: OrderReaderSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderReaderSettings =>
-
     case req: GetOrderReq =>
       val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
       oneOrderResult.mapTo[OneOrder] onComplete {

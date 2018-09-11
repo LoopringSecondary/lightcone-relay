@@ -36,13 +36,13 @@ object OrderWriter
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderWriter()(implicit
+class OrderWriter(
+  settings: OrderWriterSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderWriterSettings =>
     case req: SubmitOrderReq => {
       if (req.rawOrder.isEmpty) {
         new ErrorResp()

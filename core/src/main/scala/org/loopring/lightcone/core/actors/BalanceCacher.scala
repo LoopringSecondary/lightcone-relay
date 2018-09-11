@@ -34,19 +34,16 @@ object BalanceCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceCacher(cache: BalanceCache)(implicit
+class BalanceCacher(
+  settings: BalanceCacherSettings,
+  cache: BalanceCache)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
-  var settings: BalanceCacherSettings = null
-
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: BalanceCacherSettings =>
-      this.settings = settings
-
     case m: GetBalancesReq =>
 
       sender() ! GetBalancesResp()

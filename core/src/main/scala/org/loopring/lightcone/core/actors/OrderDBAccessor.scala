@@ -39,13 +39,14 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor(db: OrderDatabase)(implicit
+class OrderDBAccessor(
+  settings: OrderDBAccessorSettings,
+  db: OrderDatabase)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderDBAccessorSettings =>
     case su: SaveUpdatedOrders =>
     case sc: SoftCancelOrders =>
     case s: SaveOrders =>

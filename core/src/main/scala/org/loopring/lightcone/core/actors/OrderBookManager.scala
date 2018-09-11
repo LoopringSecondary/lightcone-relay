@@ -33,7 +33,8 @@ object OrderBookManager
     base.CommonSettings(Some(s.id), s.roles, 1)
 }
 
-class OrderBookManager()(implicit
+class OrderBookManager(
+  settings: OrderBookManagerSettings)(implicit
   ec: ExecutionContext,
   timeout: Timeout)
   extends Actor {
@@ -41,8 +42,6 @@ class OrderBookManager()(implicit
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: OrderBookManagerSettings =>
-
     case m: Purge.Order =>
 
     case m: Purge.AllOrderForAddress =>

@@ -80,6 +80,11 @@ message OrderCacherSettings {
     int32 instances = 2;
 }
 
+message OrderChangeLogWriterSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
 message OrderDBAccessorSettings {
     repeated string roles = 1;
     int32 instances = 2;
