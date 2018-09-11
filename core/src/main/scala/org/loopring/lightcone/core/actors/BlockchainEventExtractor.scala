@@ -50,13 +50,13 @@ class BlockchainEventExtractor()(implicit
     case _ => throw new Exception("message invalid")
   }
 
-  override def handleRepeatedJob() = for {
+  override def handleRepeatedJob(): Future[Unit] = for {
     forkseq <- handleForkEvent()
-  } yield if (forkseq.size > 0)
-    forkseq.map(route)
-  else {
-    for { list <- handleUnforkEvent() } yield list.map(route)
-  }
+    list <- forkseq.size match {
+      case 0 => handleUnforkEvent()
+      case _ => Future(Seq())
+    }
+  } yield list.map(route)
 
   def handleForkEvent(): Future[Seq[Any]] = for {
     forkevt <- detector.getForkEvent()
