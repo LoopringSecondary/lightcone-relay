@@ -42,6 +42,9 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   override val nameFuncMap: Map[String, Abi.Function] = super.nameFuncMap
   override val nameEvtMap: Map[String, Abi.Event] = super.nameEvtMap
 
+  val balanceOf: Abi.Function = abi.findFunction(predicate("balanceOf"))
+  val allowance: Abi.Function = abi.findFunction(predicate("allowance"))
+
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
     res.name match {

@@ -80,7 +80,7 @@ class EthClientImpl @Inject() (
 
   def getBalance(req: GetBalanceReq) =
     httpPost[GetBalanceRes](ETH_CALL) {
-      val function = erc20Abi.findFunctionByName("balanceOf")
+      val function = erc20Abi.balanceOf
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
@@ -88,7 +88,7 @@ class EthClientImpl @Inject() (
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = erc20Abi.findFunctionByName("allowance")
+      val function = erc20Abi.allowance
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
