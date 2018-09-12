@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.{ SaveOrders, SoftCancelOrders }
+import org.loopring.lightcone.proto.order._
 
 object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
@@ -42,6 +42,7 @@ object OrderAccessor
 
 class OrderAccessor()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

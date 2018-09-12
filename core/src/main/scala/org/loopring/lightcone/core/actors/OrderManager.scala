@@ -33,6 +33,7 @@ object OrderManager
 
 class OrderManager()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

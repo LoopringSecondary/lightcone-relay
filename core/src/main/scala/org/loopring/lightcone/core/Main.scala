@@ -16,8 +16,7 @@
 
 package org.loopring.lightcone.core
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config._
 import java.net.InetAddress
 
 import akka.actor._

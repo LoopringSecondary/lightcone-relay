@@ -36,17 +36,14 @@ object BalanceCacher
 
 class BalanceCacher(cache: BalanceCache)(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
-  extends Actor {
-
-  var settings: BalanceCacherSettings = null
+  extends Actor
+  with ActorLogging {
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: BalanceCacherSettings =>
-      this.settings = settings
-
     case m: GetBalancesReq =>
 
       sender() ! GetBalancesResp()
@@ -68,4 +65,7 @@ class BalanceCacher(cache: BalanceCache)(implicit
 
     case purgeEvent: Purge.All =>
   }
+
+  def getSettings(nodeContext: base.NodeContext): BalanceCacherSettings = null
+
 }

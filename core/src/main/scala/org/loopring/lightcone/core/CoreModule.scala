@@ -28,7 +28,9 @@ import com.typesafe.config.Config
 import net.codingwell.scalaguice._
 import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.actors._
-import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
+import org.loopring.lightcone.core.actors.base.NodeContext
+import org.loopring.lightcone.core.cache._
+import org.loopring.lightcone.core.managing.ClusterManager
 import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
@@ -46,6 +48,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
     implicit val cluster = Cluster(system)
 
     bind[Config].toInstance(config)
+    bind[NodeContext].toInstance(new NodeContext(config))
     bind[ActorSystem].toInstance(system)
     bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
@@ -82,182 +85,204 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   @Provides
   @Singleton
   @Named("node_manager")
-  def getNodeManager(injector: Injector, config: Config)(implicit
+  def getNodeManager(config: Config)(implicit
+    injector: Injector,
     cluster: Cluster,
     materializer: ActorMaterializer) = {
 
     cluster.system.actorOf(
-      Props(new managing.NodeManager(injector, config)), "node_manager")
+      Props(new managing.NodeManager(config)), "node_manager")
   }
 
   @Provides
   @Named("balance_cacher")
   def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceCacher(cache))
   }
 
   @Provides
   @Named("balance_manager")
   def getBalanceManagerProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new BalanceManager()) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceManager())
   }
 
   @Provides
   @Named("balance_reader")
   def getBalanceReaderProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new BalanceReader()) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceReader())
   }
 
   @Provides
   @Named("block_event_extractor")
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout,
     blockHelper: BlockHelper,
     transactionHelper: TransactionHelper) = {
-    Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
+    Props(new BlockchainEventExtractor())
   }
 
   @Provides
   @Named("cache_obsoleter")
   def getCacheObsoleterProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new CacheObsoleter()) // .withDispatcher("ring-dispatcher")
+    Props(new CacheObsoleter())
   }
 
   @Provides
   @Named("cluster_manager")
   def getClusterManagerProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new ClusterManager()) // .withDispatcher("ring-dispatcher")
+    Props(new ClusterManager())
   }
 
   @Provides
   @Named("ethereum_accessor")
   def getEthereumAccessorProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new EthereumAccessor()) // .withDispatcher("ring-dispatcher")
+    Props(new EthereumAccessor())
   }
 
   @Provides
   @Named("order_accessor")
   def getOrderAccessorProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderAccessor()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderAccessor())
   }
 
   @Provides
   @Named("order_book_manager")
   def getOrderBookManagerProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderBookManager()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderBookManager())
   }
 
   @Provides
   @Named("order_book_reader")
   def getOrderBookReaderProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderBookReader()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderBookReader())
   }
 
   @Provides
   @Named("order_cacher")
   def getOrderCacherProps(cache: OrderCache)(implicit
-    context: ExecutionContext,
+    ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderCacher(cache))
   }
 
   @Provides
   @Named("order_change_log_writer")
   def getOrderChangeLogWriterProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderChangeLogWriter()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderChangeLogWriter())
   }
 
   @Provides
   @Named("order_db_accessor")
   def getOrderDBAccessorProps(db: OrderDatabase)(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(db))
   }
 
   @Provides
   @Named("order_manager")
   def getOrderManagerProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderManager()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderManager())
   }
 
   @Provides
   @Named("order_read_coordinator")
   def getOrderReadCoordinatorProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderReadCoordinator()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderReadCoordinator())
   }
 
   @Provides
   @Named("order_reader")
   def getOrderReaderProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderReader())
   }
 
   @Provides
   @Named("order_update_coordinator")
   def getOrderUpdateCoordinatorProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderUpdateCoordinator()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderUpdateCoordinator())
   }
 
   @Provides
   @Named("order_updater")
   def getOrderUpdaterProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderUpdater()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderUpdater())
   }
 
   @Provides
   @Named("order_writer")
   def getOrderWriterProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new OrderWriter()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderWriter())
   }
 
   @Provides
   @Named("ring_finder")
   def getRingFinderProps()(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new RingFinder()) // .withDispatcher("ring-dispatcher")
+    Props(new RingFinder())
   }
 
   @Provides
   @Named("ring_miner")
   def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
+    nodeContext: NodeContext,
     timeout: Timeout) = {
-    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
+    Props(new RingMiner(ethClient))
   }
 
 }

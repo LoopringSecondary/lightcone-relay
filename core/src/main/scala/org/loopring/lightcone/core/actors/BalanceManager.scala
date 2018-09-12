@@ -41,6 +41,7 @@ object BalanceManager
 class BalanceManager()(
   implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

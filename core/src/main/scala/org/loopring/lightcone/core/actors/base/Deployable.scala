@@ -61,14 +61,16 @@ abstract class Deployable[S <: AnyRef] {
     else cluster.system.actorSelection(s"/user/${name}_${id}_*")
   }
 
-  def deploy(injector: Injector, settings: Option[S])(
+  def deploy(settings: Option[S])(
     implicit
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
-    deploy(injector, settings.toSeq)
+    deploy(settings.toSeq)
   }
 
-  def deploy(injector: Injector, settingsSeq: Seq[S])(
+  def deploy(settingsSeq: Seq[S])(
     implicit
+    injector: Injector,
     cluster: Cluster): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
@@ -84,7 +86,7 @@ abstract class Deployable[S <: AnyRef] {
       k -> (oldSettingsMap.get(k), settingsMap.get(k))
     } foreach {
       case (id, (_old, _new)) =>
-        deployActor(injector, id, _old, _new)
+        deployActor(id, _old, _new)
     }
 
     println(s"--------> killing router: /user/r_${name}_*")
@@ -117,10 +119,11 @@ abstract class Deployable[S <: AnyRef] {
   }
 
   def deployActor(
-    injector: Injector,
     id: String,
     _old: Option[SettingsWrapper[S]],
-    _new: Option[SettingsWrapper[S]])(implicit cluster: Cluster): Unit = {
+    _new: Option[SettingsWrapper[S]])(implicit
+    injector: Injector,
+    cluster: Cluster): Unit = {
 
     def getInstances(w: Option[SettingsWrapper[S]]) = {
       val num = w.map(_.numInstances).getOrElse(0)

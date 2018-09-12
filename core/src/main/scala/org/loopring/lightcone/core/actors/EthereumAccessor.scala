@@ -36,6 +36,7 @@ object EthereumAccessor
 
 class EthereumAccessor()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

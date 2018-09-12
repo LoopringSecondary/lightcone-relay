@@ -40,6 +40,7 @@ object OrderCacher
 class OrderCacher(cache: OrderCache)(
   implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout) extends Actor {
 
   // implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {

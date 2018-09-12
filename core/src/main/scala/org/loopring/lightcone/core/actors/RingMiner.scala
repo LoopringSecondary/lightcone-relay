@@ -41,6 +41,7 @@ object RingMiner
 
 class RingMiner(ethClient: EthClient)(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends RepeatedJobActor {
   val lrcAddress = "0xef68e7c694f40c8202821edf525de3782458639f"

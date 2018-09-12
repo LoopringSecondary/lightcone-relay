@@ -40,6 +40,7 @@ object OrderReader
 
 class OrderReader()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

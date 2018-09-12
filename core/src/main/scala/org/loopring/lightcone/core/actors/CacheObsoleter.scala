@@ -39,6 +39,7 @@ object CacheObsoleter
 
 class CacheObsoleter()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends RepeatedJobActor {
 

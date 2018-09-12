@@ -35,6 +35,7 @@ object OrderChangeLogWriter
 
 class OrderChangeLogWriter()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

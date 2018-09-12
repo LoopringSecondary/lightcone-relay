@@ -38,6 +38,7 @@ object OrderWriter
 
 class OrderWriter()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

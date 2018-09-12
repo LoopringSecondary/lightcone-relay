@@ -36,6 +36,7 @@ object OrderReadCoordinator
 
 class OrderReadCoordinator()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

@@ -35,6 +35,7 @@ object OrderBookManager
 
 class OrderBookManager()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

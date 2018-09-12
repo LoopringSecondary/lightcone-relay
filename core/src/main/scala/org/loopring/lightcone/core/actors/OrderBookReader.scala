@@ -36,6 +36,7 @@ object OrderBookReader
 
 class OrderBookReader()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 

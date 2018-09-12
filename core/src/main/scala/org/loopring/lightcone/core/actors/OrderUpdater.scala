@@ -37,6 +37,7 @@ object OrderUpdater
 
 class OrderUpdater()(implicit
   ec: ExecutionContext,
+  nodeContext: base.NodeContext,
   timeout: Timeout)
   extends Actor {
 
