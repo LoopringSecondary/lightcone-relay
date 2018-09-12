@@ -17,9 +17,10 @@
 package org.loopring.lightcone.lib
 
 import org.loopring.lightcone.lib.etypes._
-import org.loopring.lightcone.proto.block_chain_event.TxHeader
+import org.loopring.lightcone.proto.block_chain_event.{ FullTransaction, TxHeader }
+import org.loopring.lightcone.proto.block_chain_event.TxHeaderSource._
 import org.loopring.lightcone.proto.block_chain_event.TxStatus._
-import org.loopring.lightcone.proto.eth_jsonrpc.{ Log, TraceCall, Transaction, TransactionReceipt }
+import org.loopring.lightcone.proto.eth_jsonrpc._
 
 package object abi {
 
@@ -34,34 +35,9 @@ package object abi {
 
   implicit class RichTransaction(src: Transaction) {
 
-    def isPending(): Boolean = {
+    def isPending: Boolean = {
       src.blockNumber.isEmpty
     }
-
-    def getTxHeader() = {
-      var header = TxHeader(
-        txHash = src.hash,
-        gasPrice = src.gasPrice,
-        gasLimit = src.gas,
-        nonce = src.nonce,
-        from = src.from,
-        to = src.to,
-        value = src.value)
-
-      if (src.isPending()) {
-        header = header.copy(status = TX_STATUS_PENDING)
-      }
-
-      header
-    }
-  }
-
-  implicit class RichTraceCall(src: TraceCall) {
-
-    def fillTxHeader(header: TxHeader): TxHeader = header.copy(
-      from = src.from,
-      to = src.to,
-      isInternal = true)
   }
 
   implicit class RichReceipt(src: TransactionReceipt) {
@@ -77,31 +53,75 @@ package object abi {
 
     def statusSuccess(): Boolean = src.blockNumber.asBigInt.afterByzantiumFork() match {
       case true if src.status.asBigInt.compare(BigInt(1)) == 0 => true
-      case false if src.logs.length > 0 => true
-      case false if src.root.size > 0 => true
+      case false if src.logs.nonEmpty => true
+      case false if src.root.nonEmpty => true
       case _ => false
     }
+  }
 
-    def fillTxHeader(header: TxHeader): TxHeader = {
-      val status = src.statusSuccess() match {
-        case true => TX_STATUS_SUCCESS
-        case false => TX_STATUS_FAILED
+  implicit class RichFullTransaction(src: FullTransaction) {
+
+    def getTxHeader: TxHeader = {
+      TxHeader().copyFrom(src.getTx).fillWith(src.getReceipt)
+    }
+  }
+
+  implicit class RichTxHeader(tx: TxHeader) {
+
+    def copyFrom(src: Transaction): TxHeader = {
+      var header = tx.copy(
+        txHash = src.hash,
+        from = src.from,
+        to = src.to,
+        value = src.value,
+        gasPrice = src.gasPrice,
+        gasLimit = src.gas,
+        nonce = src.nonce,
+        source = TX_FROM_TX)
+
+      if (src.isPending) {
+        header = tx.copy(status = TX_STATUS_PENDING)
+      } else {
+        header = tx.copy(txIndex = src.transactionIndex.asBigInteger.intValue())
       }
 
-      header.copy(
+      header
+    }
+
+    def fillWith(src: TraceTransaction): TxHeader = tx.copy(
+      traceFrom = src.from,
+      traceTo = src.to,
+      traceGas = src.gas,
+      traceGasUsed = src.gasUsed,
+      traceValue = src.value,
+      source = TX_FROM_TRACE_TX)
+
+    def fillWith(src: TraceCall): TxHeader = tx.copy(
+      traceFrom = src.from,
+      traceTo = src.to,
+      traceGas = src.gas,
+      traceGasUsed = src.gasUsed,
+      traceValue = src.value,
+      source = TX_FROM_TRACE_CALL)
+
+    def fillWith(src: TransactionReceipt): TxHeader = {
+      val status = if (src.statusSuccess().equals(true)) {
+        TX_STATUS_SUCCESS
+      } else {
+        TX_STATUS_FAILED
+      }
+
+      tx.copy(
         status = status,
         blockHash = src.blockHash,
         blockNumber = src.blockNumber,
         txIndex = src.transactionIndex.asBigInteger.intValue(),
         gasUsed = src.gasUsed)
     }
+
+    def fillWith(src: Log): TxHeader = tx.copy(
+      logIndex = src.logIndex.asBigInteger.intValue(),
+      source = TX_FROM_RECEIPT_LOG)
   }
 
-  implicit class RichLog(src: Log) {
-
-    def fillTxHeader(header: TxHeader): TxHeader = {
-      header.copy(isLog = true, logIndex = src.logIndex.asBigInteger.intValue())
-    }
-
-  }
 }

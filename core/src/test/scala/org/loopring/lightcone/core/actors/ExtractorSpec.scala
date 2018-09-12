@@ -77,7 +77,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   "extractor actor" must {
 
     "start single round" in {
-      val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
+      val settings = BlockchainEventExtractorSettings(scheduleDelay = 10) // 5s
       val round = StartNewRound()
 
       extractor ! round
