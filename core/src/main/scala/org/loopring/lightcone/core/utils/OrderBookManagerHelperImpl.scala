@@ -28,8 +28,13 @@ import org.loopring.lightcone.proto.order._
 import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class TokenOrders(tokenAOrders: Set[OrderWithStatus] = Set(), tokenBOrders: Set[OrderWithStatus] = Set())
-case class OrderWithStatus(order: Order, postponed: Long)
+case class TokenOrders(
+  tokenAOrders: Set[OrderWithStatus] = Set(),
+  tokenBOrders: Set[OrderWithStatus] = Set())
+
+case class OrderWithStatus(
+  order: Order,
+  postponed: Long)
 
 class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
   ec: ExecutionContext,

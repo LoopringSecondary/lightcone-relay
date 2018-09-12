@@ -41,7 +41,7 @@ class OrderBookReader()(implicit
   def receive: Receive = {
     case settings: OrderBookReaderSettings =>
       this.settings = settings
-    case m:GetOrderBookReq =>
+    case m: GetOrderBookReq =>
       Routers.orderBookManager(settings.id) forward m
   }
 }
