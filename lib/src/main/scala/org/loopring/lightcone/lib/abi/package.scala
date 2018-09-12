@@ -121,6 +121,7 @@ package object abi {
 
     def fillWith(src: Log): TxHeader = tx.copy(
       logIndex = src.logIndex.asBigInteger.intValue(),
+      logAddress = src.address,
       source = TX_FROM_RECEIPT_LOG)
   }
 

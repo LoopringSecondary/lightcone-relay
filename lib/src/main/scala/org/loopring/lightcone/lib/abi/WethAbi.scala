@@ -91,7 +91,7 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
   def assembleDepositEvent(list: Seq[Any], header: TxHeader): WethDeposit = {
     val ret = WethDeposit()
       .withOwner(scalaAny2Hex(list(0)))
-      .withValue(scalaAny2Bigint(list(1)).toString())
+      .withValue(scalaAny2Hex(list(1)))
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -107,7 +107,7 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
 
     val ret = WethWithdrawal()
       .withOwner(header.from)
-      .withValue(scalaAny2Bigint(list(0)).toString())
+      .withValue(scalaAny2Hex(list(0)))
       .withTxHeader(header)
 
     print(ret)
@@ -123,7 +123,7 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
 
     val ret = WethWithdrawal()
       .withOwner(scalaAny2Hex(list(0)))
-      .withValue(scalaAny2Bigint(list(1)).toString())
+      .withValue(scalaAny2Hex(list(1)))
       .withTxHeader(header)
 
     print(ret)

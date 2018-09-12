@@ -21,6 +21,7 @@ import java.math.BigInteger
 import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.order.{ Order, RawOrder }
@@ -91,7 +92,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     val bigintList = list(1) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint)
+          case son: Array[Object] => son.map(javaObj2Hex)
           case _ => throw new Exception("submitRing sub bigintArgs type error")
         })
       }
@@ -101,7 +102,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     val uintArgList = list(2) match {
       case arr: Array[Object] => {
         arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint)
+          case son: Array[Object] => son.map(javaObj2Hex)
           case _ => throw new Exception("submitRing sub uintArgs type error")
         })
       }
@@ -114,7 +115,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val vList = list(4) match {
-      case arr: Array[Object] => arr.map(javaObj2Bigint)
+      case arr: Array[Object] => arr.map(javaObj2Hex)
       case _ => throw new Exception("submitRing vlist type error")
     }
 
@@ -130,7 +131,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
     val feeReceipt = scalaAny2Hex(list(7))
 
-    val feeSelection = scalaAny2Bigint(list(8))
+    val feeSelection = scalaAny2Hex(list(8))
 
     var raworders: Seq[RawOrder] = Seq()
     for (i <- 0 to 1) {
@@ -142,14 +143,14 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
         .withTokenS(subAddrList(1))
         .withWalletAddress(subAddrList(2))
         .withAuthAddr(subAddrList(3))
-        .withAmountS(subBigintList(0).toString)
-        .withAmountB(subBigintList(1).toString)
-        .withValidSince(subBigintList(2).bigInteger.longValue())
-        .withValidUntil(subBigintList(3).bigInteger.longValue())
-        .withLrcFee(subBigintList(4).toString())
-        .withMarginSplitPercentage(uintArgList(i)(0).bigInteger.intValue())
+        .withAmountS(subBigintList(0))
+        .withAmountB(subBigintList(1))
+        .withValidSince(subBigintList(2).asBigInteger.longValue())
+        .withValidUntil(subBigintList(3).asBigInteger.longValue())
+        .withLrcFee(subBigintList(4))
+        .withMarginSplitPercentage(uintArgList(i)(0).asBigInteger.intValue())
         .withBuyNoMoreThanAmountB(buyNoMoreThanAmountBList(i))
-        .withV(vList(i).intValue())
+        .withV(vList(i).asBigInteger.intValue())
         .withR(rList(i))
         .withS(sList(i))
     }
@@ -159,7 +160,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
     val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)
-      .withFeeSelection(feeSelection.intValue())
+      .withFeeSelection(feeSelection.asBigInteger.intValue())
 
     // todo: delete after debug and test
     println(ring.toProtoString)
@@ -173,7 +174,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       throw new Exception("length of decoded ringmined invalid")
     }
 
-    val ringindex = scalaAny2Bigint(list(0))
+    val ringindex = scalaAny2Hex(list(0))
     val ringhash = scalaAny2Hex(list(1))
     val miner = scalaAny2Hex(list(2))
     val feeReceipt = scalaAny2Hex(list(3))
@@ -246,7 +247,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val bigintList = list(1) match {
-      case arr: Array[Object] if (arr.length.equals(6)) => arr.map(javaObj2Bigint)
+      case arr: Array[Object] if (arr.length.equals(6)) => arr.map(javaObj2Hex)
       case _ => throw new Exception("cancel order function bigintList type error")
     }
 
@@ -256,18 +257,18 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       .withTokenB(addressList(2))
       .withWalletAddress(addressList(3))
       .withAuthAddr(addressList(4))
-      .withAmountS(bigintList(0).toString())
-      .withAmountB(bigintList(1).toString())
-      .withValidSince(bigintList(2).bigInteger.longValue())
-      .withValidUntil(bigintList(3).bigInteger.longValue())
-      .withLrcFee(bigintList(4).toString())
+      .withAmountS(bigintList(0))
+      .withAmountB(bigintList(1))
+      .withValidSince(bigintList(2).asBigInteger.longValue())
+      .withValidUntil(bigintList(3).asBigInteger.longValue())
+      .withLrcFee(bigintList(4))
       .withBuyNoMoreThanAmountB(scalaAny2Bool(list(2)))
-      .withMarginSplitPercentage(scalaAny2Bigint(list(3)).intValue())
-      .withV(scalaAny2Bigint(list(4)).intValue())
+      .withMarginSplitPercentage(scalaAny2Hex(list(3)).asBigInteger.intValue())
+      .withV(scalaAny2Hex(list(4)).asBigInteger.intValue())
       .withS(scalaAny2Hex(list(5)))
       .withR(scalaAny2Hex(list(6)))
 
-    val cancelAmount = bigintList(5).toString()
+    val cancelAmount = bigintList(5)
 
     val ret = CancelOrder()
       .withOrder(order)
@@ -285,7 +286,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
     val ret = OrderCancelled()
       .withOrderHash(scalaAny2Hex(list(0)))
-      .withAmount(scalaAny2Bigint(list(1)).toString())
+      .withAmount(scalaAny2Hex(list(1)))
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -299,7 +300,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
     val ret = Cutoff()
       .withOwner(header.from)
-      .withCutoff(scalaAny2Bigint(list(0)).intValue())
+      .withCutoff(scalaAny2Hex(list(0)).asBigInteger.intValue())
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -314,7 +315,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
 
     val ret = Cutoff()
       .withOwner(header.from)
-      .withCutoff(scalaAny2Bigint(list(1)).intValue())
+      .withCutoff(scalaAny2Hex(list(1)).asBigInteger.intValue())
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -330,7 +331,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       .withOwner(header.from)
       .withToken1(scalaAny2Hex(list(0)))
       .withToken2(scalaAny2Hex(list(1)))
-      .withCutoff(scalaAny2Bigint(list(2)).intValue())
+      .withCutoff(scalaAny2Hex(list(2)).asBigInteger.intValue())
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -349,7 +350,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       .withOwner(header.from)
       .withToken1(scalaAny2Hex(list(1)))
       .withToken2(scalaAny2Hex(list(2)))
-      .withCutoff(scalaAny2Bigint(list(3)).intValue())
+      .withCutoff(scalaAny2Hex(list(3)).asBigInteger.intValue())
       .withTxHeader(header)
 
     print(ret.toProtoString)

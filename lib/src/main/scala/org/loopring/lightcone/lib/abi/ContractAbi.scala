@@ -133,11 +133,6 @@ trait ContractAbi {
     case _ => throw new Exception("java object convert to scala string error")
   }
 
-  def javaObj2Bigint(src: Object): BigInt = src match {
-    case bs: BigInteger => bs
-    case _ => throw new Exception("java object convert to scala bigint error")
-  }
-
   def javaObj2Boolean(src: Object): Boolean = src match {
     case b: jbool => b
     case _ => throw new Exception("java object convert to scala boolean error")
@@ -146,11 +141,6 @@ trait ContractAbi {
   def scalaAny2Hex(src: Any): String = src match {
     case bs: Array[Byte] => Hex.toHexString(bs)
     case _ => throw new Exception("scala any convert to scala array byte error")
-  }
-
-  def scalaAny2Bigint(src: Any): BigInt = src match {
-    case b: BigInteger => b
-    case _ => throw new Exception("scala any convert to scala bigint error")
   }
 
   def scalaAny2Bool(src: Any): Boolean = src match {

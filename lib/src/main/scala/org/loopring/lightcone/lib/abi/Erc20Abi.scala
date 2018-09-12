@@ -121,7 +121,7 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
     val ret = Approve()
       .withOwner(header.from)
       .withSpender(scalaAny2Hex(list(0)))
-      .withValue(scalaAny2Bigint(list(1)).toString())
+      .withValue(scalaAny2Hex(list(1)))
       .withTxHeader(header)
 
     print(ret.toProtoString)
@@ -137,7 +137,7 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
     val ret = Approve()
       .withOwner(scalaAny2Hex(list(0)))
       .withSpender(scalaAny2Hex(list(1)))
-      .withValue(scalaAny2Bigint(list(2)).toString())
+      .withValue(scalaAny2Hex(list(2)))
       .withTxHeader(header)
 
     print(ret.toProtoString)
