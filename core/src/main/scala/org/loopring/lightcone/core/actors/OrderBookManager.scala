@@ -20,16 +20,14 @@ import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import akka.util.Timeout
-import com.google.inject.Inject
 import org.loopring.lightcone.core.managing.NodeData
-import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.core.utils.{ OrderBookManagerHelperImpl, OrderWithStatus }
+import org.loopring.lightcone.core.utils.{OrderBookManagerHelperImpl, OrderWithStatus}
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
+import org.loopring.lightcone.proto.orderbook.{CrossingOrderSets, GetCrossingOrderSets, GetOrderBookReq, GetOrderBookResp}
 
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{Await, ExecutionContext}
 
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {
@@ -46,10 +44,8 @@ class OrderBookManager()(implicit
   extends Actor {
   var settings: OrderBookManagerSettings = null
 
-  var id = settings.id
-
-  def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
-  def resetQuery = OrderQuery(market = id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
+  def marketConfig(): MarketConfig = NodeData.getMarketConfigById(settings.id)
+  def resetQuery = OrderQuery(market = settings.id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
 
   val managerHelper = new OrderBookManagerHelperImpl(marketConfig())
 
@@ -60,6 +56,9 @@ class OrderBookManager()(implicit
       this.settings = settings
       //orderbookmanager依赖于manageHelper的数据完整，需要等待初始化完成
       Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
+
+    case m:GetOrderBookReq =>
+        sender() ! GetOrderBookResp() //todo:
 
     case m: GetCrossingOrderSets =>
       val (minPrice, maxPrice) = managerHelper.crossingPrices(canMatching)
