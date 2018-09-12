@@ -53,16 +53,16 @@ class TransactionHelperImpl @Inject() (
   } yield Seq()
 
   def unpackMinedTransaction(src: FullTransaction): Seq[Any] = {
-    val mainheader = getTxMainHeader(src.tx, src.receipt)
-    val mainseq = unpackSingleInput(src.getTx.input, mainheader)
+    val header = src.getTxHeader
+    val mainseq = unpackSingleInput(src.getTx.input, header)
 
     val callseq = src.trace match {
-      case Some(x) => x.calls.map(n => unpackSingleInput(n.input, n.fillTxHeader(mainheader))).reduceLeft((a, b) => a ++ b)
+      case Some(x) => x.calls.map(n => unpackSingleInput(n.input, header.fillWith(x))).reduceLeft((a, b) => a ++ b)
       case _ => Seq()
     }
 
     val evtseq = src.receipt match {
-      case Some(x) => x.logs.map(n => unpackSingleEvent(n, n.fillTxHeader(mainheader))).reduceLeft((a, b) => a ++ b)
+      case Some(x) => x.logs.map(n => unpackSingleEvent(n, header.fillWith(x))).reduceLeft((a, b) => a ++ b)
       case _ => Seq()
     }
 
@@ -87,17 +87,4 @@ class TransactionHelperImpl @Inject() (
 
   private def safeAddress(address: String): String = address.toUpperCase()
 
-  private def getTxMainHeader(txOpt: Option[Transaction], receiptOpt: Option[TransactionReceipt]): TxHeader = {
-    var header = txOpt match {
-      case Some(x) => x.getTxHeader()
-      case _ => throw new Exception("transaction is empty")
-    }
-
-    header = receiptOpt match {
-      case Some(x) => x.fillTxHeader(header)
-      case _ => throw new Exception("receipt is empty")
-    }
-
-    header
-  }
 }
