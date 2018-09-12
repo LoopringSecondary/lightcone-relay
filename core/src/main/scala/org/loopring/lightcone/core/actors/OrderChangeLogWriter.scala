@@ -19,18 +19,18 @@ package org.loopring.lightcone.core.actors
 import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import akka.actor._
-import org.loopring.lightcone.core.actors.base.CommonSettings
+import org.loopring.lightcone.core.actors.base.Metadata
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order.{ RawOrder, SaveOrders, SaveUpdatedOrders, SoftCancelOrders }
 import scala.concurrent._
 
 object OrderChangeLogWriter
-  extends base.Deployable[CommonSettings] {
+  extends base.Deployable[Metadata] {
   val name = "order_change_log_writer"
 
-  def getCommon(s: CommonSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: Metadata) =
+    base.Metadata(None, s.roles, s.instances)
 }
 
 class OrderChangeLogWriter()(implicit

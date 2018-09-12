@@ -19,7 +19,6 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import org.loopring.lightcone.proto.deployment._
 
-// todo: 如何实现系统代币的自动添加/删除,重启并生成相关actor(如miner,orderbook...),在哪获取代币列表
 object TokenRegister
   extends base.Deployable[TokenRegistrySettings] {
   val name = "token_register"
@@ -27,8 +26,8 @@ object TokenRegister
 
   def props = Props(classOf[TokenRegister])
 
-  def getCommon(s: TokenRegistrySettings) =
-    base.CommonSettings(Some(""), Seq.empty, 0)
+  def getMetadata(s: TokenRegistrySettings) =
+    base.Metadata(Some(""), Seq.empty, 0)
 }
 
 class TokenRegister() extends Actor {

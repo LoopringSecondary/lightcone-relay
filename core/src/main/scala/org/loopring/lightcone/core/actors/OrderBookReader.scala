@@ -30,8 +30,8 @@ object OrderBookReader
   extends base.Deployable[OrderBookReaderSettings] {
   val name = "order_book_reader"
 
-  def getCommon(s: OrderBookReaderSettings) =
-    base.CommonSettings(Option(s.id), s.roles, s.instances)
+  def getMetadata(s: OrderBookReaderSettings) =
+    base.Metadata(Option(s.id), s.roles, s.instances)
 }
 
 class OrderBookReader()(implicit

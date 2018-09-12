@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.actors.base
 
-case class CommonSettings(
+case class Metadata(
   id: Option[String],
   roles: Seq[String],
   instances: Int)

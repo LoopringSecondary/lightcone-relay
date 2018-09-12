@@ -35,8 +35,8 @@ object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
   val name = "order_db_accessor"
 
-  def getCommon(s: OrderDBAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderDBAccessorSettings) =
+    base.Metadata(None, s.roles, s.instances)
 }
 
 class OrderDBAccessor(db: OrderDatabase)(implicit

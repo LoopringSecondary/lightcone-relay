@@ -36,8 +36,8 @@ object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
   val name = "order_accessor"
 
-  def getCommon(s: OrderAccessorSettings) =
-    base.CommonSettings(None, s.roles, s.instances)
+  def getMetadata(s: OrderAccessorSettings) =
+    base.Metadata(None, s.roles, s.instances)
 }
 
 class OrderAccessor()(implicit

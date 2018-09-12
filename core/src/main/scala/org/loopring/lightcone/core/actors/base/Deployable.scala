@@ -33,13 +33,13 @@ abstract class Deployable[S <: AnyRef] {
   val isSingleton = false
   def props(injector: Injector) = injector.getProps(name)
 
-  def getCommon(s: S): CommonSettings
+  def getMetadata(s: S): Metadata
 
   private val rand = new scala.util.Random()
   private def nextRand = rand.nextInt(100000000)
 
   case class SettingsWrapper[S](
-    common: CommonSettings,
+    common: Metadata,
     settings: S) {
     def numInstances(implicit cluster: Cluster): Int = {
       val roles = common.roles.toSet
@@ -75,7 +75,7 @@ abstract class Deployable[S <: AnyRef] {
     val oldSettingsMap = settingsMap
 
     settingsMap = settingsSeq.map { s =>
-      val common = getCommon(s)
+      val common = getMetadata(s)
       val wrapper = SettingsWrapper(common, s)
       common.id.getOrElse("") -> wrapper
     }.toMap

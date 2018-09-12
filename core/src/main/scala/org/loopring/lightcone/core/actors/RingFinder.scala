@@ -34,8 +34,8 @@ object RingFinder
   val name = "ring_finder"
   override val isSingleton = true
 
-  def getCommon(s: RingFinderSettings) =
-    base.CommonSettings(Some(s.id), s.roles, 1)
+  def getMetadata(s: RingFinderSettings) =
+    base.Metadata(Some(s.id), s.roles, 1)
 }
 
 class RingFinder()(implicit

@@ -33,8 +33,8 @@ object CacheObsoleter
   val name = "cache_obsoleter"
   override val isSingleton = true
 
-  def getCommon(s: CacheObsoleterSettings) =
-    base.CommonSettings(None, s.roles, 1)
+  def getMetadata(s: CacheObsoleterSettings) =
+    base.Metadata(None, s.roles, 1)
 }
 
 class CacheObsoleter()(implicit

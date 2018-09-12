@@ -34,8 +34,8 @@ object BalanceManager
   val name = "balance_manager"
   override val isSingleton = true //按照分片id，应当是singleton的
 
-  def getCommon(s: BalanceManagerSettings) =
-    base.CommonSettings(Some(s.id), s.roles, s.instances)
+  def getMetadata(s: BalanceManagerSettings) =
+    base.Metadata(Some(s.id), s.roles, s.instances)
 }
 
 class BalanceManager()(
