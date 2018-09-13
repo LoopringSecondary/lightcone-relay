@@ -14,7 +14,6 @@ import scalariform.formatter.preferences._
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
     organization := Globals.organization,
-    version := Globals.version,
     scalaVersion := Globals.scalaVersion,
     autoScalaLibrary := false,
     resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
