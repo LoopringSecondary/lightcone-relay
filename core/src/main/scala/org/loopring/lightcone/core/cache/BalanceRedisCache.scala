@@ -25,14 +25,13 @@ import redis._
 
 import scala.concurrent.ExecutionContext
 
-/**
- * 使用hash保存余额以及授权
+/** 使用hash保存余额以及授权
  *
- * 余额：HSET address_${address} b_${token} ${amount}
- * HSET address_0x8d8812b72d1e4ffcec158d25f56748b7d67c1e78 b_0xef68e7c694f40c8202821edf525de3782458639f 10000000
+ *  余额：HSET address_${address} b_${token} ${amount}
+ *  HSET address_0x8d8812b72d1e4ffcec158d25f56748b7d67c1e78 b_0xef68e7c694f40c8202821edf525de3782458639f 10000000
  *
- * 授权: HSET address_${address} a_${delegate}_${token} ${amount}
- * HSET address_0x8d8812b72d1e4ffcec158d25f56748b7d67c1e78 a_0x17233e07c67d086464fd408148c3abb56245fa64_0xef68e7c694f40c8202821edf525de3782458639f 100000
+ *  授权: HSET address_${address} a_${delegate}_${token} ${amount}
+ *  HSET address_0x8d8812b72d1e4ffcec158d25f56748b7d67c1e78 a_0x17233e07c67d086464fd408148c3abb56245fa64_0xef68e7c694f40c8202821edf525de3782458639f 100000
  */
 
 case class BalanceField(token: String)
@@ -51,30 +50,31 @@ object BalanceRedisCache {
   implicit val balanceSerializer = new RedisHashGetSerializer[GetBalancesReq, BalanceField, GetBalancesResp] {
     override def cacheKey(req: GetBalancesReq): String = keyPrefix + req.address.toLowerCase()
 
-    override def encodeCacheFields(req: GetBalancesReq): Seq[String] = req.tokens.map(t => balanceFieldPrefix + t.toLowerCase())
+    override def encodeCacheFields(req: GetBalancesReq): Seq[String] = req.tokens.map(t ⇒ balanceFieldPrefix + t.toLowerCase())
 
     override def decodeCacheField(field: String): BalanceField = BalanceField(field.split(delimeter)(1))
 
     override def genResp(req: GetBalancesReq, cacheFields: Seq[BalanceField], valueData: Seq[Option[Array[Byte]]]): GetBalancesResp = {
       GetBalancesResp(
         address = req.address,
-        balances = cacheFields.zipWithIndex.map { field =>
+        balances = cacheFields.zipWithIndex.map { field ⇒
           {
             val token = field._1.token
             TokenAmount(token = token, amount = valueData(field._2) match {
-              case None => "0"
-              case Some(value) => value.asBigInt().toString()
+              case None        ⇒ "0"
+              case Some(value) ⇒ value.asBigInt().toString()
             })
           }
-        })
+        }
+      )
     }
   }
 
   implicit val allowanceSerializer = new RedisHashGetSerializer[GetAllowancesReq, AllowanceField, GetAllowancesResp] {
     override def cacheKey(req: GetAllowancesReq): String = keyPrefix + req.address.toLowerCase()
 
-    override def encodeCacheFields(req: GetAllowancesReq): Seq[String] = req.delegates.flatMap { delegate =>
-      req.tokens.map(t => allowanceFieldPrefix + delegate.toLowerCase() + delimeter + t.toLowerCase())
+    override def encodeCacheFields(req: GetAllowancesReq): Seq[String] = req.delegates.flatMap { delegate ⇒
+      req.tokens.map(t ⇒ allowanceFieldPrefix + delegate.toLowerCase() + delimeter + t.toLowerCase())
     }
 
     override def decodeCacheField(field: String): AllowanceField = {
@@ -85,23 +85,25 @@ object BalanceRedisCache {
     override def genResp(req: GetAllowancesReq, cacheFields: Seq[AllowanceField], valueData: Seq[Option[Array[Byte]]]): GetAllowancesResp = {
       var allowances = cacheFields
         .zipWithIndex
-        .map { field =>
+        .map { field ⇒
           val amount = valueData(field._2) match {
-            case None => "0"
-            case Some(value) => value.asBigInt().toString()
+            case None        ⇒ "0"
+            case Some(value) ⇒ value.asBigInt().toString()
           }
           (field._1.delegate, field._1.token, amount)
         }
         .groupBy(_._1)
-        .map { field =>
+        .map { field ⇒
           val infoSeq = field._2
           Allowance(
             delegate = field._1,
-            tokenAmounts = infoSeq.map(info => TokenAmount(token = info._2, amount = info._3)))
+            tokenAmounts = infoSeq.map(info ⇒ TokenAmount(token = info._2, amount = info._3))
+          )
         }.toSeq
       GetAllowancesResp(
         address = req.address,
-        allowances = allowances)
+        allowances = allowances
+      )
     }
   }
 
@@ -109,9 +111,9 @@ object BalanceRedisCache {
     override def cacheKey(req: GetBalanceAndAllowanceReq): String = keyPrefix + req.address.toLowerCase()
 
     override def encodeCacheFields(req: GetBalanceAndAllowanceReq): Seq[String] = {
-      val balanceCacheFields = req.tokens.map(t => balanceFieldPrefix + t.toLowerCase())
-      val allowanceCacheFields = req.delegates.flatMap { delegate =>
-        req.tokens.map(t => allowanceFieldPrefix + delegate.toLowerCase() + delimeter + t.toLowerCase())
+      val balanceCacheFields = req.tokens.map(t ⇒ balanceFieldPrefix + t.toLowerCase())
+      val allowanceCacheFields = req.delegates.flatMap { delegate ⇒
+        req.tokens.map(t ⇒ allowanceFieldPrefix + delegate.toLowerCase() + delimeter + t.toLowerCase())
       }
       balanceCacheFields ++ allowanceCacheFields
     }
@@ -124,32 +126,34 @@ object BalanceRedisCache {
     override def genResp(req: GetBalanceAndAllowanceReq, cacheFields: Seq[BalanceAndAllowanceField], valueData: Seq[Option[Array[Byte]]]): GetBalanceAndAllowanceResp = {
       val dataGroupByType = cacheFields
         .zipWithIndex
-        .map { field =>
+        .map { field ⇒
           val amount = valueData(field._2) match {
-            case None => "0"
-            case Some(value) => value.asBigInt().toString()
+            case None        ⇒ "0"
+            case Some(value) ⇒ value.asBigInt().toString()
           }
           (field._1, amount)
         }
         .groupBy(_._1.valueType)
       val balancesSeq = dataGroupByType.getOrElse(balanceField, Seq())
-      val balances = balancesSeq.map { data =>
+      val balances = balancesSeq.map { data ⇒
         TokenAmount(token = data._1.token, amount = data._2)
       }
       val allowancesSeq = dataGroupByType.getOrElse(allowanceField, Seq())
       val allowances = allowancesSeq
         .groupBy(_._1.delegate)
-        .map { data =>
+        .map { data ⇒
           val infoSeq = data._2
           Allowance(
             delegate = data._1,
-            tokenAmounts = infoSeq.map(info => TokenAmount(token = info._1.token, amount = info._2)))
+            tokenAmounts = infoSeq.map(info ⇒ TokenAmount(token = info._1.token, amount = info._2))
+          )
         }.toSeq
 
       GetBalanceAndAllowanceResp(
         address = req.address,
         allowances = allowances,
-        balances = balances)
+        balances = balances
+      )
     }
   }
 
@@ -157,11 +161,11 @@ object BalanceRedisCache {
     override def cacheKey(req: CacheBalanceInfo): String = keyPrefix + req.address.toLowerCase()
 
     override def genKeyValues(req: CacheBalanceInfo): Map[String, Array[Byte]] = {
-      val balanceMap = req.balances.map { balance =>
+      val balanceMap = req.balances.map { balance ⇒
         (balanceFieldPrefix + balance.token.toLowerCase(), balance.amount.getBytes)
       }.toMap
-      val allowanceMap = req.allowances.flatMap { allowance =>
-        allowance.tokenAmounts.map { tokenAmount =>
+      val allowanceMap = req.allowances.flatMap { allowance ⇒
+        allowance.tokenAmounts.map { tokenAmount ⇒
           val field = allowanceFieldPrefix + allowance.delegate.toLowerCase() + delimeter + tokenAmount.token.toLowerCase()
           (field, tokenAmount.amount.getBytes)
         }
@@ -172,9 +176,11 @@ object BalanceRedisCache {
 }
 
 final class BalanceRedisCache @Inject() (
-  val redis: RedisCluster)(
-  implicit
-  val ec: ExecutionContext)
+    val redis: RedisCluster
+)(
+    implicit
+    val ec: ExecutionContext
+)
   extends BalanceCache {
   import BalanceRedisCache._
 

@@ -33,14 +33,15 @@ object ClusterManager extends base.NullConfigDeployable {
 }
 
 class ClusterManager()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   val mediator = DistributedPubSub(context.system).mediator
   def receive: Receive = {
 
-    case UploadDynamicSettings(c) =>
+    case UploadDynamicSettings(c) ⇒
       println("UploadDynamicSettings: " + c)
       mediator ! Publish("cluster_manager", ProcessDynamicSettings(c))
   }

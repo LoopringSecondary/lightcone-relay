@@ -38,8 +38,9 @@ object BalanceCacher
 }
 
 class BalanceCacher @Inject() (cache: BalanceCache)(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   var settings: BalanceCacherSettings = null
@@ -47,22 +48,22 @@ class BalanceCacher @Inject() (cache: BalanceCache)(implicit
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: BalanceCacherSettings =>
+    case settings: BalanceCacherSettings ⇒
       this.settings = settings
-    case m: GetBalancesReq =>
+    case m: GetBalancesReq ⇒
       cache.getBalances(m).pipeTo(sender)
-    case m: GetAllowancesReq =>
+    case m: GetAllowancesReq ⇒
       cache.getAllowances(m).pipeTo(sender)
-    case m: GetBalanceAndAllowanceReq =>
+    case m: GetBalanceAndAllowanceReq ⇒
       cache.getBalanceAndAllowances(m).pipeTo(sender)
-    case m: CacheBalanceInfo =>
+    case m: CacheBalanceInfo ⇒
       cache.addCache(m).pipeTo(sender)
-    case purgeEvent: Purge.Balance =>
+    case purgeEvent: Purge.Balance         ⇒
 
-    case purgeEvent: Purge.AllForAddresses =>
+    case purgeEvent: Purge.AllForAddresses ⇒
 
-    case purgeEvent: Purge.AllAfterBlock =>
+    case purgeEvent: Purge.AllAfterBlock   ⇒
 
-    case purgeEvent: Purge.All =>
+    case purgeEvent: Purge.All             ⇒
   }
 }

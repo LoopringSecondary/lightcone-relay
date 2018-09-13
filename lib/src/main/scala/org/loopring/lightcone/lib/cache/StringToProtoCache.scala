@@ -36,8 +36,9 @@ private object ReaderExample {
 */
 
 final class StringToProtoCache[V <: scalapb.GeneratedMessage with scalapb.Message[V]](
-  val underlying: ByteArrayCache,
-  val serializer: ProtoSerializer[V])(implicit val ex: ExecutionContext)
+    val underlying: ByteArrayCache,
+    val serializer: ProtoSerializer[V]
+)(implicit val ex: ExecutionContext)
   extends ProtoCache[String, V] {
   def keyToBytes(str: String) = str.getBytes
 }

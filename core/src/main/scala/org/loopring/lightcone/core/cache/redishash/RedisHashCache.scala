@@ -43,8 +43,8 @@ trait RedisHashCache {
   implicit val ec: ExecutionContext
 
   def hmget[T, F, R](req: T)(implicit s: RedisHashGetSerializer[T, F, R]): Future[R] = for {
-    cacheFields <- Future.successful(s.encodeCacheFields(req))
-    valueData <- redis.hmget[Array[Byte]](s.cacheKey(req), cacheFields: _*)
+    cacheFields ← Future.successful(s.encodeCacheFields(req))
+    valueData ← redis.hmget[Array[Byte]](s.cacheKey(req), cacheFields: _*)
   } yield {
     val fields = cacheFields.map(s.decodeCacheField)
     s.genResp(req, fields, valueData)

@@ -36,13 +36,14 @@ object OrderUpdater
 }
 
 class OrderUpdater()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderUpdaterSettings =>
-    case UpdateOrders =>
-    case CalculateOrdersStatus =>
+    case settings: OrderUpdaterSettings ⇒
+    case UpdateOrders                   ⇒
+    case CalculateOrdersStatus          ⇒
   }
 }

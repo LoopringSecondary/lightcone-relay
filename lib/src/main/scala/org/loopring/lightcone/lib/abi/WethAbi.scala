@@ -44,9 +44,9 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
     val res = decodeInput(input)
     val wethseq = res.name match {
-      case FN_DEPOSIT => Seq(assembleDepositFunction(res.list, header))
-      case FN_WITHDRAW => Seq(assembleWithdrawalFunction(res.list, header))
-      case _ => Seq()
+      case FN_DEPOSIT  ⇒ Seq(assembleDepositFunction(res.list, header))
+      case FN_WITHDRAW ⇒ Seq(assembleWithdrawalFunction(res.list, header))
+      case _           ⇒ Seq()
     }
 
     erc20seq ++ wethseq
@@ -57,9 +57,9 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
     val res = decodeLog(log)
     val wethseq = res.name match {
-      case EN_DEPOSIT => Seq(assembleDepositEvent(res.list, header))
-      case EN_WITHDRAWAL => Seq(assembleWithdrawalEvent(res.list, header))
-      case _ => Seq()
+      case EN_DEPOSIT    ⇒ Seq(assembleDepositEvent(res.list, header))
+      case EN_WITHDRAWAL ⇒ Seq(assembleWithdrawalEvent(res.list, header))
+      case _             ⇒ Seq()
     }
 
     erc20seq ++ wethseq

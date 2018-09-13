@@ -44,40 +44,45 @@ trait JsonRpcSupport {
   implicit val formats = Serialization.formats(NoTypeHints)
 
   case class JsonRpcRequest(
-    id: Int,
-    jsonrpc: String,
-    method: String,
-    params: Seq[Any])
+      id: Int,
+      jsonrpc: String,
+      method: String,
+      params: Seq[Any]
+  )
 
   private val queue =
     Source.queue[(HttpRequest, Promise[HttpResponse])](queueSize, OverflowStrategy.dropNew)
       .via(ethereumClientFlow)
       .toMat(Sink.foreach({
-        case ((Success(resp), p)) => p.success(resp)
-        case ((Failure(e), p)) => p.failure(e)
+        case ((Success(resp), p)) ⇒ p.success(resp)
+        case ((Failure(e), p))    ⇒ p.failure(e)
       }))(Keep.left)
       .run()
 
   private def queueRequest(request: HttpRequest): Future[HttpResponse] = {
     val responsePromise = Promise[HttpResponse]()
     queue.offer(request -> responsePromise).flatMap {
-      case QueueOfferResult.Enqueued =>
+      case QueueOfferResult.Enqueued ⇒
         responsePromise.future
-      case QueueOfferResult.Dropped =>
+      case QueueOfferResult.Dropped ⇒
         Future.failed(new RuntimeException("Queue overflowed. Try again later."))
-      case QueueOfferResult.Failure(ex) =>
+      case QueueOfferResult.Failure(ex) ⇒
         Future.failed(ex)
-      case QueueOfferResult.QueueClosed =>
+      case QueueOfferResult.QueueClosed ⇒
         Future.failed(new RuntimeException(
-          "Queue was closed (pool shut down) while running the request. Try again later."))
+          "Queue was closed (pool shut down) while running the request. Try again later."
+        ))
     }
   }
 
   def httpPost[R <: scalapb.GeneratedMessage with scalapb.Message[R]](
-    method: String)(
-    params: Seq[Any])(
+    method: String
+  )(
+    params: Seq[Any]
+  )(
     implicit
-    c: scalapb.GeneratedMessageCompanion[R]): Future[R] = {
+    c: scalapb.GeneratedMessageCompanion[R]
+  ): Future[R] = {
     val request = JsonRpcRequest(id, JSON_RPC_VERSION, method, params)
     val jsonReq = Serialization.write(request).toString
     val entity = HttpEntity(ContentTypes.`application/json`, jsonReq)
@@ -85,8 +90,8 @@ trait JsonRpcSupport {
     val httpReq = HttpRequest(method = HttpMethods.POST, uri = "/", entity = entity)
 
     for {
-      httpRes <- queueRequest(httpReq)
-      jsonStr <- httpRes.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
+      httpRes ← queueRequest(httpReq)
+      jsonStr ← httpRes.entity.dataBytes.map(_.utf8String).runReduce(_ + _)
       resp = JsonFormat.parser.fromJsonString[R](jsonStr)
     } yield resp
   }

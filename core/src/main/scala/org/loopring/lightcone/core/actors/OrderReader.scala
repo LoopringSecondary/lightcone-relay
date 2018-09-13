@@ -39,25 +39,26 @@ object OrderReader
 }
 
 class OrderReader()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderReaderSettings =>
+    case settings: OrderReaderSettings ⇒
 
-    case req: GetOrderReq =>
+    case req: GetOrderReq ⇒
       val oneOrderResult = Routers.orderManager ? unwrapToQuery(req)
       oneOrderResult.mapTo[OneOrder] onComplete {
-        case Success(o) => wrapToResp(o)
-        case Failure(_) => ErrorResp()
+        case Success(o) ⇒ wrapToResp(o)
+        case Failure(_) ⇒ ErrorResp()
       }
 
-    case req: GetOrdersReq =>
+    case req: GetOrdersReq ⇒
       val multiOrderResult = Routers.orderManager ? unwrapToQuery(req)
       multiOrderResult.mapTo[MultiOrders] onComplete {
-        case Success(o) => wrapToResp(o)
-        case Failure(_) => ErrorResp()
+        case Success(o) ⇒ wrapToResp(o)
+        case Failure(_) ⇒ ErrorResp()
       }
   }
 

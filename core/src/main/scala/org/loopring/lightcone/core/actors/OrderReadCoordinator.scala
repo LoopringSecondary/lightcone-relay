@@ -35,12 +35,13 @@ object OrderReadCoordinator
 }
 
 class OrderReadCoordinator()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderReadCoordinatorSettings =>
-    case _ =>
+    case settings: OrderReadCoordinatorSettings ⇒
+    case _ ⇒
   }
 }

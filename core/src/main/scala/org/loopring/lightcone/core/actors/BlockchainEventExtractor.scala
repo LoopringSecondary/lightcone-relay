@@ -36,23 +36,24 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-  val blockHelper: BlockHelper,
-  val txHelper: TransactionHelper) extends RepeatedJobActor {
+    val blockHelper: BlockHelper,
+    val txHelper: TransactionHelper
+) extends RepeatedJobActor {
 
   var settingsOpt: Option[BlockchainEventExtractorSettings] = None
 
   override def receive: Receive = {
-    case settings: BlockchainEventExtractorSettings =>
+    case settings: BlockchainEventExtractorSettings ⇒
       settingsOpt = Some(settings)
       initAndStartNextRound(settings.scheduleDelay)
-    case newRound: StartNewRound =>
+    case newRound: StartNewRound ⇒
       handleRepeatedJob()
-    case _ => throw new Exception("message invalid")
+    case _ ⇒ throw new Exception("message invalid")
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    forkevt <- blockHelper.getForkEvent()
-    list <- if (forkevt.fork.equals(true)) {
+    forkevt ← blockHelper.getForkEvent()
+    list ← if (forkevt.fork.equals(true)) {
       Future(Seq(forkevt))
     } else {
       handleBlock()
@@ -60,11 +61,11 @@ class BlockchainEventExtractor()(implicit
   } yield list.map(route)
 
   def handleBlock(): Future[Seq[Any]] = for {
-    block <- blockHelper.getBlock()
-    minedTxs <- txHelper.getMinedTransactions(block.transactions)
+    block ← blockHelper.getBlock()
+    minedTxs ← txHelper.getMinedTransactions(block.transactions)
     minedSeq = minedTxs.map(txHelper.unpackMinedTransaction)
 
-    pendingTxs <- txHelper.getPendingTransactions(block.transactions)
+    pendingTxs ← txHelper.getPendingTransactions(block.transactions)
     pendingSeq = pendingTxs.map(txHelper.unpackPendingTransaction)
 
     list = minedSeq ++ pendingSeq
@@ -72,12 +73,12 @@ class BlockchainEventExtractor()(implicit
 
   // todo
   def route(onchainEvent: Any) = onchainEvent match {
-    case balance: SubmitRingFunction =>
-    case ring: RingDetectedInMemPoll =>
-    case ringMined: RingMined =>
-    case cancel: OrderCancelled =>
-    case cutoff: Cutoff =>
-    case cutoffPair: CutoffPair =>
+    case balance: SubmitRingFunction ⇒
+    case ring: RingDetectedInMemPoll ⇒
+    case ringMined: RingMined        ⇒
+    case cancel: OrderCancelled      ⇒
+    case cutoff: Cutoff              ⇒
+    case cutoffPair: CutoffPair      ⇒
   }
 
 }

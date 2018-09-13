@@ -22,21 +22,23 @@ import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.order.RawOrder
 
 case class OrderFill(
-  rawOrder: RawOrder,
-  sPrice: Rational,
-  rateAmountS: Rational,
-  fillAmountS: Rational,
-  fillAmountB: Rational,
-  reduceRate: Rational,
-  receivedFiat: Rational = Rational(0),
-  feeSelection: Byte = 0.toByte)
+    rawOrder: RawOrder,
+    sPrice: Rational,
+    rateAmountS: Rational,
+    fillAmountS: Rational,
+    fillAmountB: Rational,
+    reduceRate: Rational,
+    receivedFiat: Rational = Rational(0),
+    feeSelection: Byte = 0.toByte
+)
 
 case class RingCandidate(
-  rawRing: Ring,
-  receivedFiat: Rational = Rational(0),
-  gasPrice: BigInt = BigInt(0),
-  gasLimit: BigInt = BigInt(0),
-  orderFills: Map[String, OrderFill] = Map())
+    rawRing: Ring,
+    receivedFiat: Rational = Rational(0),
+    gasPrice: BigInt = BigInt(0),
+    gasLimit: BigInt = BigInt(0),
+    orderFills: Map[String, OrderFill] = Map()
+)
 
 trait RingEvaluator {
   def getRingCadidatesToSettle(candidates: RingCandidates): Future[Seq[RingCandidate]]

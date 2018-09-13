@@ -26,8 +26,10 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlockHelperImpl @Inject() (
-  val config: Config,
-  val accessor: EthClient) extends BlockHelper {
+    val config: Config,
+    val accessor: EthClient
+)
+  extends BlockHelper {
 
   // cancel order: 43163
   // submit ring: 43206
@@ -36,35 +38,35 @@ class BlockHelperImpl @Inject() (
   val currentBlock = BigInt(43163)
 
   def getBlock(): Future[BlockWithTxHash] = for {
-    _ <- Future {}
+    _ ← Future {}
     block = safeBlockHex(currentBlock)
     blockReq = GetBlockWithTxHashByNumberReq(block)
-    block <- accessor.getBlockWithTxHashByNumber(blockReq)
+    block ← accessor.getBlockWithTxHashByNumber(blockReq)
   } yield block.getResult
 
   // todo: get block from config and compare with data in db, set the big one as current block while server restart
   // todo: compare this.currentBlock and Block.blockNumber, set the bigger as current block while server running
   def getCurrentBlock(): Future[BigInt] = for {
-    _ <- Future {}
+    _ ← Future {}
   } yield currentBlock
 
   // todo: set this.currentBlock and write in db
   def setCurrentBlock(block: Block): Future[Unit] = for {
-    _ <- Future {}
+    _ ← Future {}
   } yield null
 
   // todo: find parent block in db, if not exist, get it from geth/parity recursive, and return
   def getForkBlock(): Future[BigInt] = for {
-    ret <- Future { BigInt(0) }
+    ret ← Future { BigInt(0) }
   } yield ret
 
   def isBlockForked(): Future[Boolean] = for {
-    _ <- Future {}
+    _ ← Future {}
   } yield false
 
   // todo
   def getForkEvent(): Future[ChainRolledBack] = for {
-    _ <- Future {}
+    _ ← Future {}
   } yield ChainRolledBack()
 
   // todo: 使用Hex.toHexString会导致多出一些0,而现有的方式为转为int后toHexString

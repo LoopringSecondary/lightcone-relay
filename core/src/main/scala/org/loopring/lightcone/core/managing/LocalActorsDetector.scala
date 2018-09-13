@@ -30,19 +30,19 @@ class LocalActorsDetector extends Actor {
   var sendResultTo: ActorRef = null
 
   def receive = {
-    case Msg("detect") =>
+    case Msg("detect") ⇒
       sendResultTo = sender
       context.setReceiveTimeout(deadline.timeLeft)
       selection ! Identify(None)
 
-    case ActorIdentity(_, refOption) =>
+    case ActorIdentity(_, refOption) ⇒
       count += 1
       refOption foreach { result += _.toString }
       context.setReceiveTimeout(deadline.timeLeft)
       if (count == max || deadline.isOverdue)
         completeResult()
 
-    case ReceiveTimeout =>
+    case ReceiveTimeout ⇒
       completeResult()
   }
 

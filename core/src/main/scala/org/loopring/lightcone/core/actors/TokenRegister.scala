@@ -33,7 +33,7 @@ object TokenRegister
 
 class TokenRegister() extends Actor {
   def receive: Receive = {
-    case settings: TokenRegistrySettings =>
-    case _ =>
+    case settings: TokenRegistrySettings ⇒
+    case _ ⇒
   }
 }

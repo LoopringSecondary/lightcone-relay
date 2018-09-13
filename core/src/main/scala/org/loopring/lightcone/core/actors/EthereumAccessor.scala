@@ -35,12 +35,13 @@ object EthereumAccessor
 }
 
 class EthereumAccessor()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: EthereumAccessorSettings =>
-    case _ =>
+    case settings: EthereumAccessorSettings ⇒
+    case _ ⇒
   }
 }

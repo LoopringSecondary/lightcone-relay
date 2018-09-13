@@ -32,18 +32,19 @@ object BalanceReader
 }
 
 class BalanceReader()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: BalanceReaderSettings =>
-    case req: GetBalancesReq =>
+    case settings: BalanceReaderSettings ⇒
+    case req: GetBalancesReq ⇒
       Routers.balanceManager forward req
-    case req: GetAllowancesReq =>
+    case req: GetAllowancesReq ⇒
       Routers.balanceManager forward req
-    case req: GetBalanceAndAllowanceReq =>
+    case req: GetBalanceAndAllowanceReq ⇒
       Routers.balanceManager forward req
-    case _ =>
+    case _ ⇒
   }
 }

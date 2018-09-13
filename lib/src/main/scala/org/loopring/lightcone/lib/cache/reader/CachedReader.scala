@@ -27,19 +27,19 @@ trait CachedReader[R, T] extends Reader[R, T] {
   val cache: Cache[R, T]
 
   def read(req: R): Future[Option[T]] = for {
-    cached <- cache.get(req)
-    result <- cached match {
-      case t @ Some(_) => Future(t)
-      case None => underlying.read(req)
+    cached ← cache.get(req)
+    result ← cached match {
+      case t @ Some(_) ⇒ Future(t)
+      case None        ⇒ underlying.read(req)
     }
   } yield result
 
   def read(reqs: Seq[R]): Future[Map[R, T]] = for {
-    cached <- cache.get(reqs)
+    cached ← cache.get(reqs)
     cachedReqs = cached.keys.toSeq
-    uncachedReqs = reqs.filter(r => !cachedReqs.contains(r))
-    uncached <- underlying.read(uncachedReqs)
-    _ <- cache.put(uncached)
+    uncachedReqs = reqs.filter(r ⇒ !cachedReqs.contains(r))
+    uncached ← underlying.read(uncachedReqs)
+    _ ← cache.put(uncached)
     result = uncached ++ cached
   } yield result
 }
