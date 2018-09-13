@@ -40,7 +40,6 @@ case class OrderWithStatus(
 class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: ActorRef, marketConfig: MarketConfig)(implicit
   ec: ExecutionContext,
   timeout: Timeout) extends OrderBookManagerHelper {
-  //todo:test hashcode and equals
   //key:AmountA/AmountB
   var orderbook = mutable.TreeMap[Rational, TokenOrders]()
 
