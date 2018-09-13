@@ -80,9 +80,9 @@ package object abi {
         source = TX_FROM_TX)
 
       if (src.isPending) {
-        header = tx.copy(status = TX_STATUS_PENDING)
+        header = header.copy(status = TX_STATUS_PENDING)
       } else {
-        header = tx.copy(txIndex = src.transactionIndex.asBigInteger.intValue())
+        header = header.copy(txIndex = src.transactionIndex.asBigInteger.intValue())
       }
 
       header

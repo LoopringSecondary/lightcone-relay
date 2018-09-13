@@ -22,7 +22,7 @@ import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.loopring.lightcone.proto.block_chain_event._
 
-class WethAbi @Inject() (config: Config) extends ContractAbi {
+class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
   val FN_DEPOSIT = "deposit"
   val FN_WITHDRAW = "withdraw"
@@ -33,16 +33,14 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
   override def abi: Abi = Abi.fromJson(getAbiResource("abi/weth.json"))
 
   override def supportedFunctions: Seq[String] = {
-    //super.supportedFunctions.seq ++
-    Seq(FN_DEPOSIT, FN_WITHDRAW)
+    super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
   }
   override def supportedEvents: Seq[String] = {
-    //super.supportedEvents.seq ++
-    Seq(EN_DEPOSIT, EN_WITHDRAWAL)
+    super.supportedEvents.seq ++ Seq(EN_DEPOSIT, EN_WITHDRAWAL)
   }
 
-  def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
-    //val erc20seq = super.decodeInputAndAssemble(input, header)
+  override def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
+    val erc20seq = super.decodeInputAndAssemble(input, header)
 
     val res = decodeInput(input)
     val wethseq = res.name match {
@@ -51,12 +49,11 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
       case _ => Seq()
     }
 
-    //erc20seq// ++
-    wethseq
+    erc20seq ++ wethseq
   }
 
-  def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
-    //val erc20seq = super.decodeLogAndAssemble(log, header)
+  override def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
+    val erc20seq = super.decodeLogAndAssemble(log, header)
 
     val res = decodeLog(log)
     val wethseq = res.name match {
@@ -65,8 +62,7 @@ class WethAbi @Inject() (config: Config) extends ContractAbi {
       case _ => Seq()
     }
 
-    //erc20seq ++
-    wethseq
+    erc20seq ++ wethseq
   }
 
   // function deposit() public payable

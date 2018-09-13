@@ -251,6 +251,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val order = RawOrder()
+      .withProtocol(header.safeTo)
       .withOwner(addressList(0))
       .withTokenS(addressList(1))
       .withTokenB(addressList(2))
