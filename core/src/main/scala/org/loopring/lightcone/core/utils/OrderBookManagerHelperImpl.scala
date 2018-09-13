@@ -30,16 +30,23 @@ import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TokenOrders(
-  tokenAOrders: Set[OrderWithStatus] = Set.empty,
-  tokenBOrders: Set[OrderWithStatus] = Set.empty)
+    tokenAOrders: Set[OrderWithStatus] = Set.empty,
+    tokenBOrders: Set[OrderWithStatus] = Set.empty
+)
 
 case class OrderWithStatus(
-  order: Order,
-  postponed: Long)
+    order: Order,
+    postponed: Long
+)
 
-class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: ActorRef, marketConfig: MarketConfig)(implicit
-  ec: ExecutionContext,
-  timeout: Timeout) extends OrderBookManagerHelper {
+class OrderBookManagerHelperImpl(
+    orderAccessor: ActorRef,
+    readCoordinator: ActorRef,
+    marketConfig: MarketConfig
+)(implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+) extends OrderBookManagerHelper {
   //key:AmountA/AmountB
   var orderbook = mutable.TreeMap[Rational, TokenOrders]()
 
@@ -48,22 +55,22 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
     val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
     //根据o.status的状态，执行不同的操作，新增、更新、删除、暂停等
     updatedOrder.order.get.status match {
-      case None =>
+      case None ⇒
         this.addOrder(OrderWithStatus(updatedOrder.order.get, updatedOrder.postponed))
 
-      case Some(OrderStatus(ORDER_STATUS_FULL, _, _)) => //完全成交，需要从orderbook中删除
+      case Some(OrderStatus(ORDER_STATUS_FULL, _, _)) ⇒ //完全成交，需要从orderbook中删除
         this.delOrder(updatedOrder.order.get.rawOrder.get)
 
-      case Some(OrderStatus(ORDER_STATUS_SOFT_CANCELLED, _, _)) => //软删除，从orderbook中删除
+      case Some(OrderStatus(ORDER_STATUS_SOFT_CANCELLED, _, _)) ⇒ //软删除，从orderbook中删除
         this.delOrder(updatedOrder.order.get.rawOrder.get)
 
-      case Some(OrderStatus(ORDER_STATUS_HARD_CANCELLED, _, _)) => //硬删除，从orderbook中删除
+      case Some(OrderStatus(ORDER_STATUS_HARD_CANCELLED, _, _)) ⇒ //硬删除，从orderbook中删除
         this.delOrder(updatedOrder.order.get.rawOrder.get)
 
-      case Some(OrderStatus(ORDER_STATUS_EXPIRED, _, _)) => //过期，删除
+      case Some(OrderStatus(ORDER_STATUS_EXPIRED, _, _)) ⇒ //过期，删除
         this.delOrder(updatedOrder.order.get.rawOrder.get)
 
-      case Some(OrderStatus(ORDER_STATUS_NEW, _, _)) => //新订单，加入到orderbook
+      case Some(OrderStatus(ORDER_STATUS_NEW, _, _)) ⇒ //新订单，加入到orderbook
         this.addOrder(OrderWithStatus(updatedOrder.order.get, 0l))
     }
   }
@@ -103,14 +110,15 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
 
   override def crossingOrdersBetweenPrices(minPrice: Rational, maxPrice: Rational): TokenOrders = {
     orderbook.filter {
-      case (sellPrice, _) => sellPrice >= minPrice && sellPrice <= maxPrice
+      case (sellPrice, _) ⇒ sellPrice >= minPrice && sellPrice <= maxPrice
     }
       .values
       .reduceLeft[TokenOrders] {
-        (res, tokenOrders) =>
+        (res, tokenOrders) ⇒
           res.copy(
             tokenAOrders = res.tokenAOrders ++ tokenOrders.tokenAOrders,
-            tokenBOrders = res.tokenBOrders ++ tokenOrders.tokenAOrders)
+            tokenBOrders = res.tokenBOrders ++ tokenOrders.tokenAOrders
+          )
       }
   }
 
@@ -119,7 +127,7 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
     var minPrice: Rational = null
     var maxPrice: Rational = null
     orderbook.foreach {
-      case (sellPrice, tokenOrders) =>
+      case (sellPrice, tokenOrders) ⇒
         if (null == minPrice && tokenOrders.tokenAOrders.count(canBeMatched) > 1) {
           minPrice = sellPrice
           maxPrice = sellPrice
@@ -132,11 +140,11 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
   }
 
   override def resetOrders(query: OrderQuery): Future[Unit] = for {
-    orderQuery <- Future.successful(query)
-    res <- (orderAccessor ? GetTopOrders(query = Some(orderQuery))).mapTo[TopOrders]
+    orderQuery ← Future.successful(query)
+    res ← (orderAccessor ? GetTopOrders(query = Some(orderQuery))).mapTo[TopOrders]
   } yield {
     this.orderbook = mutable.TreeMap[Rational, TokenOrders]()
-    res.order foreach { o =>
+    res.order foreach { o ⇒
       val sellPrice = Rational(o.rawOrder.get.amountS.asBigInt, o.rawOrder.get.amountB.asBigInt)
       //todo:确认order需要如何转换成updatedOrder
       val updatedOrder = UpdatedOrder()
@@ -145,9 +153,9 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
   }
 
   override def purgeOrders(purge: Purge.AllOrderForAddress): Future[Unit] = for {
-    orderHashes <- Future.successful {
+    orderHashes ← Future.successful {
       orderbook.flatMap {
-        case (_, tokenOrders) =>
+        case (_, tokenOrders) ⇒
           val tokenAOrders = tokenOrders.tokenAOrders
             .filter(_.order.rawOrder.get.owner == purge.address)
             .map(_.order.rawOrder.get.hash)
@@ -157,23 +165,23 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
           tokenAOrders ++ tokenBOrders
       }.toSeq
     }
-    _ <- this.purgeOrders(orderHashes)
+    _ ← this.purgeOrders(orderHashes)
   } yield ()
 
   override def purgeOrders(purge: Purge.AllForAddresses): Future[Unit] = for {
-    orderHashes <- Future.successful {
+    orderHashes ← Future.successful {
       orderbook.flatMap {
-        case (_, tokenOrders) =>
+        case (_, tokenOrders) ⇒
           val tokenAOrders = tokenOrders.tokenAOrders
-            .filter(o => purge.addresses.contains(o.order.rawOrder.get.owner))
+            .filter(o ⇒ purge.addresses.contains(o.order.rawOrder.get.owner))
             .map(_.order.rawOrder.get.hash)
           val tokenBOrders = tokenOrders.tokenBOrders
-            .filter(o => purge.addresses.contains(o.order.rawOrder.get.owner))
+            .filter(o ⇒ purge.addresses.contains(o.order.rawOrder.get.owner))
             .map(_.order.rawOrder.get.hash)
           tokenAOrders ++ tokenBOrders
       }.toSeq
     }
-    _ <- this.purgeOrders(orderHashes)
+    _ ← this.purgeOrders(orderHashes)
   } yield ()
 
   override def purgeOrders(purge: Purge.All): Future[Unit] = this.resetOrders(query = OrderQuery()) //todo:
@@ -181,11 +189,11 @@ class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: Actor
   override def purgeOrders(purge: Purge.AllAfterBlock): Future[Unit] = ???
 
   override def purgeOrders(orderHashes: Seq[String]): Future[Unit] = for {
-    updatedOrdersAny <- readCoordinator ? UpdateOrdersById(orderHashes = orderHashes)
+    updatedOrdersAny ← readCoordinator ? UpdateOrdersById(orderHashes = orderHashes)
   } yield {
     updatedOrdersAny match {
-      case updatedOrders: UpdatedOrders => updatedOrders.orders.foreach(this.updateOrder)
-      case _ =>
+      case updatedOrders: UpdatedOrders ⇒ updatedOrders.orders.foreach(this.updateOrder)
+      case _ ⇒
     }
   }
 }

@@ -27,6 +27,7 @@ trait Cache[K, V] {
   def put(keyValues: Map[K, V]): Future[Boolean] =
     Future.sequence(
       keyValues.map {
-        case (k, v) => put(k, v)
-      }.toSeq).map(_.reduce(_ && _))
+        case (k, v) ⇒ put(k, v)
+      }.toSeq
+    ).map(_.reduce(_ && _))
 }

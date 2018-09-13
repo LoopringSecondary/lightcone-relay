@@ -40,8 +40,9 @@ object RingMiner
 }
 
 class RingMiner(ethClient: EthClient)(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends RepeatedJobActor {
   val lrcAddress = "0xef68e7c694f40c8202821edf525de3782458639f"
 
@@ -51,47 +52,49 @@ class RingMiner(ethClient: EthClient)(implicit
   var finders = Map[String, ActorRef]()
 
   override def receive: Receive = super.receive orElse {
-    case settings: RingMinerSettings =>
+    case settings: RingMinerSettings ⇒
       marketIds = settings.marketIds
       settings.submitterSettings match {
-        case Some(submitterSettings) =>
+        case Some(submitterSettings) ⇒
           submitter = new RingSubmitterImpl(
             ethClient = ethClient,
             contract = submitterSettings.contract,
             chainId = submitterSettings.chainId.toByte,
             keystorePwd = submitterSettings.keystorePwd,
-            keystoreFile = submitterSettings.keystoreFile)
-        case None =>
+            keystoreFile = submitterSettings.keystoreFile
+          )
+        case None ⇒
       }
       settings.evaluatorSettings match {
-        case Some(evaluatorSettings) =>
+        case Some(evaluatorSettings) ⇒
           evaluator = new RingEvaluatorImpl(
             submitterAddress = submitter.getSubmitterAddress(),
             lrcAddress = lrcAddress,
             gasUsedOfOrders = evaluatorSettings.gasUsedOfOrders,
-            walletSplit = Rational(evaluatorSettings.walletSplit))
-        case None =>
+            walletSplit = Rational(evaluatorSettings.walletSplit)
+          )
+        case None ⇒
       }
-      finders = marketIds.map { id => (id, Routers.ringFinder(id)) }.toMap[String, ActorRef]
+      finders = marketIds.map { id ⇒ (id, Routers.ringFinder(id)) }.toMap[String, ActorRef]
       initAndStartNextRound(settings.scheduleDelay)
   }
 
   def handleRepeatedJob() = for {
     //finderid以及其返回的RingCandidates
-    resps <- Future.sequence(finders.map { finder =>
+    resps ← Future.sequence(finders.map { finder ⇒
       for {
-        resp <- finder._2 ? GetRingCandidates()
+        resp ← finder._2 ? GetRingCandidates()
       } yield (finder._1, resp)
     }).mapTo[Seq[(String, RingCandidates)]]
     //记录ring与finderid的对应关系
-    ringToFinderMap = resps.flatMap(resp => resp._2.rings.map(ring => (ring.hash, resp._1))).toMap
+    ringToFinderMap = resps.flatMap(resp ⇒ resp._2.rings.map(ring ⇒ (ring.hash, resp._1))).toMap
     ringCandidates = RingCandidates(resps.flatMap(_._2.rings))
-    ringsToSettle <- evaluator.getRingCadidatesToSettle(ringCandidates)
+    ringsToSettle ← evaluator.getRingCadidatesToSettle(ringCandidates)
   } yield {
     decideRingCandidates(ringCandidates.rings, ringsToSettle)
-      .groupBy { decision =>
+      .groupBy { decision ⇒
         ringToFinderMap(decision.ringHash) //按照finderid分开，将对应的decision返回给各自的finder
-      } foreach { decision =>
+      } foreach { decision ⇒
         val finder = Routers.ringFinder(decision._1)
         finder ! NotifyRingSettlementDecisions(decision._2)
       }
@@ -100,24 +103,27 @@ class RingMiner(ethClient: EthClient)(implicit
 
   def decideRingCandidates(
     ringCandidates: Seq[Ring],
-    settledRings: Seq[RingCandidate]): Seq[RingSettlementDecision] = {
+    settledRings: Seq[RingCandidate]
+  ): Seq[RingSettlementDecision] = {
     val settledRingHashSet = settledRings.map(_.rawRing.hash).toSet
 
-    ringCandidates.map { candidate =>
+    ringCandidates.map { candidate ⇒
       if (settledRingHashSet.contains(candidate.hash))
         RingSettlementDecision(
           ringHash = candidate.hash,
           decision = SettlementDecision.Settled,
-          ordersSettleAmount = candidate.orders.map { o =>
+          ordersSettleAmount = candidate.orders.map { o ⇒
             OrderSettleAmount(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
-          })
+          }
+        )
       else
         RingSettlementDecision(
           ringHash = candidate.hash,
           decision = SettlementDecision.UnSettled,
-          ordersSettleAmount = candidate.orders.map { o =>
+          ordersSettleAmount = candidate.orders.map { o ⇒
             OrderSettleAmount(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
-          })
+          }
+        )
     }
   }
 }

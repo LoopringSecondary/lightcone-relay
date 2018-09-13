@@ -24,34 +24,37 @@ import akka.util.Timeout
 import scala.reflect.Manifest
 
 class ActorCaching(
-  cacheActor: ActorRef,
-  sourceActor: ActorRef)(implicit
-  timeout: Timeout,
-  ec: ExecutionContext) {
+    cacheActor: ActorRef,
+    sourceActor: ActorRef
+)(implicit
+    timeout: Timeout,
+    ec: ExecutionContext
+) {
 
   def askFor[R, T: Manifest, C](req: R)(
     implicit
-    facilitator: ActorCachingFacilitator[R, T, C]) = {
+    facilitator: ActorCachingFacilitator[R, T, C]
+  ) = {
 
     for {
-      cachedResp <- (cacheActor ? req).mapTo[T]
-      uncachedRespOpt <- facilitator.genSourceRequest(req, cachedResp) match {
-        case Some(sourceReq) => (sourceActor ? sourceReq).mapTo[T].map(Some(_))
-        case None => Future.successful(None)
+      cachedResp ← (cacheActor ? req).mapTo[T]
+      uncachedRespOpt ← facilitator.genSourceRequest(req, cachedResp) match {
+        case Some(sourceReq) ⇒ (sourceActor ? sourceReq).mapTo[T].map(Some(_))
+        case None            ⇒ Future.successful(None)
       }
 
       cacheReqOpt: Option[C] = uncachedRespOpt
         .map(facilitator.genCacheRequest(req, _)).flatten
 
       _ = cacheReqOpt match {
-        case Some(cacheReq) => cacheActor ! cacheReq
-        case None =>
+        case Some(cacheReq) ⇒ cacheActor ! cacheReq
+        case None           ⇒
       }
 
       merged = uncachedRespOpt match {
-        case Some(uncachedResp) =>
+        case Some(uncachedResp) ⇒
           facilitator.mergeResponses(req, cachedResp, uncachedResp)
-        case None => cachedResp
+        case None ⇒ cachedResp
       }
 
     } yield merged

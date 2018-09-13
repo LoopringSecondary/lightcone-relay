@@ -22,10 +22,11 @@ import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import scala.concurrent.Future
 
 case class Block(
-  blockHash: String,
-  parentHash: String,
-  blockNumber: String,
-  blockTime: String)
+    blockHash: String,
+    parentHash: String,
+    blockNumber: String,
+    blockTime: String
+)
 
 trait BlockHelper {
   def getBlock(): Future[BlockWithTxHash]

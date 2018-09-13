@@ -42,7 +42,9 @@ trait RepeatedJobActor extends Actor {
         context.system.scheduler.scheduleOnce(
           scheduleDelay millis,
           self,
-          StartNewRound()))
+          StartNewRound()
+        )
+      )
     else {
       cancelOpt = None
       self ! StartNewRound()
@@ -52,9 +54,9 @@ trait RepeatedJobActor extends Actor {
   def handleRepeatedJob(): Future[Unit]
 
   def receive: Receive = {
-    case StartNewRound => for {
-      lastTime <- Future.successful(System.currentTimeMillis)
-      _ <- handleRepeatedJob()
+    case StartNewRound ⇒ for {
+      lastTime ← Future.successful(System.currentTimeMillis)
+      _ ← handleRepeatedJob()
     } yield {
       nextRound(lastTime)
     }

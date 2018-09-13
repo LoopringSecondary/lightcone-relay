@@ -7,6 +7,9 @@ import com.typesafe.sbt.packager.MappingsHelper._
 import xerial.sbt.Sonatype.SonatypeKeys._
 import sbtrelease.ReleaseStateTransformations._
 import sbtrelease.ReleasePlugin.autoImport._
+import com.typesafe.sbt.SbtScalariform.autoImport._
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import scalariform.formatter.preferences._
 
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
@@ -49,5 +52,17 @@ object Settings {
       setNextVersion,
       commitNextVersion,
       releaseStepCommand("sonatypeReleaseAll"),
-      pushChanges))
+      pushChanges),
+    scalariformAutoformat := true,
+    ScalariformKeys.preferences := ScalariformKeys.preferences.value
+      .setPreference(AlignSingleLineCaseStatements, true)
+      .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 20)
+      .setPreference(AlignSingleLineCaseStatements, true)
+      .setPreference(RewriteArrowSymbols, true)
+      .setPreference(DoubleIndentConstructorArguments, true)
+      .setPreference(NewlineAtEndOfFile, true)
+      .setPreference(MultilineScaladocCommentsStartOnFirstLine, true)
+      .setPreference(DanglingCloseParenthesis, Force)
+      .setPreference(FirstArgumentOnNewline, Force)
+      .setPreference(AllowParamGroupsOnNewlines, true))
 }

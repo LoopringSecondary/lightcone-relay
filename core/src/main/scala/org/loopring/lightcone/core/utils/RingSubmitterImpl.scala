@@ -27,11 +27,12 @@ import org.web3j.tx.ChainId
 import scala.concurrent.Future
 
 class RingSubmitterImpl(
-  ethClient: EthClient,
-  contract: String = "",
-  chainId: Byte = 0.toByte,
-  keystorePwd: String = "",
-  keystoreFile: String = "") extends RingSubmitter {
+    ethClient: EthClient,
+    contract: String = "",
+    chainId: Byte = 0.toByte,
+    keystorePwd: String = "",
+    keystoreFile: String = ""
+) extends RingSubmitter {
   val credentials: Credentials = WalletUtils.loadCredentials(keystorePwd, keystoreFile)
 
   var currentNonce = new AtomicInteger(1) //todo: 启动时,nonce需要初始化, 结合以太坊以及数据库的数据
@@ -46,7 +47,8 @@ class RingSubmitterImpl(
       ring.gasLimit.bigInteger,
       contract,
       BigInt(0).bigInteger,
-      inputData)
+      inputData
+    )
     val signedMessage = signTx(rawTransaction, credentials)
     ethClient.sendRawTransaction(SendRawTransactionReq(data = BigInt(signedMessage).toHex))
   }

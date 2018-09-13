@@ -39,8 +39,9 @@ abstract class Deployable[S <: AnyRef] {
   private def nextRand = rand.nextInt(100000000)
 
   case class SettingsWrapper[S](
-    common: CommonSettings,
-    settings: S) {
+      common: CommonSettings,
+      settings: S
+  ) {
     def numInstances(implicit cluster: Cluster): Int = {
       val roles = common.roles.toSet
       if (roles.isEmpty) common.instances
@@ -63,16 +64,18 @@ abstract class Deployable[S <: AnyRef] {
 
   def deploy(injector: Injector, settings: Option[S])(
     implicit
-    cluster: Cluster): Map[String, ActorRef] = {
+    cluster: Cluster
+  ): Map[String, ActorRef] = {
     deploy(injector, settings.toSeq)
   }
 
   def deploy(injector: Injector, settingsSeq: Seq[S])(
     implicit
-    cluster: Cluster): Map[String, ActorRef] = {
+    cluster: Cluster
+  ): Map[String, ActorRef] = {
     val oldSettingsMap = settingsMap
 
-    settingsMap = settingsSeq.map { s =>
+    settingsMap = settingsSeq.map { s ⇒
       val common = getCommon(s)
       val wrapper = SettingsWrapper(common, s)
       common.id.getOrElse("") -> wrapper
@@ -80,10 +83,10 @@ abstract class Deployable[S <: AnyRef] {
 
     val keys = oldSettingsMap.keys ++ settingsMap.keys
 
-    keys.map { k =>
+    keys.map { k ⇒
       k -> (oldSettingsMap.get(k), settingsMap.get(k))
     } foreach {
-      case (id, (_old, _new)) =>
+      case (id, (_old, _new)) ⇒
         deployActor(injector, id, _old, _new)
     }
 
@@ -92,14 +95,16 @@ abstract class Deployable[S <: AnyRef] {
 
     // Deploy routers
     settingsMap.keys.map {
-      id =>
+      id ⇒
         val actor =
           if (isSingleton) {
             cluster.system.actorOf(
               ClusterSingletonProxy.props(
                 singletonManagerPath = s"/user/${name}_${id}_0",
-                settings = ClusterSingletonProxySettings(cluster.system)),
-              name = s"r_${name}_${id}_${nextRand}")
+                settings = ClusterSingletonProxySettings(cluster.system)
+              ),
+              name = s"r_${name}_${id}_${nextRand}"
+            )
           } else {
             cluster.system.actorOf(
               ClusterRouterGroup(
@@ -107,8 +112,11 @@ abstract class Deployable[S <: AnyRef] {
                 ClusterRouterGroupSettings(
                   totalInstances = Int.MaxValue,
                   routeesPaths = List(s"/user/${name}_${id}_*"),
-                  allowLocalRoutees = true)).props,
-              name = s"r_${name}_${id}_${nextRand}")
+                  allowLocalRoutees = true
+                )
+              ).props,
+              name = s"r_${name}_${id}_${nextRand}"
+            )
           }
         println("--------> deployed router: " + actor.path)
 
@@ -120,7 +128,8 @@ abstract class Deployable[S <: AnyRef] {
     injector: Injector,
     id: String,
     _old: Option[SettingsWrapper[S]],
-    _new: Option[SettingsWrapper[S]])(implicit cluster: Cluster): Unit = {
+    _new: Option[SettingsWrapper[S]]
+  )(implicit cluster: Cluster): Unit = {
 
     def getInstances(w: Option[SettingsWrapper[S]]) = {
       val num = w.map(_.numInstances).getOrElse(0)
@@ -137,7 +146,7 @@ abstract class Deployable[S <: AnyRef] {
       newInstances - oldInstances
     }
 
-    (0 until instances) foreach { i =>
+    (0 until instances) foreach { i ⇒
       val name = getActorName(id, nextRand)
       val actor =
         if (isSingleton) {
@@ -145,15 +154,17 @@ abstract class Deployable[S <: AnyRef] {
             ClusterSingletonManager.props(
               singletonProps = props(injector),
               terminationMessage = PoisonPill,
-              settings = ClusterSingletonManagerSettings(cluster.system)),
-            name = name)
+              settings = ClusterSingletonManagerSettings(cluster.system)
+            ),
+            name = name
+          )
         } else {
           cluster.system.actorOf(props(injector), name)
         }
       println("--------> deployed actor: " + actor.path)
     }
     // The first msg to newly depoloyed actor should be its settings
-    _new.foreach { w => actorSelection(id) ! w.settings }
+    _new.foreach { w ⇒ actorSelection(id) ! w.settings }
   }
 
 }

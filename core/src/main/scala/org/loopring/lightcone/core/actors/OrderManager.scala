@@ -33,18 +33,19 @@ object OrderManager
 }
 
 class OrderManager()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderManagerSettings =>
-    case OrdersSaved =>
-    case OrdersSoftCancelled =>
-    case OrderCancelled =>
-    case MarkOrdersDeferred =>
-    case MarkOrdersBeingMatched =>
-    case MarkOrdersSettling =>
+    case settings: OrderManagerSettings ⇒
+    case OrdersSaved ⇒
+    case OrdersSoftCancelled ⇒
+    case OrderCancelled ⇒
+    case MarkOrdersDeferred ⇒
+    case MarkOrdersBeingMatched ⇒
+    case MarkOrdersSettling ⇒
     // 只要订单发生状态变化，以下5步是共同逻辑，个别情况会有例外
     // 1. recalculate order status
     // 2. update cache
@@ -52,7 +53,7 @@ class OrderManager()(implicit
     // 4. notify socket
     // 5. update db change log
     //    case OrdersUpdated => // notify socket
-    case GetOrder =>
-    case GetOrders =>
+    case GetOrder ⇒
+    case GetOrders ⇒
   }
 }

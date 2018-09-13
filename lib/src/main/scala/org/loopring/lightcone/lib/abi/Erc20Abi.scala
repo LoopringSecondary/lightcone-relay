@@ -34,9 +34,11 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   override def abi: Abi = Abi.fromJson(getAbiResource("abi/erc20.json"))
 
   override def supportedFunctions: Seq[String] = Seq(
-    FN_APPROVE, FN_TRANSFER)
+    FN_APPROVE, FN_TRANSFER
+  )
   override def supportedEvents: Seq[String] = Seq(
-    EN_APPROVAL, EN_TRANSFER)
+    EN_APPROVAL, EN_TRANSFER
+  )
 
   val balanceOf: Abi.Function = abi.findFunction(predicate("balanceOf"))
   val allowance: Abi.Function = abi.findFunction(predicate("allowance"))
@@ -44,19 +46,19 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
     res.name match {
-      case FN_TRANSFER => Seq(assembleTransferFunction(res.list, header))
-      case FN_TRANSFER_FROM => Seq(assembleTransferFromFunction(res.list, header))
-      case FN_APPROVE => Seq(assembleApproveFunction(res.list, header))
-      case _ => Seq()
+      case FN_TRANSFER      ⇒ Seq(assembleTransferFunction(res.list, header))
+      case FN_TRANSFER_FROM ⇒ Seq(assembleTransferFromFunction(res.list, header))
+      case FN_APPROVE       ⇒ Seq(assembleApproveFunction(res.list, header))
+      case _                ⇒ Seq()
     }
   }
 
   def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
     val res = decodeLog(log)
     res.name match {
-      case EN_TRANSFER => Seq(assembleTransferEvent(res.list, header))
-      case EN_APPROVAL => Seq(assembleApprovalEvent(res.list, header))
-      case _ => Seq()
+      case EN_TRANSFER ⇒ Seq(assembleTransferEvent(res.list, header))
+      case EN_APPROVAL ⇒ Seq(assembleApprovalEvent(res.list, header))
+      case _           ⇒ Seq()
     }
   }
 
