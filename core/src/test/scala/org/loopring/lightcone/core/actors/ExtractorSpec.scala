@@ -45,7 +45,8 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val config = ConfigFactory.defaultApplication()
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
-    port = config.getInt("ethereum.port"))
+    port = config.getInt("ethereum.port")
+  )
   val queueSize = 5
 
   val tokenlist = TokenList(list = Seq[Token](
@@ -54,14 +55,17 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       symbol = "LRC",
       decimal = 18,
       source = "loopring",
-      market = false),
+      market = false
+    ),
 
     Token(
       protocol = "0xf079E0612E869197c5F4c7D0a95DF570B163232b",
       symbol = "WETH",
       decimal = 18,
       source = "ethereum",
-      market = true)))
+      market = true
+    )
+  ))
 
   val erc20Abi = new Erc20Abi(config)
   val wethAbi = new WethAbi(config)

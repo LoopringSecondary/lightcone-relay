@@ -35,7 +35,7 @@ class AllowanceSpec extends FlatSpec {
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- geth.getAllowance(req)
+      resp ← geth.getAllowance(req)
     } yield resp
 
     val tx = Await.result(resultFuture, timeout.duration)

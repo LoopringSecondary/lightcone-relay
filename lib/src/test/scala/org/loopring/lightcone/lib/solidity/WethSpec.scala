@@ -33,7 +33,8 @@ class WethSpec extends FlatSpec {
       |  weth = "weth.json"
       |}
       |
-    """.stripMargin)
+    """.stripMargin
+  )
 
   val abi = new WethAbi(config)
 
@@ -42,12 +43,13 @@ class WethSpec extends FlatSpec {
     val data = "0x000000000000000000000000000000000000000000000000001550f7dca70000"
     val topics = Seq(
       "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c",
-      "0x0000000000000000000000006aa181a3b81d2f6c867a7afa8e4df130e38a7821")
+      "0x0000000000000000000000006aa181a3b81d2f6c867a7afa8e4df130e38a7821"
+    )
     val log = Log().withData(data).withTopics(topics)
 
-    abi.decodeLogAndAssemble(log, TxHeader()).map(x => x match {
-      case e: WethDeposit => info(e.toProtoString)
-      case _ => info("unpack failed")
+    abi.decodeLogAndAssemble(log, TxHeader()).map(x ⇒ x match {
+      case e: WethDeposit ⇒ info(e.toProtoString)
+      case _              ⇒ info("unpack failed")
     })
   }
 
