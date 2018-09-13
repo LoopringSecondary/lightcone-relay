@@ -16,12 +16,13 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.actor._
+import akka.util.Timeout
 import org.loopring.lightcone.proto.block_chain_event.OrderCancelled
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.ExecutionContext
 
 object OrderManager
   extends base.Deployable[OrderManagerSettings] {
@@ -50,7 +51,7 @@ class OrderManager()(implicit
     // 3. update db
     // 4. notify socket
     // 5. update db change log
-    case OrdersUpdated => // notify socket
+    //    case OrdersUpdated => // notify socket
     case GetOrder =>
     case GetOrders =>
   }

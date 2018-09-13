@@ -97,6 +97,13 @@ class Rational(numerator: BigInt, denominator: BigInt)
     }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
+
+  override def hashCode(): Int = this.toString().hashCode
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that:Rational => this.num * that.denom equals that.num * this.denom
+    case _ => false
+  }
 }
 
 object Rational {
