@@ -18,33 +18,28 @@ package org.loopring.lightcone.core
 
 import java.util.concurrent.ForkJoinPool
 
-import com.google.inject._
-import net.codingwell.scalaguice._
-import com.google.inject.name._
 import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
-import org.loopring.lightcone.core.actors._
-import org.loopring.lightcone.core.accessor._
-import org.loopring.lightcone.core.cache._
-import com.typesafe.config.Config
 import akka.util.Timeout
 
-import scala.concurrent._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import org.loopring.lightcone.core.database._
-import redis._
-import akka.stream._
-
-import scala.util._
 import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
 import akka.http.scaladsl._
-import org.loopring.lightcone.lib.cache.ByteArrayCache
-import org.loopring.lightcone.core.cache.ByteArrayRedisCache
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
+import com.google.inject._
+import com.google.inject.name._
+import com.typesafe.config.Config
+import net.codingwell.scalaguice._
+import org.loopring.lightcone.core.accessor._
+import org.loopring.lightcone.core.actors._
+import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
+import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.lib.cache.ByteArrayCache
+import redis._
+
+import scala.concurrent.{ ExecutionContext, _ }
+import scala.concurrent.duration._
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -259,9 +254,10 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
   @Provides
   @Named("ring_miner")
-  def getRingMinerProps()(implicit
+  def getRingMinerProps(ethClient: EthClient)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new RingMiner()) // .withDispatcher("ring-dispatcher")
+    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
   }
+
 }

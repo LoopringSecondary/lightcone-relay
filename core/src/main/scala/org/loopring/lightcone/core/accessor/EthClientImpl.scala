@@ -17,17 +17,10 @@
 package org.loopring.lightcone.core.accessor
 
 import akka.actor._
-import scala.concurrent._
+import com.google.inject._
+import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.spongycastle.util.encoders.Hex
-import com.typesafe.config.Config
-import com.google.inject._
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import com.google.inject.name._
 
 class EthClientImpl @Inject() (
   val abi: ContractABI,
@@ -93,12 +86,16 @@ class EthClientImpl @Inject() (
 
   def getAllowance(req: GetAllowanceReq) =
     httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = findErc20Function("balanceOf")
+      val function = findErc20Function("allowance")
       val data = bytesToHex(function.encode(req.owner))
       val args = TransactionParam().withTo(req.token).withData(data)
       Seq(args, req.tag)
     }
 
+  def sendRawTransaction(req: SendRawTransactionReq) =
+    httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
+      Seq(req.data)
+    }
   // def getEstimatedGas() = ???
 
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???

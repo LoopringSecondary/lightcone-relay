@@ -118,16 +118,20 @@ message OrdersSoftCancelled {
 message OrderStatusChanged {
     repeated string order_hashes = 1;
 }
+message OrderSettleAmount {
+    string order_hash = 1;
+    string amount = 2;
+}
 message MarkOrdersSettling {
-    repeated string order_hashes = 1;
+    repeated OrderSettleAmount orders_settle_amount = 1;
 }
 message MarkOrdersBeingMatched {
     repeated string order_hashes = 1;
 }
 
 message DeferOrder {
-    string orderhash = 1;
-    int64 deferredTime = 2;
+    string order_hash = 1;
+    int64 deferred_time = 2;
 }
 
 message MarkOrdersDeferred {
@@ -205,7 +209,7 @@ message RawOrder {
     int64 valid_until = 11;
     string lrc_fee = 12;
     bool buy_no_more_than_amount_b = 13;
-    double margin_split_percentage = 14;
+    int32 margin_split_percentage = 14;
     int32 v = 15;
     string r = 16;
     string s = 17;
