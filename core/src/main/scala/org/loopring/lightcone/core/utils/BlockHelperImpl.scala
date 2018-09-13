@@ -21,7 +21,7 @@ import com.sun.org.apache.xpath.internal.functions.FuncTrue
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.accessor.EthClient
-import org.loopring.lightcone.proto.eth_jsonrpc.{BlockWithTxHash, GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq}
+import org.loopring.lightcone.proto.eth_jsonrpc.{ BlockWithTxHash, GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq }
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 
 import scala.concurrent.Future
@@ -95,20 +95,19 @@ class BlockHelperImpl @Inject() (
 
   // todo: find parent block in db, if not exist, get it from geth/parity recursive, and return
   private def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
-    _ <- Future{}
+    _ <- Future {}
   } yield {
     ChainRolledBack()
   }
 
-//    for {
-//      forkBlock <- getForkBlock()
-//      evt = ChainRolledBack(
-//        detectedBlockNumber = blockNumberIndex.toString(),
-//        delectedBlockHash = block.hash,
-//        forkBlockNumber = forkBlock.)
-//    } yield {evt
-//    }
-
+  //    for {
+  //      forkBlock <- getForkBlock()
+  //      evt = ChainRolledBack(
+  //        detectedBlockNumber = blockNumberIndex.toString(),
+  //        delectedBlockHash = block.hash,
+  //        forkBlockNumber = forkBlock.)
+  //    } yield {evt
+  //    }
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {

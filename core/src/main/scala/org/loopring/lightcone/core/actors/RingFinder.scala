@@ -52,6 +52,7 @@ class RingFinder()(implicit
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
 
+  //todo:需要确定deferred time
   override def receive: Receive = super.receive orElse {
     case settings: RingFinderSettings =>
       this.settings = settings
@@ -61,7 +62,7 @@ class RingFinder()(implicit
       orderManager ! MarkOrdersDeferred(deferOrders =
         m.ringSettlementDecisions
           .filter(r => r.decision == SettlementDecision.UnSettled)
-          .flatMap(r => r.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100))))
+          .flatMap(r => r.ordersSettleAmount.map(o => DeferOrder(orderHash = o.orderHash, deferredTime = 100))))
 
       orderManager ! MarkOrdersSettling(ordersSettleAmount = m.ringSettlementDecisions
         .filter(r => r.decision == SettlementDecision.Settled)
@@ -72,7 +73,7 @@ class RingFinder()(implicit
 
     case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled =>
       orderManager ! MarkOrdersDeferred(deferOrders =
-        m.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100)))
+        m.ordersSettleAmount.map(o => DeferOrder(orderHash = o.orderHash, deferredTime = 100)))
 
   }
 
@@ -85,9 +86,8 @@ class RingFinder()(implicit
   } yield {
     crossingOrderSets match {
       case orders: CrossingOrderSets =>
-        //todo:order结构暂未定，先写死orderhash再替换掉
         orderManager ! MarkOrdersBeingMatched(orderHashes =
-          (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o => "orderhash"))
+          (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o => o.rawOrder.get.hash))
       case e: AskTimeoutException =>
     }
   }
