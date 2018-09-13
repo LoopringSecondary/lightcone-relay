@@ -24,6 +24,8 @@ import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.spongycastle.util.encoders.Hex
 
+import scala.io.Source
+
 trait ContractAbi {
   val prefix = "0x"
   val FunctionSigLength = 8
@@ -109,6 +111,13 @@ trait ContractAbi {
 
   def getLogDataBytes(data: String): Array[Byte] = {
     Hex.decode(withoutPrefix(data))
+  }
+
+  def getAbiResource(path: String): String = {
+    val is = getClass.getClassLoader.getResourceAsStream(path)
+    val source = Source.fromInputStream(is)
+    val lines = source.getLines().toList
+    lines.map(_.trim).reduce(_ + _)
   }
 
   private def withPrefix(src: String) = {
