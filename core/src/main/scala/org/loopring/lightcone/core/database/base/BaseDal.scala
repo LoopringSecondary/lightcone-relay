@@ -36,7 +36,7 @@ trait BaseDal[T, A] {
   def displayTableSchema()
 }
 
-trait BaseDalImpl[T <: BaseTable[A], A <: BaseEntity] extends BaseDal[T, A] {
+trait BaseDalImpl[T <: BaseTable[A], A] extends BaseDal[T, A] {
   val query: TableQuery[T]
   val module: OrderDatabase
 
@@ -51,16 +51,7 @@ trait BaseDalImpl[T <: BaseTable[A], A <: BaseEntity] extends BaseDal[T, A] {
   }
 
   override def insert(rows: Seq[A]): Future[Seq[Long]] = {
-    db.run(query returning query.map(_.id) ++= rows.filter(_.isValid))
-  }
-
-  override def update(row: A): Future[Int] = {
-    if (row.isValid) db.run(query.filter(_.id === row.id).update(row))
-    else Future.successful(0)
-  }
-
-  override def update(rows: Seq[A]): Future[Unit] = {
-    db.run(DBIO.seq((rows.filter(_.isValid).map(r => query.filter(_.id === r.id).update(r))): _*))
+    db.run(query returning query.map(_.id) ++= rows)
   }
 
   override def findById(id: Long): Future[Option[A]] = {

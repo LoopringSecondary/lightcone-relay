@@ -37,7 +37,7 @@ class OrderManager()(implicit
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderManagerSettings =>
+    case m: OrderManagerSettings =>
     case OrdersSaved =>
     case OrdersSoftCancelled =>
     case OrderCancelled =>

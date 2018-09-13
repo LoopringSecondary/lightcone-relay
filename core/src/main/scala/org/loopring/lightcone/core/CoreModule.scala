@@ -16,6 +16,8 @@
 
 package org.loopring.lightcone.core
 
+import java.util.concurrent.ForkJoinPool
+
 import com.google.inject._
 import net.codingwell.scalaguice._
 import com.google.inject.name._
@@ -27,18 +29,22 @@ import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.cache._
 import com.typesafe.config.Config
 import akka.util.Timeout
+
 import scala.concurrent._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import org.loopring.lightcone.core.database._
 import redis._
 import akka.stream._
+
 import scala.util._
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl._
 import akka.http.scaladsl._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
 import org.loopring.lightcone.core.cache.ByteArrayRedisCache
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
@@ -48,9 +54,13 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
 
     bind[Config].toInstance(config)
     bind[ContractABI].toInstance(new ContractABI(config.getConfig("abi")))
+    bind[DatabaseConfig[JdbcProfile]].toInstance(DatabaseConfig.forConfig("db.default", config))
 
     bind[ActorSystem].toInstance(system)
-    bind[ExecutionContext].toInstance(system.dispatcher)
+    bind[ExecutionContext].annotatedWithName("system-dispatcher")
+      .toInstance(system.dispatcher)
+    bind[ExecutionContext].annotatedWithName("db-execution-context")
+      .toInstance(ExecutionContext.fromExecutor(ForkJoinPool.commonPool()))
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
@@ -92,7 +102,7 @@ class CoreModule(config: Config) extends AbstractModule with ScalaModule {
   def getBalanceCacherProps(cache: BalanceCache)(implicit
     ec: ExecutionContext,
     timeout: Timeout) = {
-    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
+    Props(new BalanceCacher(cache)).withDispatcher("ring-dispatcher")
   }
 
   @Provides

@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.database.dals
 import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
-import org.loopring.lightcone.core.database.entities._
+import org.loopring.lightcone.proto.order.OrderChangeLog
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
@@ -31,6 +31,14 @@ trait OrderChangeLogsDal extends BaseDalImpl[OrderChangeLogs, OrderChangeLog] {
 
 class OrderChangeLogsDalImpl(val module: OrderDatabase) extends OrderChangeLogsDal {
   val query = orderChangeLogsQ
+
+  override def update(row: OrderChangeLog): Future[Int] = {
+    db.run(query.filter(_.id === row.id).update(row))
+  }
+
+  override def update(rows: Seq[OrderChangeLog]): Future[Unit] = {
+    db.run(DBIO.seq(rows.map(r => query.filter(_.id === r.id).update(r)): _*))
+  }
 
   def addChangeLog(change: OrderChangeLog): Future[Int] = module.db.run(query += change)
 

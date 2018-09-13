@@ -21,7 +21,7 @@ import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
 import org.loopring.lightcone.core.database.entities._
-import org.loopring.lightcone.proto.order.OrderStatus
+import org.loopring.lightcone.proto.order.{ OrderChangeLog, OrderStatus }
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
@@ -43,6 +43,14 @@ trait OrdersDal extends BaseDalImpl[Orders, Order] {
 
 class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
   val query = ordersQ
+
+  override def update(row: Order): Future[Int] = {
+    db.run(query.filter(_.id === row.id).update(row))
+  }
+
+  override def update(rows: Seq[Order]): Future[Unit] = {
+    db.run(DBIO.seq(rows.map(r => query.filter(_.id === r.id).update(r)): _*))
+  }
 
   def saveOrder(order: Order): Future[Int] = module.db.run(query += order)
 

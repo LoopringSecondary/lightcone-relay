@@ -232,12 +232,17 @@ message NotifyRollbackOrders {
 }
 
 message OrderChangeLog {
-    string order_hash = 1;
-    string dealtAmountS = 3;
-    string dealtAmountB = 4;
-    string splitAmountS = 5;
-    string splitAmountB = 6;
-    string cancelledAmountS = 7;
-    string cancelledAmountB = 8;
-    OrderStatus status = 9;
+    int64 id = 1;
+    int64 preChangeId = 2;
+    string order_hash = 3;
+    string dealtAmountS = 4;
+    string dealtAmountB = 5;
+    string splitAmountS = 6;
+    string splitAmountB = 7;
+    string cancelledAmountS = 8;
+    string cancelledAmountB = 9;
+    string status = 10;
+    int64 updatedBlock = 11;
+    int64 createdAt = 12;
+    int64 updatedAt = 13;
 }

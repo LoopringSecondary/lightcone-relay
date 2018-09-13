@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.database.tables
 
 import org.loopring.lightcone.core.database.base._
-import org.loopring.lightcone.core.database.entities._
+import org.loopring.lightcone.proto.order.OrderChangeLog
 import slick.jdbc.MySQLProfile.api._
 
 class OrderChangeLogs(tag: Tag) extends BaseTable[OrderChangeLog](tag, "ORDER_CHANGE_LOGS") {
@@ -32,7 +32,7 @@ class OrderChangeLogs(tag: Tag) extends BaseTable[OrderChangeLog](tag, "ORDER_CH
   def status = column[String]("status", O.SqlType("TINYINT(4)"))
   def updatedBlock = column[Long]("updated_block")
   def * = (id, preChangeId, orderHash, dealtAmountS, dealtAmountB, cancelledAmountS, cancelledAmountB, splitAmountS,
-    splitAmountB, status, updatedBlock, createdAt, updatedAt) <> (OrderChangeLog.tupled, OrderChangeLog.unapply)
+    splitAmountB, status, updatedBlock, createdAt, updatedAt) <> ((OrderChangeLog.apply _).tupled, OrderChangeLog.unapply)
 
   def idx = index("idx_order_hash", orderHash, unique = true)
 }

@@ -16,8 +16,6 @@
 
 package org.loopring.lightcone.core.cache
 
-import org.loopring.lightcone.lib.cache._
-
 import redis._
 import com.google.inject._
 
