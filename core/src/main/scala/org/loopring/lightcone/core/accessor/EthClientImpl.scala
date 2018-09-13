@@ -37,6 +37,11 @@ class EthClientImpl @Inject() (
     timeout: String,
     tracer: String)
 
+  def ethGetBlockNumber() =
+    httpPost[EthGetBlockNumberRes]("eth_blockNumber") {
+      Seq()
+    }
+
   def ethGetBalance(req: EthGetBalanceReq) =
     httpPost[EthGetBalanceRes]("eth_getBalance") {
       Seq(req.address, req.tag)

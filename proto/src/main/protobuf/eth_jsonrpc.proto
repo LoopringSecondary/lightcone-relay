@@ -162,6 +162,12 @@ message TransactionParam {
 //
 ///////////////////////////////////////////
 
+message EthGetBlockNumberRes {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
+
 // eth_getBalance
 message EthGetBalanceReq {
     string address = 1;
