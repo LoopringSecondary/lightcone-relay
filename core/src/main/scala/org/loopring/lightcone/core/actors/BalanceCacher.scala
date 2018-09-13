@@ -17,16 +17,17 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.util.Timeout
-
-import scala.concurrent.ExecutionContext
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import akka.pattern.pipe
+import akka.util.Timeout
 import com.google.inject.Inject
-import org.loopring.lightcone.proto.balance._
-import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.core.cache._
+import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.cache._
+import org.loopring.lightcone.proto.deployment._
+
+import scala.concurrent.ExecutionContext
 
 object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
@@ -48,31 +49,14 @@ class BalanceCacher @Inject() (cache: BalanceCache)(implicit
   def receive: Receive = {
     case settings: BalanceCacherSettings =>
       this.settings = settings
-
     case m: GetBalancesReq =>
-      val sender1 = sender()
-      for {
-        resp <- cache.getBalances(m)
-      } yield sender1 ! resp
-
+      cache.getBalances(m).pipeTo(sender)
     case m: GetAllowancesReq =>
-      val sender1 = sender()
-      for {
-        resp <- cache.getAllowances(m)
-      } yield sender1 ! resp
-
+      cache.getAllowances(m).pipeTo(sender)
     case m: GetBalanceAndAllowanceReq =>
-      val sender1 = sender()
-      for {
-        resp <- cache.getBalanceAndAllowances(m)
-      } yield sender1 ! resp
-
+      cache.getBalanceAndAllowances(m).pipeTo(sender)
     case m: CacheBalanceInfo =>
-      val sender1 = sender()
-      for {
-        resp <- cache.addCache(m)
-      } yield sender1 ! resp
-
+      cache.addCache(m).pipeTo(sender)
     case purgeEvent: Purge.Balance =>
 
     case purgeEvent: Purge.AllForAddresses =>

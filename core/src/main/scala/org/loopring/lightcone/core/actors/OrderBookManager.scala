@@ -19,13 +19,15 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import akka.pattern.pipe
 import akka.util.Timeout
 import org.loopring.lightcone.core.managing.NodeData
-import org.loopring.lightcone.core.utils.{ OrderBookManagerHelperImpl, OrderWithStatus }
+import org.loopring.lightcone.core.routing.Routers
+import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets, GetOrderBookReq, GetOrderBookResp }
+import org.loopring.lightcone.proto.orderbook._
 
 import scala.concurrent.{ Await, ExecutionContext }
 
@@ -45,9 +47,19 @@ class OrderBookManager()(implicit
   var settings: OrderBookManagerSettings = null
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(settings.id)
-  def resetQuery = OrderQuery(market = settings.id, delegate = settings.delegate, status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name), orderType = OrderType.MARKET.name)
+  def resetQuery = OrderQuery(
+    market = settings.id,
+    delegate = settings.delegate,
+    status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name),
+    orderType = OrderType.MARKET.name)
 
-  val managerHelper = new OrderBookManagerHelperImpl(marketConfig())
+  val orderAccessor = Routers.orderAccessor
+  val readCoordinator = Routers.orderReadCoordinator
+
+  val managerHelper = new OrderBookManagerHelperImpl(
+    orderAccessor,
+    readCoordinator,
+    marketConfig())
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
@@ -58,14 +70,14 @@ class OrderBookManager()(implicit
       Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
 
     case m: GetOrderBookReq =>
-      sender() ! GetOrderBookResp() //todo:
+      sender ! GetOrderBookResp() //todo:
 
     case m: GetCrossingOrderSets =>
-      val (minPrice, maxPrice) = managerHelper.crossingPrices(canMatching)
+      val (minPrice, maxPrice) = managerHelper.crossingPrices(canBeMatched)
       val tokenOrders = managerHelper.crossingOrdersBetweenPrices(minPrice, maxPrice)
-      sender() ! CrossingOrderSets(
-        sellTokenAOrders = tokenOrders.tokenAOrders.filter(canMatching).map(_.order).toSeq,
-        sellTokenBOrders = tokenOrders.tokenBOrders.filter(canMatching).map(_.order).toSeq)
+      sender ! CrossingOrderSets(
+        sellTokenAOrders = tokenOrders.tokenAOrders.filter(canBeMatched).map(_.order).toSeq,
+        sellTokenBOrders = tokenOrders.tokenBOrders.filter(canBeMatched).map(_.order).toSeq)
 
     case m: UpdatedOrders =>
       m.orders.foreach(managerHelper.updateOrder)
@@ -83,13 +95,12 @@ class OrderBookManager()(implicit
       managerHelper.purgeOrders(m)
 
     case m: Purge.All =>
-      //      managerHelper.purgeOrders(m)
-      //      managerHelper.resetOrders(query)
-      Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
+      managerHelper.resetOrders(resetQuery).pipeTo(sender)
+
     case _ =>
   }
 
-  val canMatching: PartialFunction[OrderWithStatus, Boolean] = {
+  val canBeMatched: PartialFunction[OrderWithStatus, Boolean] = {
     case OrderWithStatus(order, postponed) =>
       order.status match {
         case None => true

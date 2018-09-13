@@ -15,6 +15,7 @@
  */
 
 package org.loopring.lightcone.core.utils
+import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
@@ -29,21 +30,19 @@ import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TokenOrders(
-  tokenAOrders: Set[OrderWithStatus] = Set(),
-  tokenBOrders: Set[OrderWithStatus] = Set())
+  tokenAOrders: Set[OrderWithStatus] = Set.empty,
+  tokenBOrders: Set[OrderWithStatus] = Set.empty)
 
 case class OrderWithStatus(
   order: Order,
   postponed: Long)
 
-class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
+class OrderBookManagerHelperImpl(orderAccessor: ActorRef, readCoordinator: ActorRef, marketConfig: MarketConfig)(implicit
   ec: ExecutionContext,
   timeout: Timeout) extends OrderBookManagerHelper {
   //todo:test hashcode and equals
   //key:AmountA/AmountB
   var orderbook = mutable.TreeMap[Rational, TokenOrders]()
-  val orderAccessor = Routers.orderAccessor
-  val readCoordinator = Routers.orderReadCoordinator
 
   override def updateOrder(updatedOrder: UpdatedOrder): Unit = {
     val rawOrder = updatedOrder.order.get.rawOrder.get
@@ -77,10 +76,14 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
       //      val orderWithStatus = OrderWithStatus(order.order.get, order.postponed)
       var tokenOrders = orderbook.getOrElseUpdate(sellPrice, TokenOrders())
       tokenOrders = if (rawOrder.tokenS == marketConfig.tokenA) {
-        val tokenAOrders = tokenOrders.tokenAOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
+        val tokenAOrders = tokenOrders
+          .tokenAOrders
+          .filter(_.order.rawOrder.get.hash != rawOrder.hash)
         tokenOrders.copy(tokenAOrders = tokenAOrders + orderWithStatus)
       } else {
-        val tokenBOrders = tokenOrders.tokenBOrders.filter(_.order.rawOrder.get.hash != orderWithStatus.order.rawOrder.get.hash)
+        val tokenBOrders = tokenOrders
+          .tokenBOrders
+          .filter(_.order.rawOrder.get.hash != rawOrder.hash)
         tokenOrders.copy(tokenBOrders = tokenBOrders + orderWithStatus)
       }
       orderbook.put(sellPrice, tokenOrders)
@@ -112,17 +115,17 @@ class OrderBookManagerHelperImpl(marketConfig: MarketConfig)(implicit
       }
   }
 
-  override def crossingPrices(canMatching: PartialFunction[OrderWithStatus, Boolean]): (Rational, Rational) = {
+  override def crossingPrices(canBeMatched: PartialFunction[OrderWithStatus, Boolean]): (Rational, Rational) = {
     //可以成交的最大和最小价格
     var minPrice: Rational = null
     var maxPrice: Rational = null
     orderbook.foreach {
       case (sellPrice, tokenOrders) =>
-        if (null == minPrice && tokenOrders.tokenAOrders.count(canMatching) > 1) {
+        if (null == minPrice && tokenOrders.tokenAOrders.count(canBeMatched) > 1) {
           minPrice = sellPrice
           maxPrice = sellPrice
         }
-        if (tokenOrders.tokenBOrders.count(canMatching) > 1) {
+        if (tokenOrders.tokenBOrders.count(canBeMatched) > 1) {
           maxPrice = sellPrice
         }
     }
