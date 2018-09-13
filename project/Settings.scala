@@ -32,13 +32,15 @@ object Settings {
       "-Yresolve-term-conflict:package"),
     fork in Test := false,
     parallelExecution in Test := false,
-    publishArtifact in (Compile, packageSrc) := false,
-    publishArtifact in (Compile, packageDoc) := false,
     organizationName := "Loopring Foundation",
     startYear := Some(2018),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     shellPrompt in ThisBuild := { state => "sbt (%s)> ".format(Project.extract(state).currentProject.id) },
-    publishTo := sonatypePublishTo.value,
+    publishArtifact in (Compile, packageSrc) := false,
+    publishArtifact in (Compile, packageDoc) := false,
+    publishTo := Some(
+      if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
+      else Opts.resolver.sonatypeStaging),
     releaseCrossBuild := false,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
