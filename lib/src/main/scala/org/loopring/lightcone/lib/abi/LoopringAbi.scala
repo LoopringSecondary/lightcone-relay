@@ -129,8 +129,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val feeReceipt = scalaAny2Hex(list(7))
-
     val feeSelection = scalaAny2Bigint(list(8))
+    val protocol = header.safeTo
 
     var raworders: Seq[RawOrder] = Seq()
     for (i <- 0 to 1) {
@@ -138,6 +138,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       val subBigintList = bigintList(i)
 
       raworders +:= RawOrder()
+        .withProtocol(protocol)
         .withOwner(subAddrList(0))
         .withTokenS(subAddrList(1))
         .withWalletAddress(subAddrList(2))
@@ -154,8 +155,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
         .withS(sList(i))
     }
 
-    val maker = Order().withRawOrder(raworders(0).withTokenB(addressList(1)(1)))
-    val taker = Order().withRawOrder(raworders(1).withTokenB(addressList(0)(1)))
+    val maker = Order().withRawOrder(raworders(0).withTokenB(raworders(1).tokenS))
+    val taker = Order().withRawOrder(raworders(1).withTokenB(raworders(0).tokenS))
 
     val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)

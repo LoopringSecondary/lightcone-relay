@@ -122,6 +122,31 @@ package object abi {
     def fillWith(src: Log): TxHeader = tx.copy(
       logIndex = src.logIndex.asBigInteger.intValue(),
       source = TX_FROM_RECEIPT_LOG)
+
+    def safeFrom: String = tx.source match {
+      case TX_FROM_TRACE_CALL => tx.traceFrom
+      case TX_FROM_TRACE_TX => tx.traceFrom
+      case _ => tx.from
+    }
+
+    def safeTo: String = tx.source match {
+      case TX_FROM_TRACE_CALL => tx.traceTo
+      case TX_FROM_TRACE_TX => tx.traceTo
+      case _ => tx.to
+    }
+
+    def safeGas: String = tx.source match {
+      case TX_FROM_TRACE_CALL => tx.traceGas
+      case TX_FROM_TRACE_TX => tx.traceGas
+      case _ => tx.to
+    }
+
+    def safeGasUsed: String = tx.source match {
+      case TX_FROM_TRACE_CALL => tx.traceGasUsed
+      case TX_FROM_TRACE_TX => tx.traceGasUsed
+      case _ => tx.gasUsed
+    }
+
   }
 
 }
