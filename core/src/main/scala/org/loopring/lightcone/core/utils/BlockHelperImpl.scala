@@ -52,7 +52,9 @@ class BlockHelperImpl @Inject() (
     event <- if (parentHashExist) {
       ChainRolledBack().withFork(false)
     } else {
-      getForkEvent(block)
+      for {
+        parentBlock <- getParentBlock(block)
+      } yield null
     }
   } yield event
 
@@ -93,12 +95,23 @@ class BlockHelperImpl @Inject() (
     }
   }
 
-  // todo: find parent block in db, if not exist, get it from geth/parity recursive, and return
-  private def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
-    _ <- Future {}
+  def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
+    parentBlock <- getForkBlock(block)
   } yield {
     ChainRolledBack()
   }
+
+  def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+    parentBlockInDb <- getBlockByHashInDb(block.parentHash)
+    parentBlock  <- if (parentBlockInDb.hash.equals(block.hash)) {
+      parentBlockInDb
+    } else {
+      for {
+        req <- GetBlockWithTxHashByHashReq(block.parentHash)
+        blockOnChain <- accessor.getBlockWithTxHashByHash(req)
+      } yield getParentBlock(blockOnChain.getResult)
+    }
+  } yield parentBlock
 
   //    for {
   //      forkBlock <- getForkBlock()
@@ -108,6 +121,11 @@ class BlockHelperImpl @Inject() (
   //        forkBlockNumber = forkBlock.)
   //    } yield {evt
   //    }
+
+  // todo: rely mysql
+  private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] = for {
+    _ <- Future()
+  } yield BlockWithTxHash()
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {
