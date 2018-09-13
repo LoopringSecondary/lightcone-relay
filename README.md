@@ -4,9 +4,8 @@
 
 
 ## Compile
-```
-sbt compile
-```
+Please first clone the ethcube project and perform `sbt publishLocal`
+then you can `sbt compile`.
 
 ### Run
 Here is how you can run two nodes to form a cluster:
