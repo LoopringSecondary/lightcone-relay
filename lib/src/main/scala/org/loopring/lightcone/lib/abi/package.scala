@@ -73,10 +73,10 @@ package object abi {
         txHash = src.hash,
         from = src.from,
         to = src.to,
-        value = src.value,
-        gasPrice = src.gasPrice,
-        gasLimit = src.gas,
-        nonce = src.nonce,
+        value = src.value.asBigInteger.toString,
+        gasPrice = src.gasPrice.asBigInteger.toString,
+        gasLimit = src.gas.asBigInteger.toString,
+        nonce = src.nonce.asBigInteger.toString,
         source = TX_FROM_TX)
 
       if (src.isPending) {
@@ -91,17 +91,17 @@ package object abi {
     def fillWith(src: TraceTransaction): TxHeader = tx.copy(
       traceFrom = src.from,
       traceTo = src.to,
-      traceGas = src.gas,
-      traceGasUsed = src.gasUsed,
-      traceValue = src.value,
+      traceGas = src.gas.asBigInteger.toString,
+      traceGasUsed = src.gasUsed.asBigInteger.toString,
+      traceValue = src.value.asBigInteger.toString,
       source = TX_FROM_TRACE_TX)
 
     def fillWith(src: TraceCall): TxHeader = tx.copy(
       traceFrom = src.from,
       traceTo = src.to,
-      traceGas = src.gas,
-      traceGasUsed = src.gasUsed,
-      traceValue = src.value,
+      traceGas = src.gas.asBigInteger.toString,
+      traceGasUsed = src.gasUsed.asBigInteger.toString,
+      traceValue = src.value.asBigInteger.toString,
       source = TX_FROM_TRACE_CALL)
 
     def fillWith(src: TransactionReceipt): TxHeader = {
@@ -114,9 +114,9 @@ package object abi {
       tx.copy(
         status = status,
         blockHash = src.blockHash,
-        blockNumber = src.blockNumber,
+        blockNumber = src.blockNumber.asBigInteger.toString,
         txIndex = src.transactionIndex.asBigInteger.intValue(),
-        gasUsed = src.gasUsed)
+        gasUsed = src.gasUsed.asBigInteger.toString)
     }
 
     def fillWith(src: Log): TxHeader = tx.copy(

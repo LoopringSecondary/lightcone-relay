@@ -129,7 +129,7 @@ trait ContractAbi {
 
   // 这里比较特殊 涉及到任意类型的强制转换 只有abi转换时用到 所以放到该接口
   def javaObj2Hex(src: Object): String = src match {
-    case bs: Array[Byte] => Hex.toHexString(bs)
+    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
     case _ => throw new Exception("java object convert to scala string error")
   }
 
@@ -144,7 +144,7 @@ trait ContractAbi {
   }
 
   def scalaAny2Hex(src: Any): String = src match {
-    case bs: Array[Byte] => Hex.toHexString(bs)
+    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
     case _ => throw new Exception("scala any convert to scala array byte error")
   }
 
