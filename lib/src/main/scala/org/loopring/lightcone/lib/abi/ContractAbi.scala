@@ -19,11 +19,12 @@ package org.loopring.lightcone.lib.abi
 import java.math.BigInteger
 import java.lang.{ Boolean => jbool }
 
-import com.typesafe.config.Config
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
 import org.spongycastle.util.encoders.Hex
+
+import scala.io.Source
 
 trait ContractAbi {
   val prefix = "0x"
@@ -112,6 +113,13 @@ trait ContractAbi {
     Hex.decode(withoutPrefix(data))
   }
 
+  def getAbiResource(path: String): String = {
+    val is = getClass.getClassLoader.getResourceAsStream(path)
+    val source = Source.fromInputStream(is)
+    val lines = source.getLines().toList
+    lines.map(_.trim).reduce(_ + _)
+  }
+
   private def withPrefix(src: String) = {
     val dst = src.toLowerCase()
     dst.startsWith(prefix) match {
@@ -130,7 +138,7 @@ trait ContractAbi {
 
   // 这里比较特殊 涉及到任意类型的强制转换 只有abi转换时用到 所以放到该接口
   def javaObj2Hex(src: Object): String = src match {
-    case bs: Array[Byte] => Hex.toHexString(bs)
+    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
     case _ => throw new Exception("java object convert to scala string error")
   }
 
@@ -145,7 +153,7 @@ trait ContractAbi {
   }
 
   def scalaAny2Hex(src: Any): String = src match {
-    case bs: Array[Byte] => Hex.toHexString(bs)
+    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
     case _ => throw new Exception("scala any convert to scala array byte error")
   }
 

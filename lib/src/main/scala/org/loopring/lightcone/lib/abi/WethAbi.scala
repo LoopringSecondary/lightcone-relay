@@ -30,7 +30,8 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
   val EN_DEPOSIT = "Deposit"
   val EN_WITHDRAWAL = "Withdrawal"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.weth"))
+  override def abi: Abi = Abi.fromJson(getAbiResource("abi/weth.json"))
+
   override def supportedFunctions: Seq[String] = {
     super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
   }
