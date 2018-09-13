@@ -67,9 +67,9 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
     )
   ))
 
-  val erc20Abi = new Erc20Abi(config)
-  val wethAbi = new WethAbi(config)
-  val loopringAbi = new LoopringAbi(config)
+  val erc20Abi = new Erc20Abi("abi/erc20.json")
+  val wethAbi = new WethAbi("abi/weth.json")
+  val loopringAbi = new LoopringAbi("abi/loopring.json")
   val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
   implicit val detector = new BlockHelperImpl(config, geth)

@@ -16,7 +16,6 @@
 
 package org.loopring.lightcone.lib.solidity
 
-import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.lib.abi.LoopringAbi
 import org.loopring.lightcone.proto.block_chain_event.{ RingMined, SubmitRing, TxHeader }
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -26,17 +25,7 @@ class RingSpec extends FlatSpec {
 
   info("execute cmd [sbt lib/'testOnly *RingSpec'] to test single spec of submitRing")
 
-  val config = ConfigFactory.parseString(
-    """
-      |abi {
-      |  basedir = "/Users/fukun/projects/javahome/github.com/Loopring/lightcone-relay/core/src/main/resources/abi/"
-      |  loopring = "loopring.json"
-      |}
-      |
-    """.stripMargin
-  )
-
-  val abi = new LoopringAbi(config)
+  val abi = new LoopringAbi("abi/loopring.json")
 
   "submitRingFunction" should "convert to two orders" in {
     val method = abi.findFunctionByName("submitRing")

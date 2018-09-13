@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.utils
 import org.loopring.lightcone.proto.ring._
 import scala.concurrent.Future
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.RawOrder
+import org.loopring.lightcone.proto.order._
 
 case class OrderFill(
     rawOrder: RawOrder,

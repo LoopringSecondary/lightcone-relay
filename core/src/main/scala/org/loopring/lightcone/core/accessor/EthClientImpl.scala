@@ -31,9 +31,7 @@ class EthClientImpl @Inject() (
 )(
     implicit
     val system: ActorSystem
-)
-
-  extends EthClient with JsonRpcSupport {
+) extends EthClient with JsonRpcSupport {
 
   case class DebugParams(
       timeout: String,

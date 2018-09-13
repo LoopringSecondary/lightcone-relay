@@ -18,16 +18,14 @@ package org.loopring.lightcone.lib.abi
 
 import java.math.BigInteger
 
-import com.google.inject.Inject
-import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
-import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.block_chain_event._
-import org.loopring.lightcone.proto.eth_jsonrpc.Log
-import org.loopring.lightcone.proto.order.{ Order, RawOrder }
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring.Ring
 
-class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
+class LoopringAbi(resourceFile: String)
+  extends ContractAbi(resourceFile) {
 
   val FN_SUBMIT_RING = "submitRing"
   val FN_CANCEL_ORDER = "cancelOrder"
@@ -39,13 +37,17 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   val EN_CUTOFF_ALL = "AllOrdersCancelled"
   val EN_CUTOFF_PAIR = "OrdersCancelled"
 
-  override def abi: Abi = Abi.fromJson(getAbiResource("abi/loopring.json"))
-
-  override def supportedFunctions: Seq[String] = Seq(
-    FN_SUBMIT_RING, FN_CANCEL_ORDER, FN_CUTOFF_ALL, FN_CUTOFF_PAIR
+  def supportedFunctions: Seq[String] = Seq(
+    FN_SUBMIT_RING,
+    FN_CANCEL_ORDER,
+    FN_CUTOFF_ALL,
+    FN_CUTOFF_PAIR
   )
-  override def supportedEvents: Seq[String] = Seq(
-    EN_RING_MINED, EN_ORDER_CANCELLED, EN_CUTOFF_ALL, EN_CUTOFF_PAIR
+  def supportedEvents: Seq[String] = Seq(
+    EN_RING_MINED,
+    EN_ORDER_CANCELLED,
+    EN_CUTOFF_ALL,
+    EN_CUTOFF_PAIR
   )
 
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {

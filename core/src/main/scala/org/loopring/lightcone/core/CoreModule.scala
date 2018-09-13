@@ -52,10 +52,10 @@ class CoreModule(config: Config)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
-    bind[Timeout].toInstance(new Timeout(2 seconds))
-    bind[Erc20Abi].to[Erc20Abi].in[Singleton]
-    bind[WethAbi].to[WethAbi].in[Singleton]
-    bind[LoopringAbi].to[LoopringAbi].in[Singleton]
+    bind[Timeout].toInstance(new Timeout(config.getInt("behaviors.future-wait-timeout") seconds))
+    bind[Erc20Abi].toInstance(new Erc20Abi(config.getString("abi.erc20")))
+    bind[WethAbi].toInstance(new WethAbi(config.getString("abi.weth")))
+    bind[LoopringAbi].toInstance(new LoopringAbi(config.getString("abi.loopring")))
     bind[EthClient].to[EthClientImpl].in[Singleton]
 
     val httpFlow = Http()

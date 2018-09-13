@@ -16,7 +16,6 @@
 
 package org.loopring.lightcone.lib.solidity
 
-import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.lib.abi.WethAbi
 import org.loopring.lightcone.proto.block_chain_event.{ TxHeader, WethDeposit }
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -26,17 +25,7 @@ class WethSpec extends FlatSpec {
 
   info("execute cmd [sbt lib/'testOnly *WethSpec'] to test single spec of submitRing")
 
-  val config = ConfigFactory.parseString(
-    """
-      |abi {
-      |  basedir = "/Users/fukun/projects/javahome/github.com/Loopring/lightcone-relay/core/src/main/resources/abi/"
-      |  weth = "weth.json"
-      |}
-      |
-    """.stripMargin
-  )
-
-  val abi = new WethAbi(config)
+  val abi = new WethAbi("abi/weth.json")
 
   "DepositEvent" should "contain owner and amount" in {
     val method = abi.findEventByName("Deposit")

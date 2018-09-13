@@ -18,7 +18,6 @@ package org.loopring.lightcone.lib.abi
 
 import java.math.BigInteger
 import java.lang.{ Boolean ⇒ jbool }
-
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -26,14 +25,14 @@ import org.spongycastle.util.encoders.Hex
 
 import scala.io.Source
 
-trait ContractAbi {
+abstract class ContractAbi(resourceFile: String) {
+  def supportedFunctions: Seq[String]
+  def supportedEvents: Seq[String]
+
   val prefix = "0x"
   val FunctionSigLength = 8
 
-  def abi: Abi = null
-
-  def supportedFunctions: Seq[String] = Seq()
-  def supportedEvents: Seq[String] = Seq()
+  def abi: Abi = Abi.fromJson(getAbiResource(resourceFile))
 
   def sigFuncMap: Map[String, Abi.Function] = {
     supportedFunctions.map(x ⇒ {

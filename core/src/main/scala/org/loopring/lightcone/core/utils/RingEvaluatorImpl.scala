@@ -23,9 +23,9 @@ import akka.util.Timeout
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.balance.{ GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp }
-import org.loopring.lightcone.proto.order.RawOrder
-import org.loopring.lightcone.proto.ring.{ Ring, RingCandidates }
+import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.ring._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
@@ -42,8 +42,10 @@ class RingEvaluatorImpl(
 )
   extends RingEvaluator {
 
-  var avaliableAmounts: concurrent.Map[String, BigInt] = new ConcurrentHashMap[String, BigInt]() asScala
-  var orderFillAmount = Map[String, BigInt]()
+  var avaliableAmounts: concurrent.Map[String, BigInt] =
+    new ConcurrentHashMap[String, BigInt]().asScala
+
+  var orderFillAmount = Map.empty[String, BigInt]
 
   def getRingCadidatesToSettle(candidates: RingCandidates): Future[Seq[RingCandidate]] =
     for {
@@ -131,7 +133,14 @@ class RingEvaluatorImpl(
               amountS = rawOrder.amountS.asBigInt
               rateAmountS = Rational(amountS) * reduceRate
               (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(rawOrder, reduceRate)
-            } yield OrderFill(rawOrder, sPrice, rateAmountS, fillAmountS, fillAmountB, reduceRate)
+            } yield OrderFill(
+              rawOrder,
+              sPrice,
+              rateAmountS,
+              fillAmountS,
+              fillAmountB,
+              reduceRate
+            )
         }).mapTo[Seq[OrderFill]]
 
         orderFillsStep2 = computeFillAmountStep2(orderFillsStep1)

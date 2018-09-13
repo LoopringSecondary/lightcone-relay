@@ -18,9 +18,9 @@ package org.loopring.lightcone.core.utils
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
-import org.loopring.lightcone.core.accessor.EthClient
-import org.loopring.lightcone.proto.eth_jsonrpc.{ BlockWithTxHash, GetBlockWithTxHashByNumberReq }
-import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
+import org.loopring.lightcone.core.accessor._
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.block_chain_event._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

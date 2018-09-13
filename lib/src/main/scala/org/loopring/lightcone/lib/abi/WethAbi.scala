@@ -16,21 +16,19 @@
 
 package org.loopring.lightcone.lib.abi
 
-import com.google.inject.Inject
-import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
-import org.loopring.lightcone.proto.eth_jsonrpc.Log
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.block_chain_event._
 
-class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
+// "abi/weth.json"
+class WethAbi(resourcePath: String)
+  extends Erc20Abi(resourcePath) {
 
   val FN_DEPOSIT = "deposit"
   val FN_WITHDRAW = "withdraw"
 
   val EN_DEPOSIT = "Deposit"
   val EN_WITHDRAWAL = "Withdrawal"
-
-  override def abi: Abi = Abi.fromJson(getAbiResource("abi/weth.json"))
 
   override def supportedFunctions: Seq[String] = {
     super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
