@@ -20,6 +20,7 @@ import java.math.BigInteger
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -209,22 +210,26 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
         (BigInt(0).toString(), split)
       }
 
+      val owner = orderinfoList(start + 1).asAddress.toString
+      val tokenS = orderinfoList(start + 2).asAddress.toString
+      val tokenB = orderinfoList(nxtOrderhashIdx + 2).asAddress.toString
+
       fills +:= OrderFilled()
         .withRingHash(ringhash)
         .withRingIndex(ringindex.toString)
         .withFillIndex(i)
         .withOrderHash(orderinfoList(orderhashIdx))
-        .withOwner(orderinfoList(start + 1))
+        .withOwner(owner)
         .withPreOrderHash(orderinfoList(preOrderhashIdx))
         .withNextOrderHash(orderinfoList(nxtOrderhashIdx))
-        .withTokenS(orderinfoList(start + 2))
-        .withTokenB(orderinfoList(nxtOrderhashIdx + 2))
-        .withAmountS(orderinfoList(start + 3))
-        .withAmountB(orderinfoList(nxtOrderhashIdx + 3))
-        .withLrcReward(orderinfoList(start + 4))
-        .withLrcFee(lrcFee.toString)
-        .withSplitS(splitS.toString)
-        .withSplitB(splitB.toString)
+        .withTokenS(tokenS)
+        .withTokenB(tokenB)
+        .withAmountS(orderinfoList(start + 3).asBigInteger.toString)
+        .withAmountB(orderinfoList(nxtOrderhashIdx + 3).asBigInteger.toString)
+        .withLrcReward(orderinfoList(start + 4).asBigInteger.toString)
+        .withLrcFee(lrcFee.asBigInteger.toString)
+        .withSplitS(splitS.asBigInteger.toString)
+        .withSplitB(splitB.asBigInteger.toString)
     }
 
     val ring = RingMined()
@@ -257,8 +262,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       .withTokenB(addressList(2))
       .withWalletAddress(addressList(3))
       .withAuthAddr(addressList(4))
-      .withAmountS(bigintList(0).toString())
-      .withAmountB(bigintList(1).toString())
+      .withAmountS(bigintList(0).toString)
+      .withAmountB(bigintList(1).toString)
       .withValidSince(bigintList(2).bigInteger.longValue())
       .withValidUntil(bigintList(3).bigInteger.longValue())
       .withLrcFee(bigintList(4).toString())
