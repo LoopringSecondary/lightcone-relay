@@ -32,7 +32,8 @@ class TransactionHelperImpl @Inject() (
     val erc20Abi: Erc20Abi,
     val wethAbi: WethAbi,
     val loopringAbi: LoopringAbi
-) extends TransactionHelper {
+)
+  extends TransactionHelper {
 
   // todo: get protocol address(delegate, impl, token register...) on chain
   val supportedContracts: Seq[String] = tokenList.list.map(x ⇒ safeAddress(x.protocol))
@@ -58,13 +59,17 @@ class TransactionHelperImpl @Inject() (
     val mainseq = unpackSingleInput(src.getTx.input, header)
 
     val callseq = src.trace match {
-      case Some(x) ⇒ x.calls.map(n ⇒ unpackSingleInput(n.input, header.fillWith(x))).reduceLeft((a, b) ⇒ a ++ b)
-      case _       ⇒ Seq()
+      case Some(x) ⇒ x.calls.map { n ⇒
+        unpackSingleInput(n.input, header.fillWith(x))
+      }.reduceLeft((a, b) ⇒ a ++ b)
+      case _ ⇒ Seq()
     }
 
     val evtseq = src.receipt match {
-      case Some(x) ⇒ x.logs.map(n ⇒ unpackSingleEvent(n, header.fillWith(x))).reduceLeft((a, b) ⇒ a ++ b)
-      case _       ⇒ Seq()
+      case Some(x) ⇒ x.logs.map { n ⇒
+        unpackSingleEvent(n, header.fillWith(x))
+      }.reduceLeft((a, b) ⇒ a ++ b)
+      case _ ⇒ Seq()
     }
 
     mainseq ++ callseq ++ evtseq
@@ -84,7 +89,7 @@ class TransactionHelperImpl @Inject() (
       loopringAbi.decodeLogAndAssemble(log, header)
   }
 
-  def isContractAddressSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
+  def isContractAddressSupported(txTo: String) = supportedContracts.contains(safeAddress(txTo))
 
   private def safeAddress(address: String): String = address.toUpperCase()
 

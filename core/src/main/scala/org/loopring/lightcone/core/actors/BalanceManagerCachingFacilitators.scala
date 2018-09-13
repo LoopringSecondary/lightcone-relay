@@ -100,50 +100,51 @@ object BalanceManagerCachingFacilitators {
       }
     }
 
-  implicit val getBalanceAndAllowanceReqFacilitator = new ActorCachingFacilitator[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, CacheBalanceInfo] {
-    def genCacheRequest(
-      req: GetBalanceAndAllowanceReq,
-      uncachedResp: GetBalanceAndAllowanceResp
-    ): Option[CacheBalanceInfo] = {
-      if (uncachedResp.balances.nonEmpty || uncachedResp.allowances.nonEmpty)
-        Some(CacheBalanceInfo(
-          address = uncachedResp.address,
-          balances = uncachedResp.balances,
-          allowances = uncachedResp.allowances
-        ))
-      else
-        None
-    }
-
-    def genSourceRequest(
-      req: GetBalanceAndAllowanceReq,
-      cachedResp: GetBalanceAndAllowanceResp
-    ): Option[GetBalanceAndAllowanceReq] = {
-      var uncachedReqOpt: Option[GetBalanceAndAllowanceReq] = None
-      val r = req.asInstanceOf[GetBalanceAndAllowanceReq]
-      val reqTokens = r.tokens.toSet
-      val cachedAllowanceTokens = cachedResp.allowances
-        .flatMap(_.tokenAmounts.map(_.token)).toSet
-      val cachedBalanceTokens = cachedResp.balances.map(_.token).toSet
-      val uncachedAllowanceTokens = reqTokens -- cachedAllowanceTokens
-      val uncachedBalanceTokens = reqTokens -- cachedBalanceTokens
-      val uncachedTokens = uncachedAllowanceTokens ++ uncachedBalanceTokens
-      if (uncachedTokens.nonEmpty) {
-        uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
+  implicit val getBalanceAndAllowanceReqFacilitator =
+    new ActorCachingFacilitator[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, CacheBalanceInfo] {
+      def genCacheRequest(
+        req: GetBalanceAndAllowanceReq,
+        uncachedResp: GetBalanceAndAllowanceResp
+      ): Option[CacheBalanceInfo] = {
+        if (uncachedResp.balances.nonEmpty || uncachedResp.allowances.nonEmpty)
+          Some(CacheBalanceInfo(
+            address = uncachedResp.address,
+            balances = uncachedResp.balances,
+            allowances = uncachedResp.allowances
+          ))
+        else
+          None
       }
-      uncachedReqOpt
-    }
 
-    def mergeResponses(
-      req: GetBalanceAndAllowanceReq,
-      cachedResp: GetBalanceAndAllowanceResp,
-      uncachedResp: GetBalanceAndAllowanceResp
-    ): GetBalanceAndAllowanceResp = {
-      GetBalanceAndAllowanceResp()
-        .withAddress(req.address)
-        .withAllowances(cachedResp.allowances ++ uncachedResp.allowances)
-        .withBalances(cachedResp.balances ++ uncachedResp.balances)
+      def genSourceRequest(
+        req: GetBalanceAndAllowanceReq,
+        cachedResp: GetBalanceAndAllowanceResp
+      ): Option[GetBalanceAndAllowanceReq] = {
+        var uncachedReqOpt: Option[GetBalanceAndAllowanceReq] = None
+        val r = req.asInstanceOf[GetBalanceAndAllowanceReq]
+        val reqTokens = r.tokens.toSet
+        val cachedAllowanceTokens = cachedResp.allowances
+          .flatMap(_.tokenAmounts.map(_.token)).toSet
+        val cachedBalanceTokens = cachedResp.balances.map(_.token).toSet
+        val uncachedAllowanceTokens = reqTokens -- cachedAllowanceTokens
+        val uncachedBalanceTokens = reqTokens -- cachedBalanceTokens
+        val uncachedTokens = uncachedAllowanceTokens ++ uncachedBalanceTokens
+        if (uncachedTokens.nonEmpty) {
+          uncachedReqOpt = Some(r.withTokens(uncachedTokens.toSeq))
+        }
+        uncachedReqOpt
+      }
+
+      def mergeResponses(
+        req: GetBalanceAndAllowanceReq,
+        cachedResp: GetBalanceAndAllowanceResp,
+        uncachedResp: GetBalanceAndAllowanceResp
+      ): GetBalanceAndAllowanceResp = {
+        GetBalanceAndAllowanceResp()
+          .withAddress(req.address)
+          .withAllowances(cachedResp.allowances ++ uncachedResp.allowances)
+          .withBalances(cachedResp.balances ++ uncachedResp.balances)
+      }
     }
-  }
 
 }
