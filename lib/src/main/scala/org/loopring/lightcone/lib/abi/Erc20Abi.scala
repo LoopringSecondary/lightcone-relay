@@ -31,7 +31,8 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.erc20"))
+  override def abi: Abi = Abi.fromJson(getAbiResource("abi/erc20.json"))
+
   override def supportedFunctions: Seq[String] = Seq(
     FN_APPROVE, FN_TRANSFER)
   override def supportedEvents: Seq[String] = Seq(

@@ -122,9 +122,10 @@ message TraceCall {
     string to = 2;
     string input = 3;
     string output = 4;
-    string gasUsed = 5;
-    string type = 6;
-    string value = 7;
+    string gas = 5;
+    string gasUsed = 6;
+    string type = 7;
+    string value = 8;
 }
 
 message TraceTransaction {
@@ -132,10 +133,11 @@ message TraceTransaction {
     string to = 2;
     string input = 3;
     string output = 4;
-    string gasUsed = 5;
-    string type = 6;
-    string value = 7;
-    repeated TraceCall calls = 8;
+    string gas = 5;
+    string gasUsed = 6;
+    string type = 7;
+    string value = 8;
+    repeated TraceCall calls = 9;
 }
 
 message TransactionParam {

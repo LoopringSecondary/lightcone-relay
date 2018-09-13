@@ -20,6 +20,7 @@ import java.math.BigInteger
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -38,7 +39,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   val EN_CUTOFF_ALL = "AllOrdersCancelled"
   val EN_CUTOFF_PAIR = "OrdersCancelled"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.impl"))
+  override def abi: Abi = Abi.fromJson(getAbiResource("abi/loopring.json"))
+
   override def supportedFunctions: Seq[String] = Seq(
     FN_SUBMIT_RING, FN_CANCEL_ORDER, FN_CUTOFF_ALL, FN_CUTOFF_PAIR)
   override def supportedEvents: Seq[String] = Seq(
@@ -122,8 +124,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val feeReceipt = scalaAny2Hex(list(7))
-
     val feeSelection = scalaAny2Bigint(list(8))
+    val protocol = header.safeTo
 
     var raworders: Seq[RawOrder] = Seq()
     for (i <- 0 to 1) {
@@ -131,6 +133,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
       val subBigintList = bigintList(i)
 
       raworders +:= RawOrder()
+        .withProtocol(protocol)
         .withOwner(subAddrList(0))
         .withTokenS(subAddrList(1))
         .withWalletAddress(subAddrList(2))
@@ -147,8 +150,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
         .withS(sList(i))
     }
 
-    val maker = Order().withRawOrder(raworders(0).withTokenB(addressList(1)(1)))
-    val taker = Order().withRawOrder(raworders(1).withTokenB(addressList(0)(1)))
+    val maker = Order().withRawOrder(raworders(0).withTokenB(raworders(1).tokenS))
+    val taker = Order().withRawOrder(raworders(1).withTokenB(raworders(0).tokenS))
 
     val ring = Ring().withOrders(Seq(maker, taker))
       .withFeeReceipt(feeReceipt)
@@ -201,22 +204,26 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
         (BigInt(0).toString(), split)
       }
 
+      val owner = orderinfoList(start + 1).asAddress.toString
+      val tokenS = orderinfoList(start + 2).asAddress.toString
+      val tokenB = orderinfoList(nxtOrderhashIdx + 2).asAddress.toString
+
       fills +:= OrderFilled()
         .withRingHash(ringhash)
         .withRingIndex(ringindex.toString)
         .withFillIndex(i)
         .withOrderHash(orderinfoList(orderhashIdx))
-        .withOwner(orderinfoList(start + 1))
+        .withOwner(owner)
         .withPreOrderHash(orderinfoList(preOrderhashIdx))
         .withNextOrderHash(orderinfoList(nxtOrderhashIdx))
-        .withTokenS(orderinfoList(start + 2))
-        .withTokenB(orderinfoList(nxtOrderhashIdx + 2))
-        .withAmountS(orderinfoList(start + 3))
-        .withAmountB(orderinfoList(nxtOrderhashIdx + 3))
-        .withLrcReward(orderinfoList(start + 4))
-        .withLrcFee(lrcFee.toString)
-        .withSplitS(splitS.toString)
-        .withSplitB(splitB.toString)
+        .withTokenS(tokenS)
+        .withTokenB(tokenB)
+        .withAmountS(orderinfoList(start + 3).asBigInteger.toString)
+        .withAmountB(orderinfoList(nxtOrderhashIdx + 3).asBigInteger.toString)
+        .withLrcReward(orderinfoList(start + 4).asBigInteger.toString)
+        .withLrcFee(lrcFee.asBigInteger.toString)
+        .withSplitS(splitS.asBigInteger.toString)
+        .withSplitB(splitB.asBigInteger.toString)
     }
 
     val ring = RingMined()
@@ -244,13 +251,14 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val order = RawOrder()
+      .withProtocol(header.safeTo)
       .withOwner(addressList(0))
       .withTokenS(addressList(1))
       .withTokenB(addressList(2))
       .withWalletAddress(addressList(3))
       .withAuthAddr(addressList(4))
-      .withAmountS(bigintList(0).toString())
-      .withAmountB(bigintList(1).toString())
+      .withAmountS(bigintList(0).toString)
+      .withAmountB(bigintList(1).toString)
       .withValidSince(bigintList(2).bigInteger.longValue())
       .withValidUntil(bigintList(3).bigInteger.longValue())
       .withLrcFee(bigintList(4).toString())

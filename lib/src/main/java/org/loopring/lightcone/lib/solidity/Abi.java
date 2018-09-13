@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
-import org.loopring.lightcone.lib.solidity.SolidityType;
 import org.ethereum.util.ByteUtil;
 
 import java.io.IOException;
@@ -37,7 +36,8 @@ import static org.apache.commons.collections4.ListUtils.select;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
-import static org.ethereum.crypto.HashUtil.sha3;
+
+import static org.loopring.lightcone.lib.solidity.HashUtil.sha3;
 import static org.loopring.lightcone.lib.solidity.SolidityType.IntType.decodeInt;
 import static org.loopring.lightcone.lib.solidity.SolidityType.IntType.encodeInt;
 
@@ -146,7 +146,6 @@ public class Abi extends ArrayList<Abi.Entry> {
             for (Abi.Entry.Param param : inputs) {
                 paramsTypes.append(param.type.getCanonicalName()).append(",");
             }
-
             return format("%s(%s)", name, stripEnd(paramsTypes.toString(), ","));
         }
 
