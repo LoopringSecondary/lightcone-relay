@@ -80,6 +80,8 @@ class BlockHelperImpl @Inject() (
     parentBlockInDb ← getBlockByHashInDb(block.parentHash)
     result ← if (parentBlockInDb.hash.equals(block.parentHash)) {
       Future(parentBlockInDb)
+    } else if (parentBlockInDb.hash.isEmpty) {
+      Future(BlockWithTxHash())
     } else {
       for {
         req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
@@ -95,12 +97,11 @@ class BlockHelperImpl @Inject() (
     } else {
       blockNumberIndex += 1
     }
-    // todo rely mysql
-    Future {}
+    saveBlock(block)
   }
 
   private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
-    if (forkBlock.hash.isEmpty) {
+    if (forkBlock.equals(BlockWithTxHash())) {
       ChainRolledBack().withFork(false)
     } else if (forkBlock.hash.equals(block.parentHash)) {
       ChainRolledBack().withFork(false)
@@ -109,9 +110,12 @@ class BlockHelperImpl @Inject() (
     }
   }
 
-  // todo: rely mysql
+  // todo: relay mysql
+  private def saveBlock(block: BlockWithTxHash): Future[Unit] = Future()
+
+  // test fork: set hash, todo: rely mysql
   private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] =
-    Future { BlockWithTxHash() }
+    Future { BlockWithTxHash().withNumber("0xa899").withHash("0x78567d18469f00eb0146e22db758cf169688bc6a0a0a9f0c584f8a43c62cdd29") }
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {

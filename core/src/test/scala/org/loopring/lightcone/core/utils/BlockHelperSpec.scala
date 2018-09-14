@@ -30,8 +30,14 @@ class BlockHelperSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlockNumber'] to debug getCurrentBlockNumber")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlock'] to debug getCurrentBlock")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkBlock'] to debug getForkBlock")
+  info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkEvent'] to debug getForkEvent")
 
   val helper = new BlockHelperImpl(config, geth)
+
+  val block = BlockWithTxHash()
+    .withHash("0x02427f544559dd4ee66f4f1ecfaa02b3f85edb02185019f4795a605cb043fc21")
+    .withNumber("0x" + Hex.toHexString(BigInt(43163).toByteArray))
+    .withParentHash("0x29c3afc8afe149e8098711cb2bfd65daee4e8bbc9dc940062e8abe729546eb95")
 
   "getCurrentBlockNumber" should "just be initialized yet" in {
     val resultFuture = for {
@@ -54,10 +60,6 @@ class BlockHelperSpec extends FlatSpec {
   }
 
   "getForkBlock" should "get first block on chain" in {
-    val blockNumber = "0x" + Hex.toHexString(BigInt(43163).toByteArray)
-    val blockHash = "0x02427f544559dd4ee66f4f1ecfaa02b3f85edb02185019f4795a605cb043fc21"
-    val block = BlockWithTxHash().withHash(blockHash).withNumber(blockNumber)
-
     val resultFuture = for {
       res ← helper.getForkBlock(block)
     } yield res
@@ -67,9 +69,21 @@ class BlockHelperSpec extends FlatSpec {
     if (forkBlock.hash.isEmpty) {
       info(s"forkblock is empty")
     } else {
-      info(s"detected block:${blockNumber.asBigInteger.toString}-$blockHash \r\n" +
+      info(s"detected block:${block.number.asBigInteger.toString}-${block.hash} \r\n" +
         s"forkBlockNumber:${forkBlock.number.asBigInteger.toString}-${forkBlock.hash}")
     }
+  }
+
+  "getForkEvent" should "get an valid fork event while helper.getBlockByHashInDb return an block with hash=0x78567d18469f00eb0146e22db758cf169688bc6a0a0a9f0c584f8a43c62cdd29 and number=0xa899" in {
+    val resultFuture = for {
+      res ← helper.repeatedJobToGetForkEvent(block)
+    } yield res
+
+    val event = Await.result(resultFuture, timeout.duration)
+
+    info(event.toProtoString)
+    info(s"event detected blockNumber:${event.detectedBlockNumber.asBigInteger.toString}")
+    info(s"event fork blockNumber:${event.forkBlockNumber.asBigInteger.toString}")
   }
 
 }
