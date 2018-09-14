@@ -70,7 +70,7 @@ class BlockHelperImpl @Inject() (
       }
     }
   } yield currentBlockNumber
-  
+
   private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
     if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
       blockNumberIndex = block.number.asBigInt
@@ -111,7 +111,7 @@ class BlockHelperImpl @Inject() (
 
   // test fork: set hash, todo: rely mysql
   private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] =
-    Future { BlockWithTxHash().withNumber("0xa899").withHash("0x78567d18469f00eb0146e22db758cf169688bc6a0a0a9f0c584f8a43c62cdd29") }
+    Future { BlockWithTxHash() }
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {
