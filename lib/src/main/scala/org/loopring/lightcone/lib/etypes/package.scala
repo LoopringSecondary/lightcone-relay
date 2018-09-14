@@ -39,7 +39,7 @@ package object etypes {
     def asHash: Hash = hex.getBytes.asHash()
 
     def asBigInt: BigInt = {
-      if (!hex.toLowerCase.startsWith("0x")) BigInt(hex, 16)
+      if (!hex.toLowerCase.startsWith("0x")) BigInt(hex)
       else BigInt(hex.substring(2), 16)
     }
 
