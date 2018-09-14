@@ -99,7 +99,9 @@ class BlockHelperImpl @Inject() (
   }
 
   private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
-    if (forkBlock.hash.equals(block.parentHash)) {
+    if (forkBlock.hash.isEmpty) {
+      ChainRolledBack().withFork(false)
+    } else if (forkBlock.hash.equals(block.parentHash)) {
       ChainRolledBack().withFork(false)
     } else {
       ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)

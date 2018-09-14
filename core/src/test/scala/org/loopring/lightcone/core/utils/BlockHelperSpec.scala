@@ -16,8 +16,11 @@
 
 package org.loopring.lightcone.core.utils
 
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.ethaccessor._
+import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 import org.scalatest.FlatSpec
+import org.spongycastle.util.encoders.Hex
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -26,6 +29,7 @@ class BlockHelperSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec'] to debug all shoulder")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlockNumber'] to debug getCurrentBlockNumber")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlock'] to debug getCurrentBlock")
+  info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkBlock'] to debug getForkBlock")
 
   val helper = new BlockHelperImpl(config, geth)
 
@@ -47,6 +51,25 @@ class BlockHelperSpec extends FlatSpec {
     val block = Await.result(resultFuture, timeout.duration)
 
     info(s"block is ${block.toProtoString}")
+  }
+
+  "getForkBlock" should "get first block on chain" in {
+    val blockNumber = "0x" + Hex.toHexString(BigInt(43163).toByteArray)
+    val blockHash = "0x02427f544559dd4ee66f4f1ecfaa02b3f85edb02185019f4795a605cb043fc21"
+    val block = BlockWithTxHash().withHash(blockHash).withNumber(blockNumber)
+
+    val resultFuture = for {
+      res <- helper.getForkBlock(block)
+    } yield res
+
+    val forkBlock = Await.result(resultFuture, timeout.duration)
+
+    if (forkBlock.hash.isEmpty) {
+      info(s"forkblock is empty")
+    } else {
+      info(s"detected block:${blockNumber.asBigInteger.toString}-$blockHash \r\n" +
+        s"forkBlockNumber:${forkBlock.number.asBigInteger.toString}-${forkBlock.hash}")
+    }
   }
 
 }
