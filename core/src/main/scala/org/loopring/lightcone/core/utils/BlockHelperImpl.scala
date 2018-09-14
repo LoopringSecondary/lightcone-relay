@@ -34,10 +34,6 @@ class BlockHelperImpl @Inject() (
 
   var blockNumberIndex = BigInt(0)
 
-  /** 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
-   *  2.记录块数据，同时blockNumberIndex自增
-   *  3.判断parenthash是否记录
-   */
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ ← setCurrentBlock(block)
     forkBlock ← getForkBlock(block)
@@ -74,6 +70,15 @@ class BlockHelperImpl @Inject() (
       }
     }
   } yield currentBlockNumber
+  
+  private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
+    if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
+      blockNumberIndex = block.number.asBigInt
+    } else {
+      blockNumberIndex += 1
+    }
+    saveBlock(block)
+  }
 
   // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
   def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
@@ -90,15 +95,6 @@ class BlockHelperImpl @Inject() (
       } yield blockOnChain
     }
   } yield result
-
-  private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
-    if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
-      blockNumberIndex = block.number.asBigInt
-    } else {
-      blockNumberIndex += 1
-    }
-    saveBlock(block)
-  }
 
   private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
     if (forkBlock.equals(BlockWithTxHash())) {
