@@ -17,7 +17,6 @@
 package org.loopring.lightcone.core.utils
 
 import com.google.inject.Inject
-import com.sun.org.apache.xpath.internal.functions.FuncTrue
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.accessor.EthClient
@@ -38,28 +37,28 @@ class BlockHelperImpl @Inject() (
   var blockNumberIndex = BigInt(0)
 
   /**
-   * 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
-   * 2.记录块数据，同时blockNumberIndex自增
-   * 3.判断parenthash是否记录
-   */
-  def handleBlock(): Future[ChainRolledBack] = for {
-    currentBlockNumber <- getCurrentBlockNumber
-    blockReq = GetBlockWithTxHashByNumberReq(safeBlockHex(currentBlockNumber))
-    blockRes <- accessor.getBlockWithTxHashByNumber(blockReq)
-    block = blockRes.getResult
+    * 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
+    * 2.记录块数据，同时blockNumberIndex自增
+    * 3.判断parenthash是否记录
+    */
+  def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ <- setCurrentBlock(block)
-    parentHashExist <- isParentHashExistInDb(block.parentHash)
-    event <- if (parentHashExist) {
+    forkBlock <- getParentBlockFromDb(block)
+    forkEvent <- if (forkBlock.hash.equals(block.parentHash)) {
       ChainRolledBack().withFork(false)
     } else {
-      for {
-        parentBlock <- getParentBlock(block)
-      } yield null
+      ChainRolledBack(
+        detectedBlockNumber = block.number,
+        delectedBlockHash = block.hash,
+        forkBlockNumber = forkBlock.number,
+        forkBlockHash = forkBlock.hash,
+        fork = true
+      )
     }
-  } yield event
+  } yield forkEvent
 
   // 因为同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式 因为重复处理block不会有问题
-  def getCurrentBlockNumber: Future[BigInt] =
+  def getCurrentBlockNumber: Future[BigInt] = {
     if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
       initBlockNumberIndex()
       Future(blockNumberIndex)
@@ -71,17 +70,6 @@ class BlockHelperImpl @Inject() (
           blockNumberIndex = latestBlockOnChain
         }
       } yield blockNumberIndex
-    }
-
-  // extractor需要遍历链上所有块，不允许漏块
-  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
-  private def initBlockNumberIndex() = for {
-    dbBlockNumber <- readLatestBlockFromDb
-  } yield {
-    blockNumberIndex = if (dbBlockNumber.compare(0).equals(0)) {
-      config.getString("extractor.start-block").asBigInt
-    } else {
-      dbBlockNumber
     }
   }
 
@@ -95,32 +83,30 @@ class BlockHelperImpl @Inject() (
     }
   }
 
-  def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
-    parentBlock <- getForkBlock(block)
+  // extractor需要遍历链上所有块，不允许漏块
+  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
+  private def initBlockNumberIndex() = for {
+    dbBlockNumber <- readLatestBlockFromDb
   } yield {
-    ChainRolledBack()
+    blockNumberIndex = if (dbBlockNumber.compare(0).equals(0)) {
+      config.getString("extractor.start-block").asBigInt
+    } else {
+      dbBlockNumber
+    }
   }
 
-  def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+  // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
+  def getParentBlockFromDb(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
     parentBlockInDb <- getBlockByHashInDb(block.parentHash)
-    parentBlock  <- if (parentBlockInDb.hash.equals(block.hash)) {
+    result <- if (parentBlockInDb.hash.equals(block.parentHash)) {
       parentBlockInDb
     } else {
       for {
         req <- GetBlockWithTxHashByHashReq(block.parentHash)
         blockOnChain <- accessor.getBlockWithTxHashByHash(req)
-      } yield getParentBlock(blockOnChain.getResult)
+      } yield getParentBlockFromDb(blockOnChain.getResult)
     }
-  } yield parentBlock
-
-  //    for {
-  //      forkBlock <- getForkBlock()
-  //      evt = ChainRolledBack(
-  //        detectedBlockNumber = blockNumberIndex.toString(),
-  //        delectedBlockHash = block.hash,
-  //        forkBlockNumber = forkBlock.)
-  //    } yield {evt
-  //    }
+  } yield result
 
   // todo: rely mysql
   private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] = for {
