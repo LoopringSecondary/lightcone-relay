@@ -106,8 +106,12 @@ message CalculateOrdersStatus {
 }
 
 message UpdatedOrder {
-    Order order = 1;
-    int64 postponed = 2;
+    oneof updated {
+        Order order = 1;
+        DeferOrder defer_order = 2;
+        OrderBeingMatched order_being_matched = 3;
+        OrderSettling order_stelling = 4;
+    }
 }
 
 message UpdatedOrders {
@@ -125,15 +129,18 @@ message OrdersSoftCancelled {
 message OrderStatusChanged {
     repeated string order_hashes = 1;
 }
-message OrderSettleAmount {
+message OrderSettling {
     string order_hash = 1;
     string amount = 2;
 }
 message MarkOrdersSettling {
-    repeated OrderSettleAmount orders_settle_amount = 1;
+    repeated OrderSettling orders_settling = 1;
+}
+message OrderBeingMatched {
+    string order_hash = 1;
 }
 message MarkOrdersBeingMatched {
-    repeated string order_hashes = 1;
+    repeated OrderBeingMatched orders_being_matched = 1;
 }
 
 message DeferOrder {

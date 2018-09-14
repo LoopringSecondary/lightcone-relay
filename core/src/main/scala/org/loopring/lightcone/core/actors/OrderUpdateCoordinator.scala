@@ -17,15 +17,19 @@
 package org.loopring.lightcone.core.actors
 
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{ Publish, Subscribe }
 import akka.routing._
 import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
 import com.google.inject._
+import org.loopring.lightcone.proto.order._
 
 object OrderUpdateCoordinator
   extends base.Deployable[OrderUpdateCoordinatorSettings] {
@@ -41,8 +45,15 @@ class OrderUpdateCoordinator()(implicit
 )
   extends Actor {
 
+  val name = OrderUpdateCoordinator.name
+  val mediator = DistributedPubSub(context.system).mediator
+
   def receive: Receive = {
     case settings: OrderUpdateCoordinatorSettings ⇒
+    case m: MarkOrdersDeferred ⇒
+
+    //      val updatedOrders = UpdatedOrders(UpdatedOrder(order = m.deferOrders))
+    //      mediator ! Publish(name, updatedOrders)
     case _ ⇒
   }
 }

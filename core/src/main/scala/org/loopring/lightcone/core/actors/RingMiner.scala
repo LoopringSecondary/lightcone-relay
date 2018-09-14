@@ -25,7 +25,7 @@ import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.OrderSettleAmount
+import org.loopring.lightcone.proto.order.OrderSettling
 import org.loopring.lightcone.proto.ring._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -112,16 +112,16 @@ class RingMiner(ethClient: EthClient)(implicit
         RingSettlementDecision(
           ringHash = candidate.hash,
           decision = SettlementDecision.Settled,
-          ordersSettleAmount = candidate.orders.map { o ⇒
-            OrderSettleAmount(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
+          ordersSettling = candidate.orders.map { o ⇒
+            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
           }
         )
       else
         RingSettlementDecision(
           ringHash = candidate.hash,
           decision = SettlementDecision.UnSettled,
-          ordersSettleAmount = candidate.orders.map { o ⇒
-            OrderSettleAmount(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
+          ordersSettling = candidate.orders.map { o ⇒
+            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
           }
         )
     }
