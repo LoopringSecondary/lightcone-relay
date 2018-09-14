@@ -17,8 +17,7 @@
 package org.loopring.lightcone.lib.abi
 
 import java.math.BigInteger
-import java.lang.{ Boolean => jbool }
-
+import java.lang.{ Boolean ⇒ jbool }
 import org.apache.commons.collections4.Predicate
 import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.eth_jsonrpc.Log
@@ -26,44 +25,44 @@ import org.spongycastle.util.encoders.Hex
 
 import scala.io.Source
 
-trait ContractAbi {
+abstract class ContractAbi(resourceFile: String) {
+  def supportedFunctions: Seq[String]
+  def supportedEvents: Seq[String]
+
   val prefix = "0x"
   val FunctionSigLength = 8
 
-  def abi: Abi = null
-
-  def supportedFunctions: Seq[String] = Seq()
-  def supportedEvents: Seq[String] = Seq()
+  def abi: Abi = Abi.fromJson(getAbiResource(resourceFile))
 
   def sigFuncMap: Map[String, Abi.Function] = {
-    supportedFunctions.map(x => {
+    supportedFunctions.map(x ⇒ {
       val f = abi.findFunction(predicate(x))
       Hex.toHexString(f.encodeSignature()) -> f
     })
   }.toMap
 
   def sigEvtMap: Map[String, Abi.Event] = {
-    supportedEvents.map(x => {
+    supportedEvents.map(x ⇒ {
       val e = abi.findEvent(predicate(x))
       Hex.toHexString(e.encodeSignature()) -> e
     })
   }.toMap
 
   def nameFuncMap: Map[String, Abi.Function] = {
-    supportedFunctions.map(x => {
+    supportedFunctions.map(x ⇒ {
       val f = abi.findFunction(predicate(x))
       f.name -> f
     })
   }.toMap
 
   def nameEvtMap: Map[String, Abi.Event] = {
-    supportedEvents.map(x => {
+    supportedEvents.map(x ⇒ {
       val e = abi.findEvent(predicate(x))
       e.name -> e
     })
   }.toMap
 
-  def predicate[T <: Abi.Entry](name: String): Predicate[T] = (x) => x.name.equals(name)
+  def predicate[T <: Abi.Entry](name: String): Predicate[T] = (x) ⇒ x.name.equals(name)
   def signature[T <: Abi.Entry](e: T) = Hex.toHexString(e.encodeSignature()).toLowerCase()
 
   def findFunctionByName(name: String) = abi.findFunction(predicate(name))
@@ -83,25 +82,25 @@ trait ContractAbi {
   def decodeInput(txinput: String): decodeResult = {
     val sig = findTransactionFunctionSig(txinput)
     findFunctionWithSig(sig) match {
-      case Some(abi) => {
+      case Some(abi) ⇒ {
         val decodedinput = getInputBytes(txinput)
         val list = abi.decode(decodedinput).toArray().toSeq
         decodeResult(abi.name, list)
       }
-      case _ => decodeResult()
+      case _ ⇒ decodeResult()
     }
   }
 
   def decodeLog(log: Log): decodeResult = {
     val sig = findReceiptEventSig(log.topics.head)
     findEventWithSig(sig) match {
-      case Some(abi) => {
+      case Some(abi) ⇒ {
         val decodeddata = getLogDataBytes(log.data)
-        val decodedtopics = log.topics.map(x => getLogDataBytes(x)).toArray
+        val decodedtopics = log.topics.map(x ⇒ getLogDataBytes(x)).toArray
         val list = abi.decode(decodeddata, decodedtopics).toArray().toSeq
         decodeResult(abi.name, list)
       }
-      case _ => decodeResult()
+      case _ ⇒ decodeResult()
     }
   }
 
@@ -123,47 +122,47 @@ trait ContractAbi {
   private def withPrefix(src: String) = {
     val dst = src.toLowerCase()
     dst.startsWith(prefix) match {
-      case true => dst
-      case false => prefix + dst
+      case true  ⇒ dst
+      case false ⇒ prefix + dst
     }
   }
 
   private def withoutPrefix(src: String) = {
     val dst = src.toLowerCase()
     dst.startsWith(prefix) match {
-      case true => dst.substring(2)
-      case false => dst
+      case true  ⇒ dst.substring(2)
+      case false ⇒ dst
     }
   }
 
   // 这里比较特殊 涉及到任意类型的强制转换 只有abi转换时用到 所以放到该接口
   def javaObj2Hex(src: Object): String = src match {
-    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
-    case _ => throw new Exception("java object convert to scala string error")
+    case bs: Array[Byte] ⇒ withPrefix(Hex.toHexString(bs))
+    case _               ⇒ throw new Exception("java object convert to scala string error")
   }
 
   def javaObj2Bigint(src: Object): BigInt = src match {
-    case bs: BigInteger => bs
-    case _ => throw new Exception("java object convert to scala bigint error")
+    case bs: BigInteger ⇒ bs
+    case _              ⇒ throw new Exception("java object convert to scala bigint error")
   }
 
   def javaObj2Boolean(src: Object): Boolean = src match {
-    case b: jbool => b
-    case _ => throw new Exception("java object convert to scala boolean error")
+    case b: jbool ⇒ b
+    case _        ⇒ throw new Exception("java object convert to scala boolean error")
   }
 
   def scalaAny2Hex(src: Any): String = src match {
-    case bs: Array[Byte] => withPrefix(Hex.toHexString(bs))
-    case _ => throw new Exception("scala any convert to scala array byte error")
+    case bs: Array[Byte] ⇒ withPrefix(Hex.toHexString(bs))
+    case _               ⇒ throw new Exception("scala any convert to scala array byte error")
   }
 
   def scalaAny2Bigint(src: Any): BigInt = src match {
-    case b: BigInteger => b
-    case _ => throw new Exception("scala any convert to scala bigint error")
+    case b: BigInteger ⇒ b
+    case _             ⇒ throw new Exception("scala any convert to scala bigint error")
   }
 
   def scalaAny2Bool(src: Any): Boolean = src match {
-    case b: Boolean => b
-    case _ => throw new Exception("scala any convert to scala bool error")
+    case b: Boolean ⇒ b
+    case _          ⇒ throw new Exception("scala any convert to scala bool error")
   }
 }

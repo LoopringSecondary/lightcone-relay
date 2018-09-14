@@ -32,25 +32,29 @@ class Rational(numerator: BigInt, denominator: BigInt)
   def +(that: Rational) = {
     new Rational(
       numerator = (this.num * that.denom) + (this.denom * that.num),
-      denominator = this.denom * that.denom)
+      denominator = this.denom * that.denom
+    )
   }
 
   def -(that: Rational) = {
     new Rational(
       numerator = (this.num * that.denom) - (this.denom * that.num),
-      denominator = this.denom * that.denom)
+      denominator = this.denom * that.denom
+    )
   }
 
   def /(that: Rational) = {
     new Rational(
       numerator = this.num * that.denom,
-      denominator = this.denom * that.num)
+      denominator = this.denom * that.num
+    )
   }
 
   def *(that: Rational) = {
     new Rational(
       numerator = this.num * that.num,
-      denominator = this.denom * that.denom)
+      denominator = this.denom * that.denom
+    )
   }
 
   def min(that: Rational): Rational = if (this.num * that.denom > this.denom * that.num) that else this
@@ -60,7 +64,8 @@ class Rational(numerator: BigInt, denominator: BigInt)
   def pow(exp: Rational) = {
     require(
       Rational(Rational.MaxDoubleValue.toBigInt()) > this ||
-        Rational(Rational.MaxDoubleValue.toBigInt()) > exp)
+        Rational(Rational.MaxDoubleValue.toBigInt()) > exp
+    )
     math.pow(this.doubleValue(), exp.doubleValue())
   }
 
@@ -92,8 +97,8 @@ class Rational(numerator: BigInt, denominator: BigInt)
 
   def floatString(precisionOpt: Option[Int] = None): String = {
     val mc = precisionOpt match {
-      case None => defaultMathContext
-      case Some(precision) => new MathContext(precision, RoundingMode.HALF_EVEN)
+      case None            ⇒ defaultMathContext
+      case Some(precision) ⇒ new MathContext(precision, RoundingMode.HALF_EVEN)
     }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
   }
@@ -101,8 +106,8 @@ class Rational(numerator: BigInt, denominator: BigInt)
   override def hashCode(): Int = this.toString().hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case that: Rational => this.num * that.denom equals that.num * this.denom
-    case _ => false
+    case that: Rational ⇒ this.num * that.denom equals that.num * this.denom
+    case _              ⇒ false
   }
 }
 
@@ -114,7 +119,8 @@ object Rational {
 
   def apply(value: Double) = new Rational(
     (MaxDoubleValue * BigDecimal(value)).toBigInt(),
-    MaxDoubleValue.toBigInt())
+    MaxDoubleValue.toBigInt()
+  )
 
   def apply(numerator: BigInt) = new Rational(numerator, BigInt(1))
 

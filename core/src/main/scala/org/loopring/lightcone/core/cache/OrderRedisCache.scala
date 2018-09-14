@@ -22,7 +22,8 @@ import redis._
 import com.google.inject._
 
 final class OrderRedisCache @Inject() (
-  redis: RedisCluster)
+    redis: RedisCluster
+)
   extends OrderCache {
 
 }

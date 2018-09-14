@@ -27,8 +27,10 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlockHelperImpl @Inject() (
-  val config: Config,
-  val accessor: EthClient) extends BlockHelper {
+    val config: Config,
+    val accessor: EthClient
+)
+  extends BlockHelper {
 
   var blockNumberIndex = BigInt(0)
 
@@ -38,25 +40,25 @@ class BlockHelperImpl @Inject() (
    * 3.判断parenthash是否记录
    */
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
-    _ <- setCurrentBlock(block)
-    forkBlock <- getForkBlock(block)
-    forkEvent <- Future(getRollBackEvent(block, forkBlock))
+    _ ← setCurrentBlock(block)
+    forkBlock ← getForkBlock(block)
+    forkEvent ← Future(getRollBackEvent(block, forkBlock))
   } yield forkEvent
 
   def getCurrentBlock: Future[BlockWithTxHash] = for {
-    blockNumber <- getCurrentBlockNumber
+    blockNumber ← getCurrentBlockNumber
     blockNumberStr = safeBlockHex(blockNumber)
     req = GetBlockWithTxHashByNumberReq(blockNumberStr)
-    res <- accessor.getBlockWithTxHashByNumber(req)
+    res ← accessor.getBlockWithTxHashByNumber(req)
   } yield res.getResult
 
   // extractor需要遍历链上所有块，不允许漏块
   // 数据库记录为空时使用config中数据,之后一直使用数据库记录
   // 同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式不会有问题,其他地方需要做去重
   def getCurrentBlockNumber: Future[BigInt] = for {
-    currentBlockNumber <- if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
+    currentBlockNumber ← if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
       for {
-        dbBlockNumber <- readLatestBlockFromDb
+        dbBlockNumber ← readLatestBlockFromDb
       } yield if (dbBlockNumber.compare(0).equals(0)) {
         config.getString("extractor.start-block").asBigInt
       } else {
@@ -64,7 +66,7 @@ class BlockHelperImpl @Inject() (
       }
     } else {
       for {
-        blockOnChainRes <- accessor.ethGetBlockNumber()
+        blockOnChainRes ← accessor.ethGetBlockNumber()
         blockNumberOnChain = blockOnChainRes.result.asBigInt
       } yield if (blockNumberOnChain.compare(blockNumberIndex) < 0) {
         blockNumberOnChain
@@ -76,14 +78,14 @@ class BlockHelperImpl @Inject() (
 
   // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
   def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
-    parentBlockInDb <- getBlockByHashInDb(block.parentHash)
-    result <- if (parentBlockInDb.hash.equals(block.parentHash)) {
+    parentBlockInDb ← getBlockByHashInDb(block.parentHash)
+    result ← if (parentBlockInDb.hash.equals(block.parentHash)) {
       Future(parentBlockInDb)
     } else {
       for {
-        req <- Future(GetBlockWithTxHashByHashReq(block.parentHash))
-        blockOnChainOpt <- accessor.getBlockWithTxHashByHash(req)
-        blockOnChain <- getForkBlock(blockOnChainOpt.getResult)
+        req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
+        blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
+        blockOnChain ← getForkBlock(blockOnChainOpt.getResult)
       } yield blockOnChain
     }
   } yield result
@@ -114,7 +116,7 @@ class BlockHelperImpl @Inject() (
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {
-    block <- Future { BigInt(0) }
+    block ← Future { BigInt(0) }
   } yield block
 
   private def safeBlockHex(blockNumber: BigInt): String = {

@@ -18,16 +18,14 @@ package org.loopring.lightcone.lib.abi
 
 import java.math.BigInteger
 
-import com.google.inject.Inject
-import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
-import org.loopring.lightcone.lib.solidity.Abi
 import org.loopring.lightcone.proto.block_chain_event._
-import org.loopring.lightcone.proto.eth_jsonrpc.Log
-import org.loopring.lightcone.proto.order.{ Order, RawOrder }
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring.Ring
 
-class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
+class LoopringAbi(resourceFile: String)
+  extends ContractAbi(resourceFile) {
 
   val FN_SUBMIT_RING = "submitRing"
   val FN_CANCEL_ORDER = "cancelOrder"
@@ -39,32 +37,38 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   val EN_CUTOFF_ALL = "AllOrdersCancelled"
   val EN_CUTOFF_PAIR = "OrdersCancelled"
 
-  override def abi: Abi = Abi.fromJson(getAbiResource("abi/loopring.json"))
-
-  override def supportedFunctions: Seq[String] = Seq(
-    FN_SUBMIT_RING, FN_CANCEL_ORDER, FN_CUTOFF_ALL, FN_CUTOFF_PAIR)
-  override def supportedEvents: Seq[String] = Seq(
-    EN_RING_MINED, EN_ORDER_CANCELLED, EN_CUTOFF_ALL, EN_CUTOFF_PAIR)
+  def supportedFunctions: Seq[String] = Seq(
+    FN_SUBMIT_RING,
+    FN_CANCEL_ORDER,
+    FN_CUTOFF_ALL,
+    FN_CUTOFF_PAIR
+  )
+  def supportedEvents: Seq[String] = Seq(
+    EN_RING_MINED,
+    EN_ORDER_CANCELLED,
+    EN_CUTOFF_ALL,
+    EN_CUTOFF_PAIR
+  )
 
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
     res.name match {
-      case FN_SUBMIT_RING => Seq(assembleSubmitRingFunction(res.list, header))
-      case FN_CANCEL_ORDER => Seq(assembleCancelOrderFunction(res.list, header))
-      case FN_CUTOFF_ALL => Seq(assembleCutoffFunction(res.list, header))
-      case FN_CUTOFF_PAIR => Seq(assembleCutoffPairFunction(res.list, header))
-      case _ => Seq()
+      case FN_SUBMIT_RING  ⇒ Seq(assembleSubmitRingFunction(res.list, header))
+      case FN_CANCEL_ORDER ⇒ Seq(assembleCancelOrderFunction(res.list, header))
+      case FN_CUTOFF_ALL   ⇒ Seq(assembleCutoffFunction(res.list, header))
+      case FN_CUTOFF_PAIR  ⇒ Seq(assembleCutoffPairFunction(res.list, header))
+      case _               ⇒ Seq()
     }
   }
 
   def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
     val res = decodeLog(log)
     res.name match {
-      case EN_RING_MINED => Seq(assembleRingminedEvent(res.list, header))
-      case EN_ORDER_CANCELLED => Seq(assembleOrderCancelledEvent(res.list, header))
-      case EN_CUTOFF_ALL => Seq(assembleCutoffEvent(res.list, header))
-      case EN_CUTOFF_PAIR => Seq(assembleCutoffPairEvent(res.list, header))
-      case _ => Seq()
+      case EN_RING_MINED      ⇒ Seq(assembleRingminedEvent(res.list, header))
+      case EN_ORDER_CANCELLED ⇒ Seq(assembleOrderCancelledEvent(res.list, header))
+      case EN_CUTOFF_ALL      ⇒ Seq(assembleCutoffEvent(res.list, header))
+      case EN_CUTOFF_PAIR     ⇒ Seq(assembleCutoffPairEvent(res.list, header))
+      case _                  ⇒ Seq()
     }
   }
 
@@ -74,53 +78,53 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val addressList = list(0) match {
-      case arr: Array[Object] => {
-        arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Hex)
-          case _ => throw new Exception("submitRing sub addresses type error")
+      case arr: Array[Object] ⇒ {
+        arr.map(sub ⇒ sub match {
+          case son: Array[Object] ⇒ son.map(javaObj2Hex)
+          case _                  ⇒ throw new Exception("submitRing sub addresses type error")
         })
       }
-      case _ => throw new Exception("submitRing address type error")
+      case _ ⇒ throw new Exception("submitRing address type error")
     }
 
     val bigintList = list(1) match {
-      case arr: Array[Object] => {
-        arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint)
-          case _ => throw new Exception("submitRing sub bigintArgs type error")
+      case arr: Array[Object] ⇒ {
+        arr.map(sub ⇒ sub match {
+          case son: Array[Object] ⇒ son.map(javaObj2Bigint)
+          case _                  ⇒ throw new Exception("submitRing sub bigintArgs type error")
         })
       }
-      case _ => throw new Exception("submitRing bigintArgs type error")
+      case _ ⇒ throw new Exception("submitRing bigintArgs type error")
     }
 
     val uintArgList = list(2) match {
-      case arr: Array[Object] => {
-        arr.map(sub => sub match {
-          case son: Array[Object] => son.map(javaObj2Bigint)
-          case _ => throw new Exception("submitRing sub uintArgs type error")
+      case arr: Array[Object] ⇒ {
+        arr.map(sub ⇒ sub match {
+          case son: Array[Object] ⇒ son.map(javaObj2Bigint)
+          case _                  ⇒ throw new Exception("submitRing sub uintArgs type error")
         })
       }
-      case _ => throw new Exception("submitRing uintArgs type error")
+      case _ ⇒ throw new Exception("submitRing uintArgs type error")
     }
 
     val buyNoMoreThanAmountBList = list(3) match {
-      case arr: Array[Object] => arr.map(javaObj2Boolean)
-      case _ => throw new Exception("submitRing buyNoMoreThanAmountB type error")
+      case arr: Array[Object] ⇒ arr.map(javaObj2Boolean)
+      case _                  ⇒ throw new Exception("submitRing buyNoMoreThanAmountB type error")
     }
 
     val vList = list(4) match {
-      case arr: Array[Object] => arr.map(javaObj2Bigint)
-      case _ => throw new Exception("submitRing vlist type error")
+      case arr: Array[Object] ⇒ arr.map(javaObj2Bigint)
+      case _                  ⇒ throw new Exception("submitRing vlist type error")
     }
 
     val rList = list(5) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex)
-      case _ => throw new Exception("submitRing rlist type error")
+      case arr: Array[Object] ⇒ arr.map(javaObj2Hex)
+      case _                  ⇒ throw new Exception("submitRing rlist type error")
     }
 
     val sList = list(6) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex)
-      case _ => throw new Exception("submitRing slist type error")
+      case arr: Array[Object] ⇒ arr.map(javaObj2Hex)
+      case _                  ⇒ throw new Exception("submitRing slist type error")
     }
 
     val feeReceipt = scalaAny2Hex(list(7))
@@ -128,7 +132,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     val protocol = header.safeTo
 
     var raworders: Seq[RawOrder] = Seq()
-    for (i <- 0 to 1) {
+    for (i ← 0 to 1) {
       val subAddrList = addressList(i)
       val subBigintList = bigintList(i)
 
@@ -174,8 +178,8 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     val miner = scalaAny2Hex(list(2))
     val feeReceipt = scalaAny2Hex(list(3))
     val orderinfoList = list(4) match {
-      case arr: Array[Object] => arr.map(javaObj2Hex)
-      case _ => throw new Exception("ringmined orderinfo list type error")
+      case arr: Array[Object] ⇒ arr.map(javaObj2Hex)
+      case _                  ⇒ throw new Exception("ringmined orderinfo list type error")
     }
 
     require(orderinfoList.length.equals(14))
@@ -183,7 +187,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     var fills: Seq[OrderFilled] = Seq()
 
     val length = orderinfoList.length / 7
-    for (i <- 0 to (length - 1)) {
+    for (i ← 0 to (length - 1)) {
       val start = i * 7
 
       val orderhashIdx = start
@@ -241,13 +245,13 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
     }
 
     val addressList = list(0) match {
-      case arr: Array[Object] if (arr.length.equals(5)) => arr.map(javaObj2Hex)
-      case _ => throw new Exception("cancel order function addresslist type error")
+      case arr: Array[Object] if (arr.length.equals(5)) ⇒ arr.map(javaObj2Hex)
+      case _ ⇒ throw new Exception("cancel order function addresslist type error")
     }
 
     val bigintList = list(1) match {
-      case arr: Array[Object] if (arr.length.equals(6)) => arr.map(javaObj2Bigint)
-      case _ => throw new Exception("cancel order function bigintList type error")
+      case arr: Array[Object] if (arr.length.equals(6)) ⇒ arr.map(javaObj2Bigint)
+      case _ ⇒ throw new Exception("cancel order function bigintList type error")
     }
 
     val order = RawOrder()
@@ -368,7 +372,7 @@ class LoopringAbi @Inject() (val config: Config) extends ContractAbi {
   }
 
   val maxUint256: BigInteger = {
-    val bytes = (1 to 32).map(_ => Byte.MaxValue).toArray
+    val bytes = (1 to 32).map(_ ⇒ Byte.MaxValue).toArray
     new BigInteger(bytes)
   }
 }

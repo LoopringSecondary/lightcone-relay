@@ -38,11 +38,13 @@ import org.loopring.lightcone.proto.deployment._
 import com.google.protobuf.any.Any
 
 class NodeHttpServer(
-  config: Config,
-  nodeManager: ActorRef)(
-  implicit
-  val cluster: Cluster,
-  implicit val materializer: ActorMaterializer)
+    config: Config,
+    nodeManager: ActorRef
+)(
+    implicit
+    val cluster: Cluster,
+    implicit val materializer: ActorMaterializer
+)
   extends Directives
   with Json4sSupport {
 
@@ -60,21 +62,25 @@ class NodeHttpServer(
             get {
               val f = nodeManager ? Msg("get_stats")
               complete(f.mapTo[LocalStats])
-            })
-        })
+            }
+          )
+        }
+      )
     } ~ pathPrefix("settings") {
       concat(
         pathEnd {
           concat(
             post {
-              entity(as[DynamicSettings]) { c =>
+              entity(as[DynamicSettings]) { c ⇒
                 nodeManager ! UploadDynamicSettings(Some(c))
                 complete(c)
               }
             } ~ get {
               complete(NodeData.dynamicSettings)
-            })
-        })
+            }
+          )
+        }
+      )
     }
 
   Http().bindAndHandle(route, "localhost",

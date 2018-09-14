@@ -37,13 +37,14 @@ object OrderWriter
 }
 
 class OrderWriter()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderWriterSettings =>
-    case req: SubmitOrderReq => {
+    case settings: OrderWriterSettings ⇒
+    case req: SubmitOrderReq ⇒ {
       if (req.rawOrder.isEmpty) {
         new ErrorResp()
       } else if (checkOrder(req.rawOrder.get)) {
@@ -51,22 +52,22 @@ class OrderWriter()(implicit
       }
 
       Routers.orderAccessor ? unwrapToRawOrder(req) onComplete {
-        case Success(os) =>
+        case Success(os) ⇒
           Routers.orderManager ! os
           os
-        case Failure(e) => ErrorResp()
+        case Failure(e) ⇒ ErrorResp()
       }
 
     }
-    case req: CancelOrdersReq =>
+    case req: CancelOrdersReq ⇒
       if (!softCancelSignCheck(req.sign)) {
         new ErrorResp()
 
         Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
-          case Success(os) =>
+          case Success(os) ⇒
             Routers.orderManager ! os
             os
-          case Failure(_) => ErrorResp()
+          case Failure(_) ⇒ ErrorResp()
         }
 
       }

@@ -22,14 +22,17 @@ import org.loopring.lightcone.lib.cache.serializer._
 import scala.concurrent._
 
 final class StringToProtoCachedReader[T <: scalapb.GeneratedMessage with scalapb.Message[T]](
-  val underlying: Reader[String, T])(
-  implicit
-  val ex: ExecutionContext,
-  val underlyingCache: ByteArrayCache,
-  c: scalapb.GeneratedMessageCompanion[T])
+    val underlying: Reader[String, T]
+)(
+    implicit
+    val ex: ExecutionContext,
+    val underlyingCache: ByteArrayCache,
+    c: scalapb.GeneratedMessageCompanion[T]
+)
   extends CachedReader[String, T] {
 
   val cache = new StringToProtoCache[T](
     underlyingCache,
-    new ProtoSerializer)
+    new ProtoSerializer
+  )
 }

@@ -33,7 +33,7 @@ class EthGetBalanceSpec extends FlatSpec {
       .withAddress("0x4bad3053d574cd54513babe21db3f09bea1d387d")
       .withTag("latest")
     val respFuture = for {
-      resp <- geth.ethGetBalance(req)
+      resp ← geth.ethGetBalance(req)
     } yield resp.result
 
     val result = Await.result(respFuture, timeout.duration)

@@ -33,9 +33,10 @@ package object ethaccessor {
   val config = ConfigFactory.defaultApplication()
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
-    port = config.getInt("ethereum.port"))
-  val erc20Abi = new Erc20Abi(config)
-  val loopringAbi = new LoopringAbi(config)
+    port = config.getInt("ethereum.port")
+  )
+  val erc20Abi = new Erc20Abi("abi/erc20.json")
+  val loopringAbi = new LoopringAbi("abi/loopring.json")
   val queueSize = 5
 
   implicit val timeout = Timeout(5 seconds)

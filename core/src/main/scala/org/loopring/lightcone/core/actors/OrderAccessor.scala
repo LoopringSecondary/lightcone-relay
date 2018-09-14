@@ -41,12 +41,13 @@ object OrderAccessor
 }
 
 class OrderAccessor()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderAccessorSettings =>
-    case any => Routers.orderDBAccessor forward any
+    case settings: OrderAccessorSettings ⇒
+    case any ⇒ Routers.orderDBAccessor forward any
   }
 }

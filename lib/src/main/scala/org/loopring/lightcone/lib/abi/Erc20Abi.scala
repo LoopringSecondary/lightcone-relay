@@ -16,13 +16,13 @@
 
 package org.loopring.lightcone.lib.abi
 
-import com.google.inject.Inject
-import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
-import org.loopring.lightcone.proto.eth_jsonrpc.Log
-import org.loopring.lightcone.proto.block_chain_event.{ Approve, Transfer, TxHeader }
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.block_chain_event._
 
-class Erc20Abi @Inject() (config: Config) extends ContractAbi {
+//abi/erc20.json
+class Erc20Abi(resourcePath: String)
+  extends ContractAbi(resourcePath) {
 
   val FN_APPROVE = "approve"
   val FN_TRANSFER = "transfer"
@@ -31,12 +31,14 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   val EN_APPROVAL = "Approval"
   val EN_TRANSFER = "Transfer"
 
-  override def abi: Abi = Abi.fromJson(getAbiResource("abi/erc20.json"))
-
-  override def supportedFunctions: Seq[String] = Seq(
-    FN_APPROVE, FN_TRANSFER)
-  override def supportedEvents: Seq[String] = Seq(
-    EN_APPROVAL, EN_TRANSFER)
+  def supportedFunctions: Seq[String] = Seq(
+    FN_APPROVE,
+    FN_TRANSFER
+  )
+  def supportedEvents: Seq[String] = Seq(
+    EN_APPROVAL,
+    EN_TRANSFER
+  )
 
   val balanceOf: Abi.Function = abi.findFunction(predicate("balanceOf"))
   val allowance: Abi.Function = abi.findFunction(predicate("allowance"))
@@ -44,19 +46,19 @@ class Erc20Abi @Inject() (config: Config) extends ContractAbi {
   def decodeInputAndAssemble(input: String, header: TxHeader): Seq[Any] = {
     val res = decodeInput(input)
     res.name match {
-      case FN_TRANSFER => Seq(assembleTransferFunction(res.list, header))
-      case FN_TRANSFER_FROM => Seq(assembleTransferFromFunction(res.list, header))
-      case FN_APPROVE => Seq(assembleApproveFunction(res.list, header))
-      case _ => Seq()
+      case FN_TRANSFER      ⇒ Seq(assembleTransferFunction(res.list, header))
+      case FN_TRANSFER_FROM ⇒ Seq(assembleTransferFromFunction(res.list, header))
+      case FN_APPROVE       ⇒ Seq(assembleApproveFunction(res.list, header))
+      case _                ⇒ Seq()
     }
   }
 
   def decodeLogAndAssemble(log: Log, header: TxHeader): Seq[Any] = {
     val res = decodeLog(log)
     res.name match {
-      case EN_TRANSFER => Seq(assembleTransferEvent(res.list, header))
-      case EN_APPROVAL => Seq(assembleApprovalEvent(res.list, header))
-      case _ => Seq()
+      case EN_TRANSFER ⇒ Seq(assembleTransferEvent(res.list, header))
+      case EN_APPROVAL ⇒ Seq(assembleApprovalEvent(res.list, header))
+      case _           ⇒ Seq()
     }
   }
 

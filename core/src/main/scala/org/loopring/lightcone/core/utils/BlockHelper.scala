@@ -22,10 +22,11 @@ import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 import scala.concurrent.Future
 
 case class Block(
-  blockHash: String,
-  parentHash: String,
-  blockNumber: String,
-  blockTime: String)
+    blockHash: String,
+    parentHash: String,
+    blockNumber: String,
+    blockTime: String
+)
 
 trait BlockHelper {
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]

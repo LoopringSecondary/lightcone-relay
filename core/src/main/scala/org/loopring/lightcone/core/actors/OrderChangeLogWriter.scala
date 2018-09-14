@@ -34,16 +34,17 @@ object OrderChangeLogWriter
 }
 
 class OrderChangeLogWriter()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderDBAccessorSettings =>
-    case su: SaveUpdatedOrders =>
-    case sc: SoftCancelOrders =>
-    case s: SaveOrders =>
-    case chainRolledBack: ChainRolledBack => rollbackOrderChange(chainRolledBack.detectedBlockNumber)
+    case settings: OrderDBAccessorSettings ⇒
+    case su: SaveUpdatedOrders             ⇒
+    case sc: SoftCancelOrders              ⇒
+    case s: SaveOrders                     ⇒
+    case chainRolledBack: ChainRolledBack  ⇒ rollbackOrderChange(chainRolledBack.detectedBlockNumber)
   }
 
   def rollbackOrderChange(blockNumber: String) = {}

@@ -23,9 +23,9 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 class LogFilter extends Filter[ILoggingEvent] {
   def decide(event: ILoggingEvent) = {
     event.getLoggerName() match {
-      case "akka.cluster.ClusterHeartbeatSender" => FilterReply.DENY
-      case "org.hbase.async.RegionClient" => FilterReply.DENY
-      case _ => FilterReply.ACCEPT
+      case "akka.cluster.ClusterHeartbeatSender" ⇒ FilterReply.DENY
+      case "org.hbase.async.RegionClient" ⇒ FilterReply.DENY
+      case _ ⇒ FilterReply.ACCEPT
     }
   }
 }
