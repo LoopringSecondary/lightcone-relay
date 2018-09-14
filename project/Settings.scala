@@ -13,8 +13,21 @@ import scalariform.formatter.preferences._
 
 object Settings {
   lazy val basicSettings: Seq[Setting[_]] = Seq(
-    organization := Globals.organization,
+    name := Globals.name,
     scalaVersion := Globals.scalaVersion,
+    organization := "org.loopring",
+    organizationName := "Loopring Foundation",
+    homepage := Some(url("https://loopring.org")),
+    developers := List(
+      Developer(
+        id = "foundation@loopring.org",
+        name = "Loopring Developers",
+        email = "foundation@loopring.org",
+        url = url("https://loopring.org"))),
+    scmInfo := Some(
+      ScmInfo(
+        url(Globals.projectGitHttpUrl),
+        "scm:" + Globals.projectGitUrl)),
     autoScalaLibrary := false,
     resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
     resolvers += "ethereumlibrepository" at "https://dl.bintray.com/ethereum/maven/",
@@ -33,12 +46,11 @@ object Settings {
       "-Yresolve-term-conflict:package"),
     fork in Test := false,
     parallelExecution in Test := false,
-    organizationName := "Loopring Foundation",
     startYear := Some(2018),
     licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     shellPrompt in ThisBuild := { state => "sbt (%s)> ".format(Project.extract(state).currentProject.id) },
     publishArtifact in (Compile, packageSrc) := false,
-    publishArtifact in (Compile, packageDoc) := false,
+    publishArtifact in (Compile, packageDoc) := true,
     publishTo := Some(
       if (isSnapshot.value) Opts.resolver.sonatypeSnapshots
       else Opts.resolver.sonatypeStaging),
