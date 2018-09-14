@@ -35,7 +35,7 @@ class BlockHelperSpec extends FlatSpec {
 
   "getCurrentBlockNumber" should "just be initialized yet" in {
     val resultFuture = for {
-      resp <- helper.getCurrentBlockNumber
+      resp ← helper.getCurrentBlockNumber
     } yield resp
 
     val blockNumber = Await.result(resultFuture, timeout.duration)
@@ -45,7 +45,7 @@ class BlockHelperSpec extends FlatSpec {
 
   "getCurrentBlock" should "be blockWithTxHash" in {
     val resultFuture = for {
-      res <- helper.getCurrentBlock
+      res ← helper.getCurrentBlock
     } yield res
 
     val block = Await.result(resultFuture, timeout.duration)
@@ -59,7 +59,7 @@ class BlockHelperSpec extends FlatSpec {
     val block = BlockWithTxHash().withHash(blockHash).withNumber(blockNumber)
 
     val resultFuture = for {
-      res <- helper.getForkBlock(block)
+      res ← helper.getForkBlock(block)
     } yield res
 
     val forkBlock = Await.result(resultFuture, timeout.duration)
