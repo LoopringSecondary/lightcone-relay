@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Loopring Foundation
+ * Copyright 2018 lightcore-relay
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,9 @@ class BlockHelperImpl @Inject() (
 
   var blockNumberIndex = BigInt(0)
 
-  /**
-   * 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
-   * 2.记录块数据，同时blockNumberIndex自增
-   * 3.判断parenthash是否记录
+  /** 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
+   *  2.记录块数据，同时blockNumberIndex自增
+   *  3.判断parenthash是否记录
    */
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ ← setCurrentBlock(block)
