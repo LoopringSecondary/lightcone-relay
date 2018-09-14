@@ -30,103 +30,90 @@ class BlockHelperImpl @Inject() (
   val config: Config,
   val accessor: EthClient) extends BlockHelper {
 
-  // cancel order: 43163
-  // submit ring: 43206
-  // cutoff all: 43168
-  // cutoff pair: 43170
   var blockNumberIndex = BigInt(0)
 
   /**
-    * 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
-    * 2.记录块数据，同时blockNumberIndex自增
-    * 3.判断parenthash是否记录
-    */
-  def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
+   * 1.从链上获取当前块(块高度: 启动时根据配置文件及数据库记录初始化块高度)
+   * 2.记录块数据，同时blockNumberIndex自增
+   * 3.判断parenthash是否记录
+   */
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ <- setCurrentBlock(block)
-    forkBlock <- getParentBlockFromDb(block)
-    forkEvent <- if (forkBlock.hash.equals(block.parentHash)) {
-      ChainRolledBack().withFork(false)
-    } else {
-      ChainRolledBack(
-        detectedBlockNumber = block.number,
-        delectedBlockHash = block.hash,
-        forkBlockNumber = forkBlock.number,
-        forkBlockHash = forkBlock.hash,
-        fork = true
-      )
-    }
+    forkBlock <- getForkBlock(block)
+    forkEvent <- Future(getRollBackEvent(block, forkBlock))
   } yield forkEvent
 
-  // 因为同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式 因为重复处理block不会有问题
-  def getCurrentBlockNumber: Future[BigInt] = {
-    if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
-      initBlockNumberIndex()
-      Future(blockNumberIndex)
+  def getCurrentBlock: Future[BlockWithTxHash] = for {
+    blockNumber <- getCurrentBlockNumber
+    blockNumberStr = safeBlockHex(blockNumber)
+    req = GetBlockWithTxHashByNumberReq(blockNumberStr)
+    res <- accessor.getBlockWithTxHashByNumber(req)
+  } yield res.getResult
+
+  // extractor需要遍历链上所有块，不允许漏块
+  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
+  // 同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式不会有问题,其他地方需要做去重
+  def getCurrentBlockNumber: Future[BigInt] = for {
+    currentBlockNumber <- if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
+      for {
+        dbBlockNumber <- readLatestBlockFromDb
+      } yield if (dbBlockNumber.compare(0).equals(0)) {
+        config.getString("extractor.start-block").asBigInt
+      } else {
+        dbBlockNumber
+      }
     } else {
       for {
-        latestBlockOnChainRes <- accessor.ethGetBlockNumber()
-        latestBlockOnChain = latestBlockOnChainRes.result.asBigInt
-        _ = if (latestBlockOnChain.compare(blockNumberIndex) < 0) {
-          blockNumberIndex = latestBlockOnChain
-        }
-      } yield blockNumberIndex
+        blockOnChainRes <- accessor.ethGetBlockNumber()
+        blockNumberOnChain = blockOnChainRes.result.asBigInt
+      } yield if (blockNumberOnChain.compare(blockNumberIndex) < 0) {
+        blockNumberOnChain
+      } else {
+        blockNumberIndex
+      }
     }
-  }
+  } yield currentBlockNumber
+
+  // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
+  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+    parentBlockInDb <- getBlockByHashInDb(block.parentHash)
+    result <- if (parentBlockInDb.hash.equals(block.parentHash)) {
+      Future(parentBlockInDb)
+    } else {
+      for {
+        req <- Future(GetBlockWithTxHashByHashReq(block.parentHash))
+        blockOnChainOpt <- accessor.getBlockWithTxHashByHash(req)
+        blockOnChain <- getForkBlock(blockOnChainOpt.getResult)
+      } yield blockOnChain
+    }
+  } yield result
 
   private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
     if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
       blockNumberIndex = block.number.asBigInt
-      writeBlockToDb(block)
     } else {
       blockNumberIndex += 1
-      Future()
     }
+    // todo rely mysql
+    Future {}
   }
 
-  // extractor需要遍历链上所有块，不允许漏块
-  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
-  private def initBlockNumberIndex() = for {
-    dbBlockNumber <- readLatestBlockFromDb
-  } yield {
-    blockNumberIndex = if (dbBlockNumber.compare(0).equals(0)) {
-      config.getString("extractor.start-block").asBigInt
+  private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
+    if (forkBlock.hash.equals(block.parentHash)) {
+      ChainRolledBack().withFork(false)
     } else {
-      dbBlockNumber
+      ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)
     }
   }
-
-  // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
-  def getParentBlockFromDb(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
-    parentBlockInDb <- getBlockByHashInDb(block.parentHash)
-    result <- if (parentBlockInDb.hash.equals(block.parentHash)) {
-      parentBlockInDb
-    } else {
-      for {
-        req <- GetBlockWithTxHashByHashReq(block.parentHash)
-        blockOnChain <- accessor.getBlockWithTxHashByHash(req)
-      } yield getParentBlockFromDb(blockOnChain.getResult)
-    }
-  } yield result
 
   // todo: rely mysql
-  private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] = for {
-    _ <- Future()
-  } yield BlockWithTxHash()
+  private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] =
+    Future { BlockWithTxHash() }
 
   // todo: rely mysql
   private def readLatestBlockFromDb: Future[BigInt] = for {
     block <- Future { BigInt(0) }
   } yield block
-
-  // todo: rely mysql
-  private def isParentHashExistInDb(hash: String): Future[Boolean] = for {
-    exist <- Future { true }
-  } yield exist
-
-  // todo: rely mysql
-  private def writeBlockToDb(block: BlockWithTxHash): Future[Unit] = for {
-    _ <- Future()
-  } yield null
 
   private def safeBlockHex(blockNumber: BigInt): String = {
     "0x" + blockNumber.intValue().toHexString

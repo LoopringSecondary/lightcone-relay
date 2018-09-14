@@ -46,5 +46,5 @@ class OrderChangeLogWriter()(implicit
     case chainRolledBack: ChainRolledBack => rollbackOrderChange(chainRolledBack.detectedBlockNumber)
   }
 
-  def rollbackOrderChange(blockNumber: com.google.protobuf.ByteString) = {}
+  def rollbackOrderChange(blockNumber: String) = {}
 }

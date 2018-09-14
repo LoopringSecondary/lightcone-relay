@@ -28,6 +28,8 @@ case class Block(
   blockTime: String)
 
 trait BlockHelper {
-  def getForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]
   def getCurrentBlockNumber: Future[BigInt]
+  def getCurrentBlock: Future[BlockWithTxHash]
+  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash]
 }
