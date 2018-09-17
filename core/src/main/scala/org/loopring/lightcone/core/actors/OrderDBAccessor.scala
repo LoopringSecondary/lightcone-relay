@@ -24,9 +24,7 @@ import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import org.loopring.lightcone.core.database.entities.RawOrder
 import com.google.protobuf.ByteString
-import org.loopring.lightcone.core.utils.EntityMapper._
 
 import scala.util.{ Failure, Success }
 

@@ -16,18 +16,17 @@
 
 package org.loopring.lightcone.core.database.dals
 
-import org.joda.time.DateTime
 import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
-import org.loopring.lightcone.core.database.entities._
+import org.loopring.lightcone.proto.order.Order
 import org.loopring.lightcone.proto.order.{ OrderChangeLog, OrderStatus }
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
 
 case class QueryCondition(delegateAddress: String, owner: Option[String],
-  market: Option[String], status: Seq[Int], orderHashes: Seq[String],
+  market: Option[String], status: Seq[String], orderHashes: Seq[String],
   orderType: Option[String], side: Option[String])
 
 trait OrdersDal extends BaseDalImpl[Orders, Order] {
@@ -80,28 +79,28 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
       .filter(_.owner === owner)
       .filter(_.market === market)
       .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.value, DateTime.now().toDate.getTime / 1000))
+      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByOwner(owner: String): Future[Int] = {
     db.run(query
       .filter(_.owner === owner)
       .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.value, DateTime.now().toDate.getTime / 1000))
+      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByTime(cutoff: Long): Future[Int] = {
     db.run(query
       .filter(_.validUntil >= cutoff)
       .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.value, DateTime.now().toDate.getTime / 1000))
+      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByHash(orderHash: String): Future[Int] = {
     db.run(query
       .filter(_.orderHash === orderHash)
       .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.value, DateTime.now().toDate.getTime / 1000))
+      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def unwrapContition(condition: QueryCondition) = {

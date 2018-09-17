@@ -143,6 +143,7 @@ message UpdateOrdersById {
 }
 
 message Order {
+    int64 id = 18;
     RawOrder raw_order = 1;
     int64 updated_block = 2;
     string dealtAmountS = 3;
@@ -151,8 +152,17 @@ message Order {
     string splitAmountB = 6;
     string cancelledAmountS = 7;
     string cancelledAmountB = 8;
-    OrderStatus status = 9;
+    string status = 9;
     int32 broadcast_time = 10;
+    int32 v = 11;
+    string r = 12;
+    string s = 13;
+    string auth_addr = 14;
+    string auth_private_key = 15;
+    string wallet_address = 16;
+    int64 pow_nonce = 17;
+    int64 createdAt = 19;
+    int64 updatedAt = 20;
 }
 
 enum OrderStatus {
@@ -195,12 +205,8 @@ enum SoftCancelType {
 }
 
 message RawOrder {
-    int64 id = 26;
     string protocol = 1;
     string delegate_address = 2;
-    string auth_addr = 3;
-    string auth_private_key = 4;
-    string wallet_address = 5;
     string token_s = 6;
     string token_b = 7;
     string amount_s = 8;
@@ -210,17 +216,12 @@ message RawOrder {
     string lrc_fee = 12;
     bool buy_no_more_than_amount_b = 13;
     int32 margin_split_percentage = 14;
-    int32 v = 15;
-    string r = 16;
-    string s = 17;
     double price = 18;
     string owner = 19;
     string hash = 20;
     string market = 21;
-    int64 create_time = 22;
-    int64 pow_nonce = 23;
-    MarketSide side = 24;
-    OrderType orderType = 25;
+    string side = 24;
+    string orderType = 25;
 }
 
 message SoftCancelSign {

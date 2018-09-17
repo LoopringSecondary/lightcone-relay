@@ -17,7 +17,8 @@
 package org.loopring.lightcone.core.database.tables
 
 import org.loopring.lightcone.core.database.base._
-import org.loopring.lightcone.core.database.entities._
+import org.loopring.lightcone.proto.order.RawOrder
+import org.loopring.lightcone.proto.order.Order
 import slick.jdbc.MySQLProfile.api._
 
 class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
@@ -48,15 +49,49 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def cancelledAmountB = column[String]("cancelled_amount_b", O.SqlType("VARCHAR(64)"))
   def splitAmountS = column[String]("split_amount_s", O.SqlType("VARCHAR(64)"))
   def splitAmountB = column[String]("split_amount_b", O.SqlType("VARCHAR(64)"))
-  def status = column[Int]("status", O.SqlType("TINYINT(4)"))
-  def minerBlockMark = column[Long]("miner_block_mark")
-  def broadcastTime = column[Long]("broadcast_time")
+  def status = column[String]("status", O.SqlType("TINYINT(4)"))
+//  def minerBlockMark = column[Long]("miner_block_mark")
+  def broadcastTime = column[Int]("broadcast_time")
   def market = column[String]("market", O.SqlType("VARCHAR(32)"))
   def side = column[String]("side", O.SqlType("VARCHAR(32)"))
+  def price = column[Double]("price", O.SqlType("DECIMAL(28,16)"))
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
 
-  def * = (id, rawOrderProjection, updatedBlock, dealtAmountS, dealtAmountB, cancelledAmountS, cancelledAmountB, splitAmountS, splitAmountB, status, minerBlockMark, broadcastTime, powNonce, market, updatedAt, createdAt) <> (Order.tupled, Order.unapply)
-  def rawOrderProjection = (protocol, delegateAddress, owner, authAddress, privateKey, walletAddress, orderHash, tokenS, tokenB, amountS, amountB, validSince, validUntil, lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, v, r, s, side, orderType) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
+  def * = (id, rawOrderProjection, updatedBlock, dealtAmountS, dealtAmountB, splitAmountS, splitAmountB, cancelledAmountS, cancelledAmountB,
+    status, broadcastTime, v, r, s, authAddress, privateKey, walletAddress, powNonce, createdAt, updatedAt) <> (extendTupled, upwrapOption)
+  def rawOrderProjection = (protocol, delegateAddress, tokenS, tokenB, amountS, amountB, validSince, validUntil,
+    lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, price, owner, orderHash, market, side, orderType) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
+
+  private def extendTupled = (i : Tuple20[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Int, String, String, String, String, String, Long, Long, Long]) =>
+    Order.apply(i._1, Some(i._2), i._3, i._4, i._5, i._6, i._7, i._8, i._9,
+      i._10, i._11, i._12, i._13, i._14, i._15, i._16, i._17, i._18, i._19, i._20)
+
+  private def upwrapOption(order : Order) = {
+    val unapplyOrder = Order.unapply(order).get
+    Some((
+      unapplyOrder._1,
+      unapplyOrder._2.get,
+      unapplyOrder._3,
+      unapplyOrder._4,
+      unapplyOrder._5,
+      unapplyOrder._6,
+      unapplyOrder._7,
+      unapplyOrder._8,
+      unapplyOrder._9,
+      unapplyOrder._10,
+      unapplyOrder._11,
+      unapplyOrder._12,
+      unapplyOrder._13,
+      unapplyOrder._14,
+      unapplyOrder._15,
+      unapplyOrder._16,
+      unapplyOrder._17,
+      unapplyOrder._18,
+      unapplyOrder._19,
+      unapplyOrder._20,
+      ))
+
+  }
 
   def idx = index("idx_order_hash", orderHash, unique = true)
 
