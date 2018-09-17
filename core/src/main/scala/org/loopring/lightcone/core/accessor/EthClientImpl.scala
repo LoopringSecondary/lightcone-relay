@@ -24,18 +24,19 @@ import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
 import org.spongycastle.util.encoders.Hex
 
 class EthClientImpl @Inject() (
-  val erc20Abi: Erc20Abi,
-  val loopringAbi: LoopringAbi,
-  val ethereumClientFlow: HttpFlow,
-  @Named("ethereum_conn_queuesize") val queueSize: Int)(
-  implicit
-  val system: ActorSystem)
-
-  extends EthClient with JsonRpcSupport {
+    val erc20Abi: Erc20Abi,
+    val loopringAbi: LoopringAbi,
+    val ethereumClientFlow: HttpFlow,
+    @Named("ethereum_conn_queuesize") val queueSize: Int
+)(
+    implicit
+    val system: ActorSystem
+) extends EthClient with JsonRpcSupport {
 
   case class DebugParams(
-    timeout: String,
-    tracer: String)
+      timeout: String,
+      tracer: String
+  )
 
   def ethGetBalance(req: EthGetBalanceReq) =
     httpPost[EthGetBalanceRes]("eth_getBalance") {

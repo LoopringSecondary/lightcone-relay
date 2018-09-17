@@ -23,49 +23,54 @@ import akka.util.Timeout
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.balance.{ GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp }
-import org.loopring.lightcone.proto.order.RawOrder
-import org.loopring.lightcone.proto.ring.{ Ring, RingCandidates }
+import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.ring._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
 import scala.concurrent.{ ExecutionContext, Future }
 
 class RingEvaluatorImpl(
-  submitterAddress: String = "",
-  lrcAddress: String,
-  walletSplit: Rational = Rational(8, 10),
-  gasUsedOfOrders: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000))(
-  implicit
-  ec: ExecutionContext, timeout: Timeout)
+    submitterAddress: String = "",
+    lrcAddress: String,
+    walletSplit: Rational = Rational(8, 10),
+    gasUsedOfOrders: Map[Int, Int] = Map(2 -> 400000, 3 -> 500000, 4 -> 600000)
+)(
+    implicit
+    ec: ExecutionContext, timeout: Timeout
+)
   extends RingEvaluator {
 
-  var avaliableAmounts: concurrent.Map[String, BigInt] = new ConcurrentHashMap[String, BigInt]() asScala
-  var orderFillAmount = Map[String, BigInt]()
+  var avaliableAmounts: concurrent.Map[String, BigInt] =
+    new ConcurrentHashMap[String, BigInt]().asScala
+
+  var orderFillAmount = Map.empty[String, BigInt]
 
   def getRingCadidatesToSettle(candidates: RingCandidates): Future[Seq[RingCandidate]] =
     for {
-      _ <- Future.successful(0)
+      _ ← Future.successful(0)
       //订单已成交量
       orderFillAmount = Map[String, BigInt]()
       //账户可用金额等
       avaliableAmounts = new ConcurrentHashMap[String, BigInt]() asScala
 
       ringCandidates = candidates.rings
-        .map(r => Some(RingCandidate(rawRing = r)))
+        .map(r ⇒ Some(RingCandidate(rawRing = r)))
 
-      ringsToSettle <- getRingCadidatesToSettle(Seq(), ringCandidates)
+      ringsToSettle ← getRingCadidatesToSettle(Seq(), ringCandidates)
         .mapTo[Seq[Option[RingCandidate]]]
     } yield ringsToSettle.filter(_.nonEmpty).map(_.get)
 
   //  @tailrec
   private def getRingCadidatesToSettle(
     candidatesForSubmit: Seq[Option[RingCandidate]],
-    candidates: Seq[Option[RingCandidate]]) =
+    candidates: Seq[Option[RingCandidate]]
+  ) =
     for {
-      ringCandidates <- Future.sequence(candidates
+      ringCandidates ← Future.sequence(candidates
         .filter(_.nonEmpty)
-        .map(c => generateRingCandidate(c.get.rawRing)))
+        .map(c ⇒ generateRingCandidate(c.get.rawRing)))
 
       //    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
       //    (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
@@ -80,17 +85,20 @@ class RingEvaluatorImpl(
   private def getAvailableAmount(
     address: String,
     token: String,
-    delegate: String): Future[BigInt] =
+    delegate: String
+  ): Future[BigInt] =
     for {
-      amount <- if (avaliableAmounts.contains(address))
+      amount ← if (avaliableAmounts.contains(address))
         Future.successful(avaliableAmounts.getOrElse(address, BigInt(0)))
       else
         for {
-          resp <- (
+          resp ← (
             Routers.balanceManager ? GetBalanceAndAllowanceReq(
               address = address,
               tokens = Seq(token),
-              delegates = Seq(delegate))).mapTo[GetBalanceAndAllowanceResp]
+              delegates = Seq(delegate)
+            )
+          ).mapTo[GetBalanceAndAllowanceResp]
           x = resp.balances.head.amount.asBigInt
           y = resp.allowances.head.tokenAmounts.head.amount.asBigInt
           min = x min y
@@ -98,7 +106,7 @@ class RingEvaluatorImpl(
     } yield amount
 
   private def priceReduceRate(ring: Ring): Rational = {
-    val priceMul = ring.orders.map { order =>
+    val priceMul = ring.orders.map { order ⇒
       val rawOrder = order.rawOrder.get
       Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
     }.reduceLeft(_ * _)
@@ -113,32 +121,41 @@ class RingEvaluatorImpl(
   }
 
   def generateRingCandidate(ring: Ring) = for {
-    res <- if (!checkRing(ring)) {
+    res ← if (!checkRing(ring)) {
       Future.successful(None)
     } else {
       for {
-        reduceRate <- Future.successful { priceReduceRate(ring) }
-        orderFillsStep1 <- Future.sequence(ring.orders.map {
-          order =>
+        reduceRate ← Future.successful { priceReduceRate(ring) }
+        orderFillsStep1 ← Future.sequence(ring.orders.map {
+          order ⇒
             for {
-              rawOrder <- Future.successful(order.rawOrder.get)
+              rawOrder ← Future.successful(order.rawOrder.get)
               amountS = rawOrder.amountS.asBigInt
               rateAmountS = Rational(amountS) * reduceRate
-              (fillAmountS, fillAmountB, sPrice) <- computeFillAmountStep1(rawOrder, reduceRate)
-            } yield OrderFill(rawOrder, sPrice, rateAmountS, fillAmountS, fillAmountB, reduceRate)
+              (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(rawOrder, reduceRate)
+            } yield OrderFill(
+              rawOrder,
+              sPrice,
+              rateAmountS,
+              fillAmountS,
+              fillAmountB,
+              reduceRate
+            )
         }).mapTo[Seq[OrderFill]]
 
         orderFillsStep2 = computeFillAmountStep2(orderFillsStep1)
 
-        orderFillsSeq <- Future.sequence(orderFillsStep2.map {
-          orderFill =>
+        orderFillsSeq ← Future.sequence(orderFillsStep2.map {
+          orderFill ⇒
             for {
-              (feeSelection, receivedFiat) <- computeFeeOfOrder(orderFill)
+              (feeSelection, receivedFiat) ← computeFeeOfOrder(orderFill)
               x = (
                 orderFill.rawOrder.hash,
                 orderFill.copy(
                   feeSelection = feeSelection,
-                  receivedFiat = receivedFiat))
+                  receivedFiat = receivedFiat
+                )
+              )
             } yield x
         }).mapTo[Seq[(String, OrderFill)]]
 
@@ -150,16 +167,18 @@ class RingEvaluatorImpl(
         result = Some(RingCandidate(
           rawRing = ring,
           receivedFiat = ringReceivedFiat - gasFiat,
-          orderFills = orderFillsMap))
+          orderFills = orderFillsMap
+        ))
       } yield result
     }
   } yield res
 
   private def computeFillAmountStep1(rawOrder: RawOrder, reduceRate: Rational) = for {
-    availableAmountBig <- getAvailableAmount(
+    availableAmountBig ← getAvailableAmount(
       rawOrder.owner,
       rawOrder.tokenS,
-      rawOrder.delegateAddress)
+      rawOrder.delegateAddress
+    )
 
     availableAmount = Rational(availableAmountBig)
 
@@ -183,14 +202,14 @@ class RingEvaluatorImpl(
     var minVolumeIdx = 0
     var orderFillsRes = Seq[OrderFill](orderFills(minVolumeIdx))
 
-    for (idx <- (0 until minVolumeIdx).reverse) {
+    for (idx ← (0 until minVolumeIdx).reverse) {
       val fillAmountB = orderFills(idx + 1).fillAmountS
       val fillAmountS = fillAmountB * orderFills(idx).sPrice
       val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
       orderFillsRes = fill1 +: orderFillsRes
     }
 
-    for (idx <- minVolumeIdx + 1 to orderFills.size) {
+    for (idx ← minVolumeIdx + 1 to orderFills.size) {
       val fillAmountS = orderFills(idx - 1).fillAmountB
       val fillAmountB = fillAmountS / orderFills(idx).sPrice
       val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
@@ -202,10 +221,11 @@ class RingEvaluatorImpl(
 
   private def computeFeeOfOrder(orderFill: OrderFill): Future[(Byte, Rational)] =
     for {
-      submitterLrcAmount <- getAvailableAmount(
+      submitterLrcAmount ← getAvailableAmount(
         submitterAddress,
         lrcAddress,
-        orderFill.rawOrder.delegateAddress)
+        orderFill.rawOrder.delegateAddress
+      )
 
       splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
         Rational(1)

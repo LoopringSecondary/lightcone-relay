@@ -17,14 +17,17 @@
 package org.loopring.lightcone.core.actors
 
 import akka.actor._
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
-import org.loopring.lightcone.proto.balance._
-import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.cache._
+import akka.pattern.pipe
+import akka.util.Timeout
+import com.google.inject.Inject
 import org.loopring.lightcone.core.cache._
+import org.loopring.lightcone.proto.balance._
+import org.loopring.lightcone.proto.cache._
+import org.loopring.lightcone.proto.deployment._
+
+import scala.concurrent.ExecutionContext
 
 object BalanceCacher
   extends base.Deployable[BalanceCacherSettings] {
@@ -34,9 +37,10 @@ object BalanceCacher
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class BalanceCacher(cache: BalanceCache)(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+class BalanceCacher @Inject() (cache: BalanceCache)(implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   var settings: BalanceCacherSettings = null
@@ -44,28 +48,22 @@ class BalanceCacher(cache: BalanceCache)(implicit
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: BalanceCacherSettings =>
+    case settings: BalanceCacherSettings ⇒
       this.settings = settings
+    case m: GetBalancesReq ⇒
+      cache.getBalances(m).pipeTo(sender)
+    case m: GetAllowancesReq ⇒
+      cache.getAllowances(m).pipeTo(sender)
+    case m: GetBalanceAndAllowanceReq ⇒
+      cache.getBalanceAndAllowances(m).pipeTo(sender)
+    case m: CacheBalanceInfo ⇒
+      cache.addCache(m).pipeTo(sender)
+    case purgeEvent: Purge.Balance         ⇒
 
-    case m: GetBalancesReq =>
+    case purgeEvent: Purge.AllForAddresses ⇒
 
-      sender() ! GetBalancesResp()
+    case purgeEvent: Purge.AllAfterBlock   ⇒
 
-    case m: GetAllowancesReq =>
-      sender() ! GetAllowancesResp()
-
-    case m: GetBalanceAndAllowanceReq =>
-      sender() ! GetBalanceAndAllowanceResp()
-
-    case m: CacheBalanceInfo =>
-      sender() ! CachedBalanceInfo()
-
-    case purgeEvent: Purge.Balance =>
-
-    case purgeEvent: Purge.AllForAddresses =>
-
-    case purgeEvent: Purge.AllAfterBlock =>
-
-    case purgeEvent: Purge.All =>
+    case purgeEvent: Purge.All             ⇒
   }
 }

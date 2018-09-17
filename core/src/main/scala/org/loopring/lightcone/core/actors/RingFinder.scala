@@ -39,8 +39,9 @@ object RingFinder
 }
 
 class RingFinder()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends RepeatedJobActor
   with ActorLogging {
 
@@ -52,43 +53,43 @@ class RingFinder()(implicit
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
 
+  //todo:需要确定deferred time
   override def receive: Receive = super.receive orElse {
-    case settings: RingFinderSettings =>
+    case settings: RingFinderSettings ⇒
       this.settings = settings
       initAndStartNextRound(settings.scheduleDelay)
 
-    case m: NotifyRingSettlementDecisions =>
+    case m: NotifyRingSettlementDecisions ⇒
       orderManager ! MarkOrdersDeferred(deferOrders =
         m.ringSettlementDecisions
-          .filter(r => r.decision == SettlementDecision.UnSettled)
-          .flatMap(r => r.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100))))
+          .filter(r ⇒ r.decision == SettlementDecision.UnSettled)
+          .flatMap(r ⇒ r.ordersSettleAmount.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100))))
 
       orderManager ! MarkOrdersSettling(ordersSettleAmount = m.ringSettlementDecisions
-        .filter(r => r.decision == SettlementDecision.Settled)
-        .flatMap(r => r.ordersSettleAmount))
+        .filter(r ⇒ r.decision == SettlementDecision.Settled)
+        .flatMap(r ⇒ r.ordersSettleAmount))
 
-    case getFinderRingCandidates: GetRingCandidates =>
+    case getFinderRingCandidates: GetRingCandidates ⇒
       sender() ! RingCandidates()
 
-    case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled =>
+    case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled ⇒
       orderManager ! MarkOrdersDeferred(deferOrders =
-        m.ordersSettleAmount.map(o => DeferOrder(orderHash = "orderhash", deferredTime = 100)))
+        m.ordersSettleAmount.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100)))
 
   }
 
   def handleRepeatedJob() = for {
-    lastTime <- Future.successful(System.currentTimeMillis)
+    lastTime ← Future.successful(System.currentTimeMillis)
     getCrossingOrderSets = GetCrossingOrderSets(tokenA = marketConfig.tokenA, tokenB = marketConfig.tokenB)
-    crossingOrderSets <- orderBookManager ? getCrossingOrderSets recover {
+    crossingOrderSets ← orderBookManager ? getCrossingOrderSets recover {
       case exception: AskTimeoutException ⇒ exception
     }
   } yield {
     crossingOrderSets match {
-      case orders: CrossingOrderSets =>
-        //todo:order结构暂未定，先写死orderhash再替换掉
+      case orders: CrossingOrderSets ⇒
         orderManager ! MarkOrdersBeingMatched(orderHashes =
-          (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o => "orderhash"))
-      case e: AskTimeoutException =>
+          (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o ⇒ o.rawOrder.get.hash))
+      case e: AskTimeoutException ⇒
     }
   }
 }

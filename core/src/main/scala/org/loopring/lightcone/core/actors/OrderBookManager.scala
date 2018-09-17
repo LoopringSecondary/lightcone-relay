@@ -16,13 +16,20 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import akka.pattern.pipe
+import akka.util.Timeout
+import org.loopring.lightcone.core.managing.NodeData
+import org.loopring.lightcone.core.routing.Routers
+import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.proto.cache._
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.orderbook._
+
+import scala.concurrent.{ Await, ExecutionContext }
 
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {
@@ -34,25 +41,84 @@ object OrderBookManager
 }
 
 class OrderBookManager()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
+  var settings: OrderBookManagerSettings = null
+
+  def marketConfig(): MarketConfig = NodeData.getMarketConfigById(settings.id)
+  def resetQuery = OrderQuery(
+    market = settings.id,
+    delegate = settings.delegate,
+    status = Seq(OrderLevel1Status.ORDER_STATUS_NEW.name),
+    orderType = OrderType.MARKET.name
+  )
+
+  val orderAccessor = Routers.orderAccessor
+  val readCoordinator = Routers.orderReadCoordinator
+
+  val managerHelper = new OrderBookManagerHelperImpl(
+    orderAccessor,
+    readCoordinator,
+    marketConfig()
+  )
 
   DistributedPubSub(context.system).mediator ! Subscribe(CacheObsoleter.name, self)
 
   def receive: Receive = {
-    case settings: OrderBookManagerSettings =>
+    case settings: OrderBookManagerSettings ⇒
+      this.settings = settings
+      //orderbookmanager依赖于manageHelper的数据完整，需要等待初始化完成
+      Await.result(managerHelper.resetOrders(resetQuery), timeout.duration)
 
-    case m: Purge.Order =>
+    case m: GetOrderBookReq ⇒
+      sender ! GetOrderBookResp() //todo:
 
-    case m: Purge.AllOrderForAddress =>
+    case m: GetCrossingOrderSets ⇒
+      val (minPrice, maxPrice) = managerHelper.crossingPrices(canBeMatched)
+      val tokenOrders = managerHelper.crossingOrdersBetweenPrices(minPrice, maxPrice)
+      sender ! CrossingOrderSets(
+        sellTokenAOrders = tokenOrders.tokenAOrders.filter(canBeMatched).map(_.order).toSeq,
+        sellTokenBOrders = tokenOrders.tokenBOrders.filter(canBeMatched).map(_.order).toSeq
+      )
 
-    case m: Purge.AllForAddresses =>
+    case m: UpdatedOrders ⇒
+      m.orders.foreach(managerHelper.updateOrder)
 
-    case m: Purge.AllAfterBlock =>
+    case m: Purge.Order ⇒
+      managerHelper.purgeOrders(Seq(m.orderHash))
 
-    case m: Purge.All =>
+    case m: Purge.AllOrderForAddress ⇒
+      managerHelper.purgeOrders(m)
 
-    case _ =>
+    case m: Purge.AllForAddresses ⇒
+      managerHelper.purgeOrders(m)
+
+    case m: Purge.AllAfterBlock ⇒
+      managerHelper.purgeOrders(m)
+
+    case m: Purge.All ⇒
+      managerHelper.resetOrders(resetQuery).pipeTo(sender)
+
+    case _ ⇒
   }
+
+  val canBeMatched: PartialFunction[OrderWithStatus, Boolean] = {
+    case OrderWithStatus(order, postponed) ⇒
+      order.status match {
+        case None ⇒ true
+        case Some(OrderStatus(level1Status, level2Status, level3Status)) ⇒
+          val currentTime = System.currentTimeMillis
+          if (level1Status == OrderLevel1Status.ORDER_STATUS_NEW
+            && postponed <= currentTime
+            && level3Status == OrderLevel3Status.ORDER_STATUS_ACTIVE)
+            //todo:增加灰尘单的过滤，需要依赖于marketcap
+            true
+          else
+            false
+      }
+    case _ ⇒ false
+  }
+
 }

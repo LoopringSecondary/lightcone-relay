@@ -27,21 +27,23 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class TransactionHelperImpl @Inject() (
-  val tokenList: TokenList,
-  val accessor: EthClient,
-  val erc20Abi: Erc20Abi,
-  val wethAbi: WethAbi,
-  val loopringAbi: LoopringAbi) extends TransactionHelper {
+    val tokenList: TokenList,
+    val accessor: EthClient,
+    val erc20Abi: Erc20Abi,
+    val wethAbi: WethAbi,
+    val loopringAbi: LoopringAbi
+)
+  extends TransactionHelper {
 
   // todo: get protocol address(delegate, impl, token register...) on chain
-  val supportedContracts: Seq[String] = tokenList.list.map(x => safeAddress(x.protocol))
+  val supportedContracts: Seq[String] = tokenList.list.map(x ⇒ safeAddress(x.protocol))
 
   def getMinedTransactions(hashseq: Seq[String]): Future[Seq[FullTransaction]] =
-    Future.sequence(hashseq.map(txhash =>
+    Future.sequence(hashseq.map(txhash ⇒
       for {
-        tx <- accessor.getTransactionByHash(GetTransactionByHashReq(txhash))
-        receipt <- accessor.getTransactionReceipt(GetTransactionReceiptReq(txhash))
-        trace <- accessor.traceTransaction(TraceTransactionReq(txhash))
+        tx ← accessor.getTransactionByHash(GetTransactionByHashReq(txhash))
+        receipt ← accessor.getTransactionReceipt(GetTransactionReceiptReq(txhash))
+        trace ← accessor.traceTransaction(TraceTransactionReq(txhash))
       } yield FullTransaction()
         .withTx(tx.getResult)
         .withReceipt(receipt.getResult)
@@ -49,21 +51,25 @@ class TransactionHelperImpl @Inject() (
 
   // todo
   def getPendingTransactions(hashSeq: Seq[String]): Future[Seq[Transaction]] = for {
-    _ <- Future {}
+    _ ← Future {}
   } yield Seq()
 
   def unpackMinedTransaction(src: FullTransaction): Seq[Any] = {
-    val mainheader = getTxMainHeader(src.tx, src.receipt)
-    val mainseq = unpackSingleInput(src.getTx.input, mainheader)
+    val header = src.getTxHeader
+    val mainseq = unpackSingleInput(src.getTx.input, header)
 
     val callseq = src.trace match {
-      case Some(x) => x.calls.map(n => unpackSingleInput(n.input, n.fillTxHeader(mainheader)))
-      case _ => Seq()
+      case Some(x) ⇒ x.calls.map { n ⇒
+        unpackSingleInput(n.input, header.fillWith(x))
+      }.reduceLeft((a, b) ⇒ a ++ b)
+      case _ ⇒ Seq()
     }
 
     val evtseq = src.receipt match {
-      case Some(x) => x.logs.map(n => unpackSingleEvent(n, n.fillTxHeader(mainheader)))
-      case _ => Seq()
+      case Some(x) ⇒ x.logs.map { n ⇒
+        unpackSingleEvent(n, header.fillWith(x))
+      }.reduceLeft((a, b) ⇒ a ++ b)
+      case _ ⇒ Seq()
     }
 
     mainseq ++ callseq ++ evtseq
@@ -83,21 +89,8 @@ class TransactionHelperImpl @Inject() (
       loopringAbi.decodeLogAndAssemble(log, header)
   }
 
-  def isContractAddressSupported(txTo: String): Boolean = supportedContracts.contains(safeAddress(txTo))
+  def isContractAddressSupported(txTo: String) = supportedContracts.contains(safeAddress(txTo))
 
   private def safeAddress(address: String): String = address.toUpperCase()
 
-  private def getTxMainHeader(txOpt: Option[Transaction], receiptOpt: Option[TransactionReceipt]): TxHeader = {
-    var header = txOpt match {
-      case Some(x) => x.getTxHeader()
-      case _ => throw new Exception("transaction is empty")
-    }
-
-    header = receiptOpt match {
-      case Some(x) => x.fillTxHeader(header)
-      case _ => throw new Exception("receipt is empty")
-    }
-
-    header
-  }
 }

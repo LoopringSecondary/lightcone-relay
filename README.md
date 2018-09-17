@@ -91,7 +91,7 @@ sbt core/'testOnly *AllowanceSpec'
 
 run all tests
 ```
-sbt core/test
+sbt lib/test
 ```
 
 check the settings in application.conf and test data used in specs.

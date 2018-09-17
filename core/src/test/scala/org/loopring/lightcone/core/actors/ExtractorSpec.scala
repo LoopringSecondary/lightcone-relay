@@ -45,7 +45,8 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val config = ConfigFactory.defaultApplication()
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
-    port = config.getInt("ethereum.port"))
+    port = config.getInt("ethereum.port")
+  )
   val queueSize = 5
 
   val tokenlist = TokenList(list = Seq[Token](
@@ -54,18 +55,21 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
       symbol = "LRC",
       decimal = 18,
       source = "loopring",
-      market = false),
+      market = false
+    ),
 
     Token(
       protocol = "0xf079E0612E869197c5F4c7D0a95DF570B163232b",
       symbol = "WETH",
       decimal = 18,
       source = "ethereum",
-      market = true)))
+      market = true
+    )
+  ))
 
-  val erc20Abi = new Erc20Abi(config)
-  val wethAbi = new WethAbi(config)
-  val loopringAbi = new LoopringAbi(config)
+  val erc20Abi = new Erc20Abi("abi/erc20.json")
+  val wethAbi = new WethAbi("abi/weth.json")
+  val loopringAbi = new LoopringAbi("abi/loopring.json")
   val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
   implicit val detector = new BlockHelperImpl(config, geth)
@@ -77,7 +81,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   "extractor actor" must {
 
     "start single round" in {
-      val settings = BlockchainEventExtractorSettings(scheduleDelay = 5000) // 5s
+      val settings = BlockchainEventExtractorSettings(scheduleDelay = 10) // 5s
       val round = StartNewRound()
 
       extractor ! round

@@ -16,13 +16,13 @@
 
 package org.loopring.lightcone.lib.abi
 
-import com.google.inject.Inject
-import com.typesafe.config.Config
 import org.loopring.lightcone.lib.solidity.Abi
-import org.loopring.lightcone.proto.eth_jsonrpc.Log
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.block_chain_event._
 
-class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
+// "abi/weth.json"
+class WethAbi(resourcePath: String)
+  extends Erc20Abi(resourcePath) {
 
   val FN_DEPOSIT = "deposit"
   val FN_WITHDRAW = "withdraw"
@@ -30,7 +30,6 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
   val EN_DEPOSIT = "Deposit"
   val EN_WITHDRAWAL = "Withdrawal"
 
-  override def abi: Abi = Abi.fromJson(config.getString("abi.weth"))
   override def supportedFunctions: Seq[String] = {
     super.supportedFunctions.seq ++ Seq(FN_DEPOSIT, FN_WITHDRAW)
   }
@@ -43,9 +42,9 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
     val res = decodeInput(input)
     val wethseq = res.name match {
-      case FN_DEPOSIT => Seq(assembleDepositFunction(res.list, header))
-      case FN_WITHDRAW => Seq(assembleWithdrawalFunction(res.list, header))
-      case _ => Seq()
+      case FN_DEPOSIT  ⇒ Seq(assembleDepositFunction(res.list, header))
+      case FN_WITHDRAW ⇒ Seq(assembleWithdrawalFunction(res.list, header))
+      case _           ⇒ Seq()
     }
 
     erc20seq ++ wethseq
@@ -56,9 +55,9 @@ class WethAbi @Inject() (config: Config) extends Erc20Abi(config) {
 
     val res = decodeLog(log)
     val wethseq = res.name match {
-      case EN_DEPOSIT => Seq(assembleDepositEvent(res.list, header))
-      case EN_WITHDRAWAL => Seq(assembleWithdrawalEvent(res.list, header))
-      case _ => Seq()
+      case EN_DEPOSIT    ⇒ Seq(assembleDepositEvent(res.list, header))
+      case EN_WITHDRAWAL ⇒ Seq(assembleWithdrawalEvent(res.list, header))
+      case _             ⇒ Seq()
     }
 
     erc20seq ++ wethseq

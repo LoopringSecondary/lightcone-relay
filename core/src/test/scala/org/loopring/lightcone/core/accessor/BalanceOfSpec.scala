@@ -33,7 +33,7 @@ class BalanceOfSpec extends FlatSpec {
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- geth.getBalance(req)
+      resp ← geth.getBalance(req)
     } yield resp
 
     val tx = Await.result(resultFuture, timeout.duration)

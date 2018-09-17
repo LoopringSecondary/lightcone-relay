@@ -38,9 +38,10 @@ object OrderCacher
 }
 
 class OrderCacher(cache: OrderCache)(
-  implicit
-  ec: ExecutionContext,
-  timeout: Timeout) extends Actor {
+    implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+) extends Actor {
 
   // implicit val byteStringSerializer = new ByteStringSerializer[CachedMultiOrders] {
   //   def serialize(data: CachedMultiOrders): ByteString = {
@@ -55,21 +56,21 @@ class OrderCacher(cache: OrderCache)(
   // }
 
   def receive: Receive = {
-    case settings: OrderCacherSettings =>
-    case req: GetOrdersFromCache =>
+    case settings: OrderCacherSettings ⇒
+    case req: GetOrdersFromCache       ⇒
     // redis.get(req.orderHashes.head) onComplete {
     //   case Success(_) =>
     //     sender ! CachedMultiOrders.defaultInstance
     //   case Failure(_) => ErrorResp()
     // }
-    case m: Purge.Order =>
+    case m: Purge.Order                ⇒
 
-    case m: Purge.AllOrderForAddress =>
+    case m: Purge.AllOrderForAddress   ⇒
 
-    case m: Purge.AllForAddresses =>
+    case m: Purge.AllForAddresses      ⇒
 
-    case m: Purge.AllAfterBlock =>
+    case m: Purge.AllAfterBlock        ⇒
 
-    case m: Purge.All =>
+    case m: Purge.All                  ⇒
   }
 }

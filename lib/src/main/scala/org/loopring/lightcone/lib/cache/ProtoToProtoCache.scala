@@ -39,9 +39,10 @@ private object ReaderExample {
 */
 
 final class ProtoToProtoCache[R <: scalapb.GeneratedMessage with scalapb.Message[R], V <: scalapb.GeneratedMessage with scalapb.Message[V]](
-  val underlying: ByteArrayCache,
-  val serializer: ProtoSerializer[V],
-  val genKey: R => Array[Byte])(implicit val ex: ExecutionContext)
+    val underlying: ByteArrayCache,
+    val serializer: ProtoSerializer[V],
+    val genKey: R ⇒ Array[Byte]
+)(implicit val ex: ExecutionContext)
   extends ProtoCache[R, V] {
   def keyToBytes(key: R) = genKey(key)
 }

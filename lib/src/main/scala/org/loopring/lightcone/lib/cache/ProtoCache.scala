@@ -33,16 +33,17 @@ trait ProtoCache[K, V <: scalapb.GeneratedMessage with scalapb.Message[V]]
       .map(_.map(serializer.fromBytes))
   }
   def get(keys: Seq[K]): Future[Map[K, V]] = {
-    val keyMap = keys.map(k => keyToBytes(k) -> k).toMap
+    val keyMap = keys.map(k ⇒ keyToBytes(k) -> k).toMap
     underlying.get(keyMap.keys.toSeq).map {
       _.map {
-        case (k, v) => keyMap(k) -> serializer.fromBytes(v)
+        case (k, v) ⇒ keyMap(k) -> serializer.fromBytes(v)
       }
     }
   }
   def put(key: K, value: V) = {
     underlying.put(
       keyToBytes(key),
-      serializer.toBytes(value))
+      serializer.toBytes(value)
+    )
   }
 }
