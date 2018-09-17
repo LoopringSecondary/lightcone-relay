@@ -35,8 +35,12 @@ class TransactionManager()(implicit
     timeout: Timeout
 ) extends Actor {
 
+  var settings: TransactionManagerSettings = null
+
   def receive: Receive = {
     case settings: TransactionManagerSettings ⇒
+      this.settings = settings
+
     case _ ⇒
   }
 }
