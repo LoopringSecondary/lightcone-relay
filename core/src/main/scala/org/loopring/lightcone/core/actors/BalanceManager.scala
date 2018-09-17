@@ -39,33 +39,38 @@ object BalanceManager
 }
 
 class BalanceManager()(
-  implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   val caching = new ActorCaching(
     cacheActor = Routers.balanceCacher,
-    sourceActor = Routers.ethereumAccessor)
+    sourceActor = Routers.ethereumAccessor
+  )
 
   var settings: BalanceManagerSettings = null
   def id = settings.id
 
   import BalanceManagerCachingFacilitators._
   def receive: Receive = {
-    case settings: BalanceManagerSettings =>
+    case settings: BalanceManagerSettings ⇒
       this.settings = settings
 
-    case req: GetBalancesReq =>
-      caching.askFor[GetBalancesReq, GetBalancesResp, GetBalancesResp](
-        req).pipeTo(sender)
+    case req: GetBalancesReq ⇒
+      caching.askFor[GetBalancesReq, GetBalancesResp, CacheBalanceInfo](
+        req
+      ).pipeTo(sender)
 
-    case req: GetAllowancesReq =>
-      caching.askFor[GetAllowancesReq, GetAllowancesResp, GetAllowancesResp](
-        req).pipeTo(sender)
+    case req: GetAllowancesReq ⇒
+      caching.askFor[GetAllowancesReq, GetAllowancesResp, CacheBalanceInfo](
+        req
+      ).pipeTo(sender)
 
-    case req: GetBalanceAndAllowanceReq =>
-      caching.askFor[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, GetBalanceAndAllowanceResp](
-        req).pipeTo(sender)
+    case req: GetBalanceAndAllowanceReq ⇒
+      caching.askFor[GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp, CacheBalanceInfo](
+        req
+      ).pipeTo(sender)
   }
 }

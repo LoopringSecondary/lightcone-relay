@@ -17,34 +17,30 @@
 package org.loopring.lightcone.core
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpResponse
 import akka.util.Timeout
-import scala.concurrent.duration._
-import akka.stream._
-import scala.util._
-import akka.http.scaladsl.model._
-import akka.stream.scaladsl._
-import akka.http.scaladsl._
-import scala.concurrent._
 import com.typesafe.config.ConfigFactory
+import org.loopring.lightcone.core.accessor.EthClientImpl
+import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
 
-package object accessor {
+import scala.concurrent.Promise
+import scala.concurrent.duration._
 
-  type HttpFlow = Flow[ //
-  (HttpRequest, Promise[HttpResponse]), //
-  (Try[HttpResponse], Promise[HttpResponse]), //
-  Http.HostConnectionPool]
-
+package object ethaccessor {
   implicit val system = ActorSystem()
 
-  val config = ConfigFactory.load()
-  val contractABI = new ContractABI(config.getConfig("abi"))
-  implicit val timeout = Timeout(5 seconds)
-
+  val config = ConfigFactory.defaultApplication()
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
-    host = "localhost",
-    port = 8080)
+    host = config.getString("ethereum.host"),
+    port = config.getInt("ethereum.port")
+  )
+  val erc20Abi = new Erc20Abi("abi/erc20.json")
+  val loopringAbi = new LoopringAbi("abi/loopring.json")
+  val queueSize = 5
 
-  val ethClient: EthClient = new EthClientImpl(contractABI, httpFlow, 5)
+  implicit val timeout = Timeout(5 seconds)
+  val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
   val owner = "0x1b978a1d302335a6f2ebe4b8823b5e17c3c84135"
   val lrc = "0xcd36128815ebe0b44d0374649bad2721b8751bef"

@@ -19,15 +19,14 @@ package org.loopring.lightcone.core.database.dals
 import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
-import org.loopring.lightcone.proto.order.Order
-import org.loopring.lightcone.proto.order.{ OrderChangeLog, OrderStatus }
+import org.loopring.lightcone.proto.order.{ Order, OrderChangeLog, OrderLevel1Status, OrderStatus }
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
 
 case class QueryCondition(delegateAddress: String, owner: Option[String],
-  market: Option[String], status: Seq[String], orderHashes: Seq[String],
-  orderType: Option[String], side: Option[String])
+    market: Option[String], status: Seq[String], orderHashes: Seq[String],
+    orderType: Option[String], side: Option[String])
 
 trait OrdersDal extends BaseDalImpl[Orders, Order] {
   def getOrder(orderHash: String): Future[Option[Order]]
@@ -48,7 +47,7 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
   }
 
   override def update(rows: Seq[Order]): Future[Unit] = {
-    db.run(DBIO.seq(rows.map(r => query.filter(_.id === r.id).update(r)): _*))
+    db.run(DBIO.seq(rows.map(r ⇒ query.filter(_.id === r.id).update(r)): _*))
   }
 
   def saveOrder(order: Order): Future[Int] = module.db.run(query += order)
@@ -78,44 +77,44 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
     db.run(query
       .filter(_.owner === owner)
       .filter(_.market === market)
-      .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .map(o ⇒ (o.status, o.updatedAt))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByOwner(owner: String): Future[Int] = {
     db.run(query
       .filter(_.owner === owner)
-      .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .map(o ⇒ (o.status, o.updatedAt))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByTime(cutoff: Long): Future[Int] = {
     db.run(query
       .filter(_.validUntil >= cutoff)
-      .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .map(o ⇒ (o.status, o.updatedAt))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def softCancelByHash(orderHash: String): Future[Int] = {
     db.run(query
       .filter(_.orderHash === orderHash)
-      .map(o => (o.status, o.updatedAt))
-      .update(OrderStatus.SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .map(o ⇒ (o.status, o.updatedAt))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
 
   def unwrapContition(condition: QueryCondition) = {
 
     query
-      .filter { o =>
+      .filter { o ⇒
         condition.owner.map(o.owner === _).getOrElse(true: Rep[Boolean])
       }
-      .filter { o =>
+      .filter { o ⇒
         condition.orderType.map(o.orderType === _).getOrElse(true: Rep[Boolean])
       }
-      .filter { o =>
+      .filter { o ⇒
         condition.side.map(o.side === _).getOrElse(true: Rep[Boolean])
       }
-      .filter { o =>
+      .filter { o ⇒
         condition.market.map(o.market === _).getOrElse(true: Rep[Boolean])
       }
       .filter(_.status inSet condition.status)

@@ -4,9 +4,8 @@
 
 
 ## Compile
-```
-sbt compile
-```
+Please first clone the ethcube project and perform `sbt publishLocal`
+then you can `sbt compile`.
 
 ### Run
 Here is how you can run two nodes to form a cluster:
@@ -92,7 +91,7 @@ sbt core/'testOnly *AllowanceSpec'
 
 run all tests
 ```
-sbt core/test
+sbt lib/test
 ```
 
 check the settings in application.conf and test data used in specs.

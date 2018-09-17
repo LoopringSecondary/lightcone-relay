@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.etypes
+package org.loopring.lightcone.lib.etypes
 
 object Hash {
   val HASH_LENGTH = 42

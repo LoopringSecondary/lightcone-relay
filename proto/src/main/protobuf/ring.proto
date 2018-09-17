@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 import "order.proto";
 
@@ -12,6 +12,8 @@ message Ring {
     bytes r = 3;
     bytes s = 4;
     string hash = 5;
+    string feeReceipt = 6;
+    int32 feeSelection = 7;
 }
 
 message RingToSettle {

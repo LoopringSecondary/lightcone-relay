@@ -17,8 +17,7 @@
 package org.loopring.lightcone.core.database.tables
 
 import org.loopring.lightcone.core.database.base._
-import org.loopring.lightcone.proto.order.RawOrder
-import org.loopring.lightcone.proto.order.Order
+import org.loopring.lightcone.proto.order._
 import slick.jdbc.MySQLProfile.api._
 
 class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
@@ -58,15 +57,15 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
 
   def * = (id, rawOrderProjection, updatedBlock, dealtAmountS, dealtAmountB, splitAmountS, splitAmountB, cancelledAmountS, cancelledAmountB,
-    status, broadcastTime, v, r, s, authAddress, privateKey, walletAddress, powNonce, createdAt, updatedAt) <> (extendTupled, upwrapOption)
+    status, broadcastTime, price, powNonce, market, side, orderType, createdAt, updatedAt) <> (extendTupled, unwrapOption)
   def rawOrderProjection = (protocol, delegateAddress, tokenS, tokenB, amountS, amountB, validSince, validUntil,
-    lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, price, owner, orderHash, market, side, orderType) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
+    lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, owner, walletAddress, authAddress, privateKey, v, s, s, orderHash) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
 
-  private def extendTupled = (i : Tuple20[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Int, String, String, String, String, String, Long, Long, Long]) =>
+  private def extendTupled = (i : Tuple18[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Double, Long, String, String, String, Long, Long]) =>
     Order.apply(i._1, Some(i._2), i._3, i._4, i._5, i._6, i._7, i._8, i._9,
-      i._10, i._11, i._12, i._13, i._14, i._15, i._16, i._17, i._18, i._19, i._20)
+      Some(wrapStatus(i._10)), i._11, i._12, i._13, i._14, i._15, wrapType(i._16), i._17, i._18)
 
-  private def upwrapOption(order : Order) = {
+  private def unwrapOption(order : Order) = {
     val unapplyOrder = Order.unapply(order).get
     Some((
       unapplyOrder._1,
@@ -78,21 +77,36 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
       unapplyOrder._7,
       unapplyOrder._8,
       unapplyOrder._9,
-      unapplyOrder._10,
+      unwrapStatus(unapplyOrder._10),
       unapplyOrder._11,
       unapplyOrder._12,
       unapplyOrder._13,
       unapplyOrder._14,
       unapplyOrder._15,
-      unapplyOrder._16,
+      unapplyOrder._16.name,
       unapplyOrder._17,
       unapplyOrder._18,
-      unapplyOrder._19,
-      unapplyOrder._20,
       ))
 
   }
 
   def idx = index("idx_order_hash", orderHash, unique = true)
 
+  def wrapStatus(src : String) : OrderStatus =
+    OrderLevel1Status.fromName(src) match {
+      case Some(value) => OrderStatus(value, OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN, OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN)
+      case None => OrderStatus(OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN, OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN, OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN)
+    }
+
+  def unwrapStatus(status : Option[OrderStatus]) : String =
+    status match {
+      case Some(value) => value.level1Status.name
+      case None => OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN.name
+    }
+
+  def wrapType(src : String) : OrderType =
+    OrderType.fromName(src) match {
+      case Some(value) => value
+      case None => OrderType.UNKNOWN
+    }
 }

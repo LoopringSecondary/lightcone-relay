@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 import public "common.proto";
 
@@ -26,8 +26,8 @@ message GetOrdersReq {
 }
 
 message OrderQuery {
-    string status = 1;
-    string delegate_address = 2;
+    repeated string status = 1;
+    string delegate = 2;
     string owner = 3;
     string market = 4;
 //    string order_hash = 5;
@@ -100,11 +100,18 @@ message OrdersSaved {
 message UpdateOrders {
     repeated Order orders = 1;
 }
+
 message CalculateOrdersStatus {
     repeated Order orders = 1;
 }
-message OrdersUpdated {
-    repeated Order orders = 1;
+
+message UpdatedOrder {
+    Order order = 1;
+    int64 postponed = 2;
+}
+
+message UpdatedOrders {
+    repeated UpdatedOrder orders = 1;
 }
 
 message SoftCancelOrders {
@@ -143,7 +150,7 @@ message UpdateOrdersById {
 }
 
 message Order {
-    int64 id = 18;
+    int64 id = 19;
     RawOrder raw_order = 1;
     int64 updated_block = 2;
     string dealtAmountS = 3;
@@ -152,44 +159,55 @@ message Order {
     string splitAmountB = 6;
     string cancelledAmountS = 7;
     string cancelledAmountB = 8;
-    string status = 9;
+    OrderStatus status = 9;
     int32 broadcast_time = 10;
-    int32 v = 11;
-    string r = 12;
-    string s = 13;
-    string auth_addr = 14;
-    string auth_private_key = 15;
-    string wallet_address = 16;
-    int64 pow_nonce = 17;
-    int64 createdAt = 19;
-    int64 updatedAt = 20;
+    double price = 11;
+    int64 pow_nonce = 12;
+    string market = 14;
+    string side = 15;
+    OrderType orderType = 16;
+    int64 createdAt = 17;
+    int64 updatedAt = 18;
 }
 
-enum OrderStatus {
-    // level 1 status
-    UNKNOWN = 0;
-    NEW = 1;
-    INVALID = 2;
-    DUST = 3;
-    FULLY_FILLED = 4;
-    SOFT_CANCELLED = 5;
-    HARD_CANCELLED = 6;
-    EXPIRED = 7;
+// level 1 status
+enum OrderLevel1Status {
+    ORDER_STATUS_LEVEL1_UNKNOWN = 0;
+    ORDER_STATUS_NEW = 1;
+    ORDER_STATUS_FULL = 2;
+    ORDER_STATUS_SOFT_CANCELLED = 3;
+    ORDER_STATUS_HARD_CANCELLED = 4;
+    ORDER_STATUS_EXPIRED = 5;
+}
 
-    // level 2 status
-    OPEN = 8;
-    PENDING = 9;
+// level 2 status
+enum OrderLevel2Status {
+    ORDER_STATUS_LEVEL2_UNKNOWN = 0;
+    ORDER_STATUS_OPEN = 1;
+    ORDER_STATUS_PENDING = 2;
+    ORDER_STATUS_PARTIAL = 3;
+}
 
-    // level 3 status
-    MATCHING = 10;
-    SETTLEING = 11;
-    DEFERRED = 12;
-    TINY = 13;
+// level 3 status
+enum OrderLevel3Status {
+    ORDER_STATUS_LEVEL3_UNKNOWN = 0;
+    ORDER_STATUS_DEFERRED = 1;
+    ORDER_STATUS_TINY = 2;
+    ORDER_STATUS_MATCHING = 3;
+    ORDER_STATUS_SETTLEING = 4;
+    ORDER_STATUS_ACTIVE = 5;
+}
+
+message OrderStatus {
+    OrderLevel1Status level1_status = 1;
+    OrderLevel2Status level2_status = 2;
+    OrderLevel3Status level3_status = 3;
 }
 
 enum OrderType {
-    MARKET = 0;
-    P2P = 1;
+    UNKNOWN = 0;
+    MARKET = 1;
+    P2P = 2;
 }
 
 enum MarketSide {
@@ -207,21 +225,23 @@ enum SoftCancelType {
 message RawOrder {
     string protocol = 1;
     string delegate_address = 2;
-    string token_s = 6;
-    string token_b = 7;
-    string amount_s = 8;
-    string amount_b = 9;
-    int64 valid_since = 10;
-    int64 valid_until = 11;
-    string lrc_fee = 12;
-    bool buy_no_more_than_amount_b = 13;
-    int32 margin_split_percentage = 14;
-    double price = 18;
-    string owner = 19;
-    string hash = 20;
-    string market = 21;
-    string side = 24;
-    string orderType = 25;
+    string token_s = 3;
+    string token_b = 4;
+    string amount_s = 5;
+    string amount_b = 6;
+    int64 valid_since = 7;
+    int64 valid_until = 8;
+    string lrc_fee = 9;
+    bool buy_no_more_than_amount_b = 10;
+    int32 margin_split_percentage = 11;
+    string owner = 12;
+    string wallet_address = 13;
+    string auth_addr = 14;
+    string auth_private_key = 15;
+    int32 v = 16;
+    string r = 17;
+    string s = 18;
+    string hash = 19;
 }
 
 message SoftCancelSign {
@@ -251,3 +271,4 @@ message OrderChangeLog {
     int64 createdAt = 12;
     int64 updatedAt = 13;
 }
+

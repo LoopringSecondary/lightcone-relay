@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.lib.collection
+package org.loopring.lightcone.core.cache.redishash
 
-trait HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt
+trait RedisHashGetSerializer[T, F, R] {
+  def cacheKey(req: T): String
+  def encodeCacheFields(req: T): Seq[String]
+  def decodeCacheField(field: String): F
+  def genResp(req: T, cacheFields: Seq[F], valueData: Seq[Option[Array[Byte]]]): R
 }
 
-final class SimpleHexToBigIntConverter extends HexToBigIntConverter {
-  def hex2Bigint(hex: String): BigInt = {
-    if (hex.startsWith("0x")) {
-      val subhex = hex.substring(2)
-      BigInt(subhex, 16)
-    } else {
-      BigInt(hex, 16)
-    }
-  }
+trait RedisHashSetSerializer[T] {
+  def cacheKey(req: T): String
+  def genKeyValues(req: T): Map[String, Array[Byte]]
 }
+

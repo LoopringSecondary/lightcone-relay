@@ -16,7 +16,8 @@
 
 package org.loopring.lightcone.core.accessor
 
-import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.core.ethaccessor._
+import org.loopring.lightcone.proto.eth_jsonrpc.{ GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq, GetBlockWithTxObjectByHashReq, GetBlockWithTxObjectByNumberReq }
 import org.scalatest.FlatSpec
 
 import scala.concurrent.Await
@@ -29,7 +30,7 @@ class GetBlockSpec extends FlatSpec {
   "eth get block with hash by number" should "contain hash list" in {
     val req = GetBlockWithTxHashByNumberReq("0xa8a0")
     val respFuture = for {
-      resp <- ethClient.getBlockWithTxHashByNumber(req)
+      resp ← geth.getBlockWithTxHashByNumber(req)
     } yield resp.getResult
 
     val block = Await.result(respFuture, timeout.duration)
@@ -39,7 +40,7 @@ class GetBlockSpec extends FlatSpec {
   "eth get block with object by number" should "contain hash list" in {
     val req = GetBlockWithTxObjectByNumberReq("0xa8a0")
     val respFuture = for {
-      resp <- ethClient.getBlockWithTxObjectByNumber(req)
+      resp ← geth.getBlockWithTxObjectByNumber(req)
     } yield resp.getResult
 
     val block = Await.result(respFuture, timeout.duration)
@@ -49,7 +50,7 @@ class GetBlockSpec extends FlatSpec {
   "eth get block with hash by hash" should "contain hash list" in {
     val req = GetBlockWithTxHashByHashReq("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
-      resp <- ethClient.getBlockWithTxHashByHash(req)
+      resp ← geth.getBlockWithTxHashByHash(req)
     } yield resp.getResult
 
     val block = Await.result(respFuture, timeout.duration)
@@ -59,7 +60,7 @@ class GetBlockSpec extends FlatSpec {
   "eth get block with object by hash" should "contain hash list" in {
     val req = GetBlockWithTxObjectByHashReq("0x36465444dbec326cf815973fc3064bce9c1f7ec22631d69462dea396cdadd730")
     val respFuture = for {
-      resp <- ethClient.getBlockWithTxObjectByHash(req)
+      resp ← geth.getBlockWithTxObjectByHash(req)
     } yield resp.getResult
 
     val block = Await.result(respFuture, timeout.duration)

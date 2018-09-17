@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.accessor
+package org.loopring.lightcone.lib.etypes
 
-import scala.concurrent._
-import com.typesafe.config.Config
-import org.loopring.lightcone.lib.solidity.Abi
+object Address {
+  val ADDRESS_LENGTH = 42
+}
 
-case class ContractABI(config: Config) {
-  def getAbiJsonString(str: String): String = config.getString(str)
-  def get(str: String): Abi = Abi.fromJson(getAbiJsonString("erc20"))
+case class Address(val bytes: Array[Byte]) {
+  def isValid: Boolean =
+    bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
+
+  override def toString: String = new String(bytes)
 }

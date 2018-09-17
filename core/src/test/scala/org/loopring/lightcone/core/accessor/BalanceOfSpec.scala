@@ -16,8 +16,10 @@
 
 package org.loopring.lightcone.core.accessor
 
+import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.GetBalanceReq
 import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -31,7 +33,7 @@ class BalanceOfSpec extends FlatSpec {
       .withTag("latest")
 
     val resultFuture = for {
-      resp <- ethClient.getBalance(req)
+      resp ← geth.getBalance(req)
     } yield resp
 
     val tx = Await.result(resultFuture, timeout.duration)

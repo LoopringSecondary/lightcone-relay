@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
-package com.loopring.lightcone.proto;
+package org.loopring.lightcone.proto;
 
 message BytesArray {
     repeated bytes bytesList = 1;
@@ -10,10 +10,6 @@ message BytesArray {
 
 message UintArray {
     repeated uint32 uintList = 1;
-}
-
-message BigIntArray {
-    repeated bytes bigintList = 1;
 }
 
 ///////////////////////////////////////////////////////
@@ -24,8 +20,8 @@ message BigIntArray {
 
 message SubmitRingFunction {
     repeated BytesArray addressList = 1;
-    repeated BytesArray uintArgsList = 2;
-    repeated BytesArray repeatedUint = 3;
+    repeated BytesArray bigintArgsList = 2;
+    repeated UintArray uintArgsList = 3;
     repeated bool buyNoMoreThanBList = 4;
     repeated uint32 vList = 5;
     repeated bytes rList = 6;
@@ -36,7 +32,7 @@ message SubmitRingFunction {
 
 message CancelOrderFunction {
     BytesArray addressList = 1;
-    BigIntArray OrderValues = 2;
+    BytesArray OrderValues = 2;
     bool buyNoMoreThanAmountB = 3;
     uint32 marginSplit = 4;
     uint32 v = 5;

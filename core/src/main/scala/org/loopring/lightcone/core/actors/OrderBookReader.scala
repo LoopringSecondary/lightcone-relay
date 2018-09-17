@@ -16,15 +16,13 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.orderbook.GetOrderBookReq
+
+import scala.concurrent.ExecutionContext
 
 object OrderBookReader
   extends base.Deployable[OrderBookReaderSettings] {
@@ -35,12 +33,16 @@ object OrderBookReader
 }
 
 class OrderBookReader()(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
+  var settings: OrderBookReaderSettings = null
 
   def receive: Receive = {
-    case settings: OrderBookReaderSettings =>
-    case _ =>
+    case settings: OrderBookReaderSettings ⇒
+      this.settings = settings
+    case m: GetOrderBookReq ⇒
+      Routers.orderBookManager(settings.id) forward m
   }
 }

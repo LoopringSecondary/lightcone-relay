@@ -40,4 +40,5 @@ lazy val lightcone = (project in file("."))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
+    libraryDependencies += "org.loopring" %% "ethcube" % "0.0.2-SNAPSHOT",
     update / aggregate := false)

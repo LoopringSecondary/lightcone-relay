@@ -32,11 +32,12 @@ import com.google.inject._
 object Main {
 
   case class CmdOptions(
-    port: Int = 0,
-    managerPort: Int = 8081,
-    seeds: Seq[String] = Seq.empty[String],
-    roles: Seq[String] = Seq.empty[String],
-    configFile: String = "")
+      port: Int = 0,
+      managerPort: Int = 8081,
+      seeds: Seq[String] = Seq.empty[String],
+      roles: Seq[String] = Seq.empty[String],
+      configFile: String = ""
+  )
 
   def main(args: Array[String]): Unit = {
 
@@ -44,42 +45,42 @@ object Main {
       head("Lightcone", "0.1")
 
       opt[Int]('p', "port")
-        .action { (v, options) =>
+        .action { (v, options) ⇒
           options.copy(port = v)
         }
         .text("port of this acter system")
 
       opt[Int]('m', "mport")
-        .action { (v, options) =>
+        .action { (v, options) ⇒
           options.copy(managerPort = v)
         }
         .text("port of internal rest server [default 8081]")
 
       opt[Seq[String]]('r', "roles")
-        .action { (v, options) =>
+        .action { (v, options) ⇒
           options.copy(roles = v)
         }
         .text("cluster seed nodes")
 
       opt[Seq[String]]('s', "sees")
-        .action { (v, options) =>
+        .action { (v, options) ⇒
           options.copy(seeds = v)
         }
         .text("node roles")
 
       opt[String]('c', "config")
-        .action { (v, options) =>
+        .action { (v, options) ⇒
           options.copy(configFile = v.trim)
         }
         .text("path to configuration file")
 
     }.parse(args, CmdOptions()) match {
-      case None =>
+      case None ⇒
 
-      case Some(options) =>
+      case Some(options) ⇒
         val seedNodes = options.seeds
           .filter(_.nonEmpty)
-          .map(s => s""""akka.tcp://Lightcone@$s"""")
+          .map(s ⇒ s""""akka.tcp://Lightcone@$s"""")
           .mkString("[", ",", "]")
 
         val roles =
@@ -104,7 +105,8 @@ object Main {
             akka.remote.netty.tcp.hostname=$hostname
             akka.cluster.roles=$roles
             akka.cluster.seed-nodes=$seedNodes
-            """)
+            """
+          )
           .withFallback(fallback)
 
         // Deploying NodeManager

@@ -37,22 +37,22 @@ object OrderDBAccessor
 }
 
 class OrderDBAccessor(db: OrderDatabase)(implicit
-  ec: ExecutionContext,
-  timeout: Timeout)
+    ec: ExecutionContext,
+    timeout: Timeout
+)
   extends Actor {
 
   def receive: Receive = {
-    case m: OrderDBAccessorSettings =>
-    case m: SaveUpdatedOrders =>
-    case m: SoftCancelOrders =>
-    case m: SaveOrders =>
-      sender ! m.orders.map { o =>
+    case m: OrderDBAccessorSettings ⇒
+    case m: SaveUpdatedOrders       ⇒
+    case m: SoftCancelOrders        ⇒
+    case m: SaveOrders ⇒
+      sender ! m.orders.map { o ⇒
         db.orders.saveOrder(o)
       }
 
-    case m: ChainRolledBack => rollbackOrders(m.detectedBlockNumber)
-    case m: NotifyRollbackOrders =>
-
+    case m: ChainRolledBack      ⇒ rollbackOrders(m.detectedBlockNumber)
+    case m: NotifyRollbackOrders ⇒
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}

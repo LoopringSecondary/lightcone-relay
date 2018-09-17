@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.etypes
+package org.loopring.lightcone.core.utils
 
-import org.spongycastle.util.encoders.Hex
+import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.block_chain_event._
 
-object Address {
-  val ADDRESS_LENGTH = 42
-}
+import scala.concurrent.Future
 
-case class Address(val bytes: Array[Byte]) {
-  def isValid: Boolean =
-    bytes != null && bytes.length.equals(Address.ADDRESS_LENGTH)
+case class Block(
+    blockHash: String,
+    parentHash: String,
+    blockNumber: String,
+    blockTime: String
+)
 
-  override def toString: String = new String(bytes)
+trait BlockHelper {
+  def getBlock(): Future[BlockWithTxHash]
+  def getCurrentBlock(): Future[BigInt]
+  def setCurrentBlock(block: Block): Future[Unit]
+  def getForkBlock(): Future[BigInt]
+  def isBlockForked(): Future[Boolean]
+  def getForkEvent(): Future[ChainRolledBack]
 }

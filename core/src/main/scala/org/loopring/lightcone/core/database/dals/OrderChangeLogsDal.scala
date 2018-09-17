@@ -37,7 +37,7 @@ class OrderChangeLogsDalImpl(val module: OrderDatabase) extends OrderChangeLogsD
   }
 
   override def update(rows: Seq[OrderChangeLog]): Future[Unit] = {
-    db.run(DBIO.seq(rows.map(r => query.filter(_.id === r.id).update(r)): _*))
+    db.run(DBIO.seq(rows.map(r ⇒ query.filter(_.id === r.id).update(r)): _*))
   }
 
   def addChangeLog(change: OrderChangeLog): Future[Int] = module.db.run(query += change)
