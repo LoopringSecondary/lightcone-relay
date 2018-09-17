@@ -18,9 +18,10 @@ package org.loopring.lightcone.core.utils
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
-import org.loopring.lightcone.core.accessor._
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.proto.block_chain_event._
+import org.loopring.lightcone.lib.etypes._
+import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.proto.eth_jsonrpc.{ BlockWithTxHash, GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq }
+import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,45 +32,92 @@ class BlockHelperImpl @Inject() (
 )
   extends BlockHelper {
 
-  // cancel order: 43163
-  // submit ring: 43206
-  // cutoff all: 43168
-  // cutoff pair: 43170
-  val currentBlock = BigInt(43163)
+  var blockNumberIndex = BigInt(0)
 
-  def getBlock(): Future[BlockWithTxHash] = for {
-    _ ← Future {}
-    block = safeBlockHex(currentBlock)
-    blockReq = GetBlockWithTxHashByNumberReq(block)
-    block ← accessor.getBlockWithTxHashByNumber(blockReq)
-  } yield block.getResult
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
+    _ ← setCurrentBlock(block)
+    forkBlock ← getForkBlock(block)
+    forkEvent ← Future(getRollBackEvent(block, forkBlock))
+  } yield forkEvent
 
-  // todo: get block from config and compare with data in db, set the big one as current block while server restart
-  // todo: compare this.currentBlock and Block.blockNumber, set the bigger as current block while server running
-  def getCurrentBlock(): Future[BigInt] = for {
-    _ ← Future {}
-  } yield currentBlock
+  def getCurrentBlock: Future[BlockWithTxHash] = for {
+    blockNumber ← getCurrentBlockNumber
+    blockNumberStr = safeBlockHex(blockNumber)
+    req = GetBlockWithTxHashByNumberReq(blockNumberStr)
+    res ← accessor.getBlockWithTxHashByNumber(req)
+  } yield res.getResult
 
-  // todo: set this.currentBlock and write in db
-  def setCurrentBlock(block: Block): Future[Unit] = for {
-    _ ← Future {}
-  } yield null
+  // extractor需要遍历链上所有块，不允许漏块
+  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
+  // 同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式不会有问题,其他地方需要做去重
+  def getCurrentBlockNumber: Future[BigInt] = for {
+    currentBlockNumber ← if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
+      for {
+        dbBlockNumber ← readLatestBlockFromDb
+      } yield if (dbBlockNumber.compare(0).equals(0)) {
+        config.getString("extractor.start-block").asBigInt
+      } else {
+        dbBlockNumber
+      }
+    } else {
+      for {
+        blockOnChainRes ← accessor.ethGetBlockNumber()
+        blockNumberOnChain = blockOnChainRes.result.asBigInt
+      } yield if (blockNumberOnChain.compare(blockNumberIndex) < 0) {
+        blockNumberOnChain
+      } else {
+        blockNumberIndex
+      }
+    }
+  } yield currentBlockNumber
 
-  // todo: find parent block in db, if not exist, get it from geth/parity recursive, and return
-  def getForkBlock(): Future[BigInt] = for {
-    ret ← Future { BigInt(0) }
-  } yield ret
+  private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
+    if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
+      blockNumberIndex = block.number.asBigInt
+    } else {
+      blockNumberIndex += 1
+    }
+    saveBlock(block)
+  }
 
-  def isBlockForked(): Future[Boolean] = for {
-    _ ← Future {}
-  } yield false
+  // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
+  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+    parentBlockInDb ← getBlockByHashInDb(block.parentHash)
+    result ← if (parentBlockInDb.hash.equals(block.parentHash)) {
+      Future(parentBlockInDb)
+    } else if (parentBlockInDb.hash.isEmpty) {
+      Future(BlockWithTxHash())
+    } else {
+      for {
+        req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
+        blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
+        blockOnChain ← getForkBlock(blockOnChainOpt.getResult)
+      } yield blockOnChain
+    }
+  } yield result
 
-  // todo
-  def getForkEvent(): Future[ChainRolledBack] = for {
-    _ ← Future {}
-  } yield ChainRolledBack()
+  private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
+    if (forkBlock.equals(BlockWithTxHash())) {
+      ChainRolledBack().withFork(false)
+    } else if (forkBlock.hash.equals(block.parentHash)) {
+      ChainRolledBack().withFork(false)
+    } else {
+      ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)
+    }
+  }
 
-  // todo: 使用Hex.toHexString会导致多出一些0,而现有的方式为转为int后toHexString
+  // todo: relay mysql
+  private def saveBlock(block: BlockWithTxHash): Future[Unit] = Future()
+
+  // test fork: set hash, todo: rely mysql
+  private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] =
+    Future { BlockWithTxHash() }
+
+  // todo: rely mysql
+  private def readLatestBlockFromDb: Future[BigInt] = for {
+    block ← Future { BigInt(0) }
+  } yield block
+
   private def safeBlockHex(blockNumber: BigInt): String = {
     "0x" + blockNumber.intValue().toHexString
   }

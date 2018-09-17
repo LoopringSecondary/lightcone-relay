@@ -170,6 +170,16 @@ message TokenRegistrySettings {
 
 }
 
+message TransactionManagerSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
+message TransactionReaderSettings {
+    repeated string roles = 1;
+    int32 instances = 2;
+}
+
 message DynamicSettings {
     BalanceCacherSettings balance_cacher_settings = 2;
     BalanceManagerSettings balance_manager_settings = 3;

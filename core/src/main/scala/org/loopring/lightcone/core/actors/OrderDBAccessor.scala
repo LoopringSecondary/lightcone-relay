@@ -60,6 +60,6 @@ class OrderDBAccessor(db: OrderDatabase)(implicit
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: com.google.protobuf.ByteString) = {
+  def rollbackOrders(blockNumber: String) = {
   }
 }

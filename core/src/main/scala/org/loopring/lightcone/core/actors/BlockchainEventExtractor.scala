@@ -22,6 +22,7 @@ import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
 import org.loopring.lightcone.proto.common.StartNewRound
+import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -52,16 +53,16 @@ class BlockchainEventExtractor()(implicit
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    forkevt ← blockHelper.getForkEvent()
+    block ← blockHelper.getCurrentBlock
+    forkevt ← blockHelper.repeatedJobToGetForkEvent(block)
     list ← if (forkevt.fork.equals(true)) {
       Future(Seq(forkevt))
     } else {
-      handleBlock()
+      handleBlock(block)
     }
   } yield list.map(route)
 
-  def handleBlock(): Future[Seq[Any]] = for {
-    block ← blockHelper.getBlock()
+  def handleBlock(block: BlockWithTxHash): Future[Seq[Any]] = for {
     minedTxs ← txHelper.getMinedTransactions(block.transactions)
     minedSeq = minedTxs.map(txHelper.unpackMinedTransaction)
 

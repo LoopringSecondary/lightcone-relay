@@ -4,6 +4,69 @@ option java_multiple_files = true;
 option java_package = "org.loopring.lightcone.proto";
 package org.loopring.lightcone.proto;
 
-message GetNextNonce {}
+import "block_chain_event.proto";
 
+message GetNextNonceReq {
+    string owner = 1;
+}
 
+message GetNextNonceRes {
+    string nonce = 1;
+}
+
+message GetTransactionsByHashReq {
+    string owner = 1;
+    repeated string hash_list = 2;
+}
+
+message GetPendingTransactionsReq {
+    string owner = 1;
+}
+
+message GetTransactionCountReq {
+    string owner = 1;
+    string symbol = 2;
+    TxStatus status = 3;
+    TxType typ = 4;
+}
+
+message GetAllTransactionsReq {
+    string owner = 1;
+    string symbol = 2;
+    TxStatus status = 3;
+    TxType typ = 4;
+    int32 limit = 5;
+    int32 offset = 6;
+}
+
+message GetTransactionsRes {
+    repeated RpcTransactionData list = 1;
+}
+
+// todo: 到底要不要兼容之前的钱包版本？？？？
+message RpcTransactionData {
+    string protocol = 1;
+    string owner = 2;
+    string from = 3;
+    string to = 4;
+    string tx_hash = 5;
+    string symbol = 6;
+    TransactionContent content = 7;
+    int32 block_number = 8;
+    string value = 9;
+    int32 log_index = 10;
+    string type = 11;
+    string status = 12;
+    int32 create_time = 13;
+    int32 update_time = 14;
+    string gas_price = 15;
+    string gas_limit = 16;
+    string gas_used = 17;
+    string nonce = 18;
+}
+
+message TransactionContent {
+    string market = 1;
+    string order_hash = 2;
+    string fill = 3;
+}

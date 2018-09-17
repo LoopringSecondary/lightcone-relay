@@ -88,7 +88,10 @@ Here is the sample to run single unit test
 ```
 sbt core/'testOnly *AllowanceSpec'
 ```
-
+run single case in flatSpec
+```
+sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlockNumber'
+```
 run all tests
 ```
 sbt lib/test

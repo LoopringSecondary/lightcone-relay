@@ -8,12 +8,31 @@ import "ring.proto";
 import "order.proto";
 import "eth_jsonrpc.proto";
 
+// 兼容1.0
 enum TxStatus {
     TX_STATUS_UNKNOWN = 0;
     TX_STATUS_PENDING = 1;
     TX_STATUS_SUCCESS = 2;
     TX_STATUS_FAILED = 3;
     TX_STATUS_DISMISS = 4;  // 该状态不一定有用
+}
+
+// 兼容1.0
+enum TxType {
+    TX_TYPE_UNKNOWN               = 0;
+    TX_TYPE_APPROVE               = 1;
+    TX_TYPE_SEND                  = 2;
+    TX_TYPE_RECEIVE               = 3;
+    TX_TYPE_SELL                  = 4;
+    TX_TYPE_BUY                   = 5;
+    TX_TYPE_CONVERT_INCOME        = 7;
+    TX_TYPE_CONVERT_OUTCOME       = 8;
+    TX_TYPE_CANCEL_ORDER          = 9;
+    TX_TYPE_CUTOFF                = 10;
+    TX_TYPE_CUTOFF_PAIR           = 11;
+    TX_TYPE_UNSUPPORTED_CONTRACT  = 12;
+    TX_TYPE_LRC_FEE               = 13;
+    TX_TYPE_LRC_REWARD            = 14;
 }
 
 message FullTransaction {
@@ -67,6 +86,16 @@ message Transfer {
     string receiver = 3;
     string value = 4;
     TxHeader tx_header = 5;
+}
+
+// 普通的以太坊转账
+message EthTransfer {
+    TxHeader tx_header = 1;
+}
+
+// 不支持的合约
+message UnsupportedContract {
+    TxHeader tx_header = 1;
 }
 
 message Approve {
@@ -151,10 +180,10 @@ message CutoffPair {
 }
 
 message ChainRolledBack {
-    bytes detected_block_number = 1;
-    bytes delected_block_hash = 2;
-    bytes fork_block_number = 3;
-    bytes fork_block_hash = 4;
+    string detected_block_number = 1;
+    string delected_block_hash = 2;
+    string fork_block_number = 3;
+    string fork_block_hash = 4;
     bool fork = 5;
 }
 

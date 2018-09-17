@@ -16,8 +16,8 @@
 
 package org.loopring.lightcone.core.utils
 
-import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.proto.block_chain_event._
+import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
+import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 
 import scala.concurrent.Future
 
@@ -29,10 +29,8 @@ case class Block(
 )
 
 trait BlockHelper {
-  def getBlock(): Future[BlockWithTxHash]
-  def getCurrentBlock(): Future[BigInt]
-  def setCurrentBlock(block: Block): Future[Unit]
-  def getForkBlock(): Future[BigInt]
-  def isBlockForked(): Future[Boolean]
-  def getForkEvent(): Future[ChainRolledBack]
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]
+  def getCurrentBlockNumber: Future[BigInt]
+  def getCurrentBlock: Future[BlockWithTxHash]
+  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash]
 }
