@@ -16,12 +16,18 @@
 
 package org.loopring.lightcone.core
 
+import java.util.concurrent.ForkJoinPool
+
 import akka.actor._
 import akka.cluster._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import akka.http.scaladsl.model._
+import akka.http.scaladsl._
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 import com.google.inject._
 import com.google.inject.name._
 import com.typesafe.config.Config
@@ -30,6 +36,7 @@ import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
 import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.core.order.{ OrderHelper, OrderHelperImpl }
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
@@ -47,8 +54,12 @@ class CoreModule(config: Config)
     implicit val cluster = Cluster(system)
 
     bind[Config].toInstance(config)
+    bind[DatabaseConfig[JdbcProfile]].toInstance(DatabaseConfig.forConfig("db.default", config))
     bind[ActorSystem].toInstance(system)
-    bind[ExecutionContext].toInstance(system.dispatcher)
+    bind[ExecutionContext].annotatedWithName("system-dispatcher")
+      .toInstance(system.dispatcher)
+    bind[ExecutionContext].annotatedWithName("db-execution-context")
+      .toInstance(ExecutionContext.fromExecutor(ForkJoinPool.commonPool()))
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
@@ -57,6 +68,8 @@ class CoreModule(config: Config)
     bind[WethAbi].toInstance(new WethAbi(config.getString("abi.weth")))
     bind[LoopringAbi].toInstance(new LoopringAbi(config.getString("abi.loopring")))
     bind[EthClient].to[EthClientImpl].in[Singleton]
+
+    bind[OrderHelper].to[OrderHelperImpl]
 
     val httpFlow = Http()
       .cachedHostConnectionPool[Promise[HttpResponse]](
@@ -206,11 +219,11 @@ class CoreModule(config: Config)
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
+  def getOrderDBAccessorProps(helper: OrderHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
   ) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(helper)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides

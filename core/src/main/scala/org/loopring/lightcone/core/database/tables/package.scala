@@ -16,22 +16,9 @@
 
 package org.loopring.lightcone.core.database
 
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDal, OrdersDal }
-import slick.basic.{ BasicProfile, DatabaseConfig }
-import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
 
-import scala.concurrent.ExecutionContext
-
-trait OrderDatabase {
-  val dbConfig: DatabaseConfig[JdbcProfile]
-  def profile: JdbcProfile = dbConfig.profile
-  def db: BasicProfile#Backend#Database = dbConfig.db
-  def dbec: ExecutionContext
-  def displayDDL(): Unit
-  def generateDDL(): Unit
-
-  // table dal
-  val orders: OrdersDal
-  val orderChangeLogs: OrderChangeLogsDal
-
+package object tables {
+  val ordersQ = TableQuery[Orders]
+  val orderChangeLogsQ = TableQuery[OrderChangeLogs]
 }

@@ -88,7 +88,7 @@ message TopOrdersIds {
 }
 
 message SaveOrders {
-    repeated RawOrder orders = 1;
+    repeated Order orders = 1;
 }
 message SaveUpdatedOrders {
     repeated Order orders = 1;
@@ -150,16 +150,24 @@ message UpdateOrdersById {
 }
 
 message Order {
+    int64 id = 19;
     RawOrder raw_order = 1;
     int64 updated_block = 2;
-    string dealt_amount_s = 3;
-    string dealt_amount_b = 4;
-    string split_amount_s = 5;
-    string split_amount_b = 6;
-    string cancelled_amount_s = 7;
-    string cancelled_amount_b = 8;
+    string dealtAmountS = 3;
+    string dealtAmountB = 4;
+    string splitAmountS = 5;
+    string splitAmountB = 6;
+    string cancelledAmountS = 7;
+    string cancelledAmountB = 8;
     OrderStatus status = 9;
     int32 broadcast_time = 10;
+    double price = 11;
+    int64 pow_nonce = 12;
+    string market = 14;
+    string side = 15;
+    OrderType orderType = 16;
+    int64 createdAt = 17;
+    int64 updatedAt = 18;
 }
 
 // level 1 status
@@ -197,8 +205,9 @@ message OrderStatus {
 }
 
 enum OrderType {
-    MARKET = 0;
-    P2P = 1;
+    UNKNOWN = 0;
+    MARKET = 1;
+    P2P = 2;
 }
 
 enum MarketSide {
@@ -216,29 +225,23 @@ enum SoftCancelType {
 message RawOrder {
     string protocol = 1;
     string delegate_address = 2;
-    string auth_addr = 3;
-    string auth_private_key = 4;
-    string wallet_address = 5;
-    string token_s = 6;
-    string token_b = 7;
-    string amount_s = 8;
-    string amount_b = 9;
-    int64 valid_since = 10;
-    int64 valid_until = 11;
-    string lrc_fee = 12;
-    bool buy_no_more_than_amount_b = 13;
-    int32 margin_split_percentage = 14;
-    int32 v = 15;
-    string r = 16;
-    string s = 17;
-    double price = 18;
-    string owner = 19;
-    string hash = 20;
-    string market = 21;
-    int64 create_time = 22;
-    int64 pow_nonce = 23;
-    MarketSide side = 24;
-    OrderType order_type = 25;
+    string token_s = 3;
+    string token_b = 4;
+    string amount_s = 5;
+    string amount_b = 6;
+    int64 valid_since = 7;
+    int64 valid_until = 8;
+    string lrc_fee = 9;
+    bool buy_no_more_than_amount_b = 10;
+    int32 margin_split_percentage = 11;
+    string owner = 12;
+    string wallet_address = 13;
+    string auth_addr = 14;
+    string auth_private_key = 15;
+    int32 v = 16;
+    string r = 17;
+    string s = 18;
+    string hash = 19;
 }
 
 message SoftCancelSign {
@@ -254,13 +257,22 @@ message NotifyRollbackOrders {
 }
 
 message OrderChangeLog {
-    bytes order_hash = 1;
-    bytes dealt_amount_s = 3;
-    bytes dealt_amount_b = 4;
-    bytes split_amount_s = 5;
-    bytes split_amount_b = 6;
-    bytes cancelled_amount_s = 7;
-    bytes cancelled_amount_b = 8;
-    OrderStatus status = 9;
+    int64 id = 1;
+    int64 preChangeId = 2;
+    string order_hash = 3;
+    string dealtAmountS = 4;
+    string dealtAmountB = 5;
+    string splitAmountS = 6;
+    string splitAmountB = 7;
+    string cancelledAmountS = 8;
+    string cancelledAmountB = 9;
+    string status = 10;
+    int64 updatedBlock = 11;
+    int64 createdAt = 12;
+    int64 updatedAt = 13;
 }
 
+enum OrderSaveResult {
+    SUBMIT_SUCC = 0;
+    SUBMIT_FAILED = 1;
+}

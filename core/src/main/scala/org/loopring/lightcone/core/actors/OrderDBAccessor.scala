@@ -17,19 +17,17 @@
 package org.loopring.lightcone.core.actors
 
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ ExecutionContext, Future }
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import akka.util.ByteString
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import scala.concurrent._
+import com.google.protobuf.ByteString
+import org.loopring.lightcone.core.order.OrderHelper
+
+import scala.util.{ Failure, Success }
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -39,27 +37,25 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor(db: OrderDatabase)(implicit
+class OrderDBAccessor(helper: OrderHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
   extends Actor {
 
   def receive: Receive = {
-    case settings: OrderDBAccessorSettings ⇒
-    case su: SaveUpdatedOrders             ⇒
-    case sc: SoftCancelOrders              ⇒
-    case s: SaveOrders ⇒
-      writeToDB(s.orders)
-      Future {
-        s.orders
-      }
-    case chainRolledBack: ChainRolledBack ⇒ rollbackOrders(chainRolledBack.detectedBlockNumber)
-    case changeLogs: NotifyRollbackOrders ⇒
+    case m: OrderDBAccessorSettings ⇒
+    case m: SaveUpdatedOrders       ⇒
+    case m: SoftCancelOrders        ⇒
+    case m: SaveOrders ⇒
+      sender ! Future.sequence(m.orders.map(helper.saveOrder))
 
+    case m: ChainRolledBack      ⇒ rollbackOrders(m.detectedBlockNumber)
+    case m: NotifyRollbackOrders ⇒
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: com.google.protobuf.ByteString) = {
+  def rollbackOrders(blockNumber: ByteString) = {
   }
+
 }

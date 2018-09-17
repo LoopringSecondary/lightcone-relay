@@ -16,6 +16,32 @@
 
 package org.loopring.lightcone.core.database
 
-class MySQLOrderDatabase extends OrderDatabase {
+import com.google.inject.Inject
+import com.google.inject.name.Named
+import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDalImpl, OrdersDalImpl }
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
+
+import scala.concurrent.ExecutionContext
+
+class MySQLOrderDatabase @Inject() (
+    val dbConfig: DatabaseConfig[JdbcProfile],
+    @Named("db-execution-context") val dbec: ExecutionContext
+) extends OrderDatabase {
+
+  val orders = new OrdersDalImpl(this)
+  val orderChangeLogs = new OrderChangeLogsDalImpl(this)
+
+  def generateDDL(): Unit = {
+    Seq(
+      orders.createTable(),
+      orderChangeLogs.createTable()
+    )
+  }
+
+  def displayDDL(): Unit = {
+    orders.displayTableSchema()
+    orderChangeLogs.displayTableSchema()
+  }
 
 }
