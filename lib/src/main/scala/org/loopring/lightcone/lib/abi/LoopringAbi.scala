@@ -268,9 +268,9 @@ class LoopringAbi(resourceFile: String)
       .withLrcFee(bigintList(4).toString())
       .withBuyNoMoreThanAmountB(scalaAny2Bool(list(2)))
       .withMarginSplitPercentage(scalaAny2Bigint(list(3)).intValue())
-    //      .withV(scalaAny2Bigint(list(4)).intValue())
-    //      .withS(scalaAny2Hex(list(5)))
-    //      .withR(scalaAny2Hex(list(6)))
+      .withV(scalaAny2Bigint(list(4)).intValue())
+      .withS(scalaAny2Hex(list(5)))
+      .withR(scalaAny2Hex(list(6)))
 
     val cancelAmount = bigintList(5).toString()
 
