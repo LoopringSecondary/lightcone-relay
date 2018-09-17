@@ -49,23 +49,83 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def splitAmountS = column[String]("split_amount_s", O.SqlType("VARCHAR(64)"))
   def splitAmountB = column[String]("split_amount_b", O.SqlType("VARCHAR(64)"))
   def status = column[String]("status", O.SqlType("TINYINT(4)"))
-//  def minerBlockMark = column[Long]("miner_block_mark")
+  //  def minerBlockMark = column[Long]("miner_block_mark")
   def broadcastTime = column[Int]("broadcast_time")
   def market = column[String]("market", O.SqlType("VARCHAR(32)"))
   def side = column[String]("side", O.SqlType("VARCHAR(32)"))
   def price = column[Double]("price", O.SqlType("DECIMAL(28,16)"))
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
 
-  def * = (id, rawOrderProjection, updatedBlock, dealtAmountS, dealtAmountB, splitAmountS, splitAmountB, cancelledAmountS, cancelledAmountB,
-    status, broadcastTime, price, powNonce, market, side, orderType, createdAt, updatedAt) <> (extendTupled, unwrapOption)
-  def rawOrderProjection = (protocol, delegateAddress, tokenS, tokenB, amountS, amountB, validSince, validUntil,
-    lrcFee, buyNoMoreThanAmountB, marginSplitPercentage, owner, walletAddress, authAddress, privateKey, v, s, s, orderHash) <> ((RawOrder.apply _).tupled, RawOrder.unapply)
+  def * = (
+    id,
+    rawOrderProjection,
+    updatedBlock,
+    dealtAmountS,
+    dealtAmountB,
+    splitAmountS,
+    splitAmountB,
+    cancelledAmountS,
+    cancelledAmountB,
+    status,
+    broadcastTime,
+    price,
+    powNonce,
+    market,
+    side,
+    orderType,
+    createdAt,
+    updatedAt
+  ) <> (extendTupled, unwrapOption)
 
-  private def extendTupled = (i : Tuple18[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Double, Long, String, String, String, Long, Long]) =>
-    Order.apply(i._1, Some(i._2), i._3, i._4, i._5, i._6, i._7, i._8, i._9,
-      Some(wrapStatus(i._10)), i._11, i._12, i._13, i._14, i._15, wrapType(i._16), i._17, i._18)
+  def rawOrderProjection = (
+    protocol,
+    delegateAddress,
+    tokenS,
+    tokenB,
+    amountS,
+    amountB,
+    validSince,
+    validUntil,
 
-  private def unwrapOption(order : Order) = {
+    lrcFee,
+    buyNoMoreThanAmountB,
+    marginSplitPercentage,
+    owner,
+    walletAddress,
+    authAddress,
+    privateKey,
+    v,
+    s,
+    s,
+    orderHash
+  ) <> (
+      (RawOrder.apply _).tupled,
+      RawOrder.unapply
+    )
+
+  private def extendTupled = (i: Tuple18[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Double, Long, String, String, String, Long, Long]) ⇒
+    Order.apply(
+      i._1,
+      Some(i._2),
+      i._3,
+      i._4,
+      i._5,
+      i._6,
+      i._7,
+      i._8,
+      i._9,
+      Some(wrapStatus(i._10)),
+      i._11,
+      i._12,
+      i._13,
+      i._14,
+      i._15,
+      wrapType(i._16),
+      i._17,
+      i._18
+    )
+
+  private def unwrapOption(order: Order) = {
     val unapplyOrder = Order.unapply(order).get
     Some((
       unapplyOrder._1,
@@ -85,28 +145,36 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
       unapplyOrder._15,
       unapplyOrder._16.name,
       unapplyOrder._17,
-      unapplyOrder._18,
-      ))
+      unapplyOrder._18
+    ))
 
   }
 
   def idx = index("idx_order_hash", orderHash, unique = true)
 
-  def wrapStatus(src : String) : OrderStatus =
+  def wrapStatus(src: String): OrderStatus =
     OrderLevel1Status.fromName(src) match {
-      case Some(value) => OrderStatus(value, OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN, OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN)
-      case None => OrderStatus(OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN, OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN, OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN)
+      case Some(value) ⇒ OrderStatus(
+        value,
+        OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN,
+        OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN
+      )
+      case None ⇒ OrderStatus(
+        OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN,
+        OrderLevel2Status.ORDER_STATUS_LEVEL2_UNKNOWN,
+        OrderLevel3Status.ORDER_STATUS_LEVEL3_UNKNOWN
+      )
     }
 
-  def unwrapStatus(status : Option[OrderStatus]) : String =
+  def unwrapStatus(status: Option[OrderStatus]): String =
     status match {
-      case Some(value) => value.level1Status.name
-      case None => OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN.name
+      case Some(value) ⇒ value.level1Status.name
+      case None        ⇒ OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN.name
     }
 
-  def wrapType(src : String) : OrderType =
+  def wrapType(src: String): OrderType =
     OrderType.fromName(src) match {
-      case Some(value) => value
-      case None => OrderType.UNKNOWN
+      case Some(value) ⇒ value
+      case None        ⇒ OrderType.UNKNOWN
     }
 }

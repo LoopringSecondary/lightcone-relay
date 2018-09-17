@@ -23,11 +23,7 @@ import org.loopring.lightcone.proto.order.{ Order, OrderChangeLog, OrderSaveResu
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
-trait OrderHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
-}
-
-class OrderHelperImpl @Inject() (val module: OrderDatabase) extends OrderHelper {
+class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderAccessHelper {
 
   implicit val profile = module.profile
   implicit val executor = module.dbec

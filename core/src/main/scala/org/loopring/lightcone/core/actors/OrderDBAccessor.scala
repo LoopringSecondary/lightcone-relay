@@ -18,16 +18,16 @@ package org.loopring.lightcone.core.actors
 
 import akka.util.Timeout
 
-import scala.concurrent.{ ExecutionContext, Future }
 import akka.actor._
 import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import com.google.protobuf.ByteString
-import org.loopring.lightcone.core.order.OrderHelper
+import org.loopring.lightcone.core.order.OrderAccessHelper
 
-import scala.util.{ Failure, Success }
+import scala.concurrent._
+import scala.util._
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -37,7 +37,7 @@ object OrderDBAccessor
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderDBAccessor(helper: OrderHelper)(implicit
+class OrderDBAccessor(helper: OrderAccessHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
@@ -47,11 +47,9 @@ class OrderDBAccessor(helper: OrderHelper)(implicit
     case m: OrderDBAccessorSettings ⇒
     case m: SaveUpdatedOrders       ⇒
     case m: SoftCancelOrders        ⇒
-    case m: SaveOrders ⇒
-      sender ! Future.sequence(m.orders.map(helper.saveOrder))
-
-    case m: ChainRolledBack      ⇒ rollbackOrders(m.detectedBlockNumber)
-    case m: NotifyRollbackOrders ⇒
+    case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
+    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber)
+    case m: NotifyRollbackOrders    ⇒
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}

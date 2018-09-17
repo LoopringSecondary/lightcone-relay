@@ -41,7 +41,7 @@ class OrderWriter()(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
-  extends Actor {
+  extends Actor with ActorLogging {
 
   def receive: Receive = {
     case settings: OrderWriterSettings ⇒
@@ -55,8 +55,8 @@ class OrderWriter()(implicit
       val generatedOrder = wrapToOrder(req)
 
       Routers.orderAccessor ? order.SaveOrders(Seq(generatedOrder)) onComplete {
-        case Success(rst: Seq[OrderSaveResult]) ⇒
-          rst.head match {
+        case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
+          seq.head match {
             case OrderSaveResult.SUBMIT_SUCC ⇒
               Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
               sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
@@ -64,9 +64,18 @@ class OrderWriter()(implicit
               sender ! ErrorResp()
             case OrderSaveResult.Unrecognized(_) ⇒
               sender ! ErrorResp()
+            case m ⇒
+              log.error(s"unexpect SubmitOrderReq result: $m")
+              sender ! ErrorResp()
           }
-        case Success(_) ⇒ // ignore message
-        case Failure(_) ⇒ ErrorResp()
+
+        case Success(m) ⇒
+          log.error(s"unexpect SubmitOrderReq result: $m")
+          sender ! ErrorResp()
+
+        case Failure(e) ⇒
+          log.error(s"unexpect SubmitOrderReq result: $e")
+          ErrorResp()
       }
 
     }

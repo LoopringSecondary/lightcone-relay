@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core.block
 
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.block_chain_event._
@@ -28,7 +28,7 @@ case class Block(
     blockTime: String
 )
 
-trait BlockHelper {
+trait BlockAccessHelper {
   def getBlock(): Future[BlockWithTxHash]
   def getCurrentBlock(): Future[BigInt]
   def setCurrentBlock(block: Block): Future[Unit]
