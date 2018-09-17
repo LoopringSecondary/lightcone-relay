@@ -272,3 +272,7 @@ message OrderChangeLog {
     int64 updatedAt = 13;
 }
 
+enum OrderSaveResult {
+    SUBMIT_SUCC = 0;
+    SUBMIT_FAILED = 1;
+}

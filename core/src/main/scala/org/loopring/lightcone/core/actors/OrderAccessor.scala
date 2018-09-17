@@ -16,13 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
+import akka.actor.Actor
 import akka.util.Timeout
-import scala.concurrent.ExecutionContext
-import akka.actor._
+
+import scala.concurrent.{ ExecutionContext, Future }
 import akka.cluster._
 import akka.routing._
 import akka.cluster.routing._
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContext
 import akka.pattern.ask
 
@@ -30,7 +32,7 @@ import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.{ SaveOrders, SoftCancelOrders }
+import org.loopring.lightcone.proto.order.{ OrderSaveResult, SaveOrders, SoftCancelOrders }
 
 object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
@@ -48,6 +50,7 @@ class OrderAccessor()(implicit
 
   def receive: Receive = {
     case settings: OrderAccessorSettings ⇒
+    case m: SaveOrders ⇒ sender ! Routers.orderDBAccessor ? m
     case any ⇒ Routers.orderDBAccessor forward any
   }
 }

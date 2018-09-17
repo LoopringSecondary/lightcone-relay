@@ -24,7 +24,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-
 import akka.http.scaladsl.model._
 import akka.http.scaladsl._
 import slick.basic.DatabaseConfig
@@ -37,6 +36,7 @@ import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.actors._
 import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
 import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.core.order.{ OrderHelper, OrderHelperImpl }
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache.ByteArrayCache
@@ -68,6 +68,8 @@ class CoreModule(config: Config)
     bind[WethAbi].toInstance(new WethAbi(config.getString("abi.weth")))
     bind[LoopringAbi].toInstance(new LoopringAbi(config.getString("abi.loopring")))
     bind[EthClient].to[EthClientImpl].in[Singleton]
+
+    bind[OrderHelper].to[OrderHelperImpl]
 
     val httpFlow = Http()
       .cachedHostConnectionPool[Promise[HttpResponse]](
@@ -217,11 +219,11 @@ class CoreModule(config: Config)
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
+  def getOrderDBAccessorProps(helper: OrderHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
   ) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(helper)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
