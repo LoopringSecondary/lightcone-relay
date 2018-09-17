@@ -81,10 +81,11 @@ class RingMiner(ethClient: EthClient)(implicit
 
   def handleRepeatedJob() = for {
     //finderid以及其返回的RingCandidates
-    resps ← Future.sequence(finders.map { finder ⇒
-      for {
-        resp ← finder._2 ? GetRingCandidates()
-      } yield (finder._1, resp)
+    resps ← Future.sequence(finders.map {
+      case (finderId, finder) ⇒
+        for {
+          resp ← finder ? GetRingCandidates()
+        } yield (finderId, resp)
     }).mapTo[Seq[(String, RingCandidates)]]
     //记录ring与finderid的对应关系
     ringToFinderMap = resps.flatMap(resp ⇒ resp._2.rings.map(ring ⇒ (ring.hash, resp._1))).toMap
@@ -94,9 +95,10 @@ class RingMiner(ethClient: EthClient)(implicit
     decideRingCandidates(ringCandidates.rings, ringsToSettle)
       .groupBy { decision ⇒
         ringToFinderMap(decision.ringHash) //按照finderid分开，将对应的decision返回给各自的finder
-      } foreach { decision ⇒
-        val finder = Routers.ringFinder(decision._1)
-        finder ! NotifyRingSettlementDecisions(decision._2)
+      } foreach {
+        case (finderId, settlementDecision) ⇒
+          val finder = Routers.ringFinder(finderId)
+          finder ! NotifyRingSettlementDecisions(settlementDecision)
       }
     ringsToSettle.foreach(submitter.signAndSendTx)
   }

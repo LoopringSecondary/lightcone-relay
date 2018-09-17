@@ -29,6 +29,7 @@ import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
 import com.google.inject._
+import org.loopring.lightcone.proto.order.UpdatedOrder.Updated
 import org.loopring.lightcone.proto.order._
 
 object OrderUpdateCoordinator
@@ -51,9 +52,28 @@ class OrderUpdateCoordinator()(implicit
   def receive: Receive = {
     case settings: OrderUpdateCoordinatorSettings ⇒
     case m: MarkOrdersDeferred ⇒
-
-    //      val updatedOrders = UpdatedOrders(UpdatedOrder(order = m.deferOrders))
-    //      mediator ! Publish(name, updatedOrders)
+      val updatedOrders = UpdatedOrders(
+        orders = m.deferOrders.map { defer ⇒
+          UpdatedOrder(updated = Updated.DeferOrder(defer))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: MarkOrdersBeingMatched ⇒
+      val updatedOrders = UpdatedOrders(
+        orders = m.ordersBeingMatched.map { orderMatched ⇒
+          UpdatedOrder(updated = Updated.OrderBeingMatched(orderMatched))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: MarkOrdersSettling ⇒
+      val updatedOrders = UpdatedOrders(
+        orders = m.ordersSettling.map { orderSettling ⇒
+          UpdatedOrder(updated = Updated.OrderSettling(orderSettling))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: SoftCancelOrders ⇒
+      mediator ! Publish(name, m)
     case _ ⇒
   }
 }

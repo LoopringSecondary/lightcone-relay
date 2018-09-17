@@ -110,7 +110,7 @@ message UpdatedOrder {
         Order order = 1;
         DeferOrder defer_order = 2;
         OrderBeingMatched order_being_matched = 3;
-        OrderSettling order_stelling = 4;
+        OrderSettling order_settling = 4;
     }
 }
 

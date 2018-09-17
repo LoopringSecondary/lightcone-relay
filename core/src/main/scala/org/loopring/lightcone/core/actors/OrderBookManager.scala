@@ -79,8 +79,8 @@ class OrderBookManager()(implicit
       val (minPrice, maxPrice) = managerHelper.crossingPrices(canBeMatched)
       val tokenOrders = managerHelper.crossingOrdersBetweenPrices(minPrice, maxPrice)
       sender ! CrossingOrderSets(
-        sellTokenAOrders = tokenOrders.tokenAOrders.filter(canBeMatched).map(_.order).toSeq,
-        sellTokenBOrders = tokenOrders.tokenBOrders.filter(canBeMatched).map(_.order).toSeq
+        sellTokenAOrders = tokenOrders.tokenAOrders.map(managerHelper.orderbook.getOrder).toSeq,
+        sellTokenBOrders = tokenOrders.tokenBOrders.map(managerHelper.orderbook.getOrder).toSeq
       )
 
     case m: UpdatedOrders ⇒
