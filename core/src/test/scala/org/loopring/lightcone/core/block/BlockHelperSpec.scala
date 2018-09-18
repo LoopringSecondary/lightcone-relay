@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core.block
 
-import org.loopring.lightcone.core.block.BlockAccessHelperImpl
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
@@ -30,15 +29,14 @@ class BlockHelperSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec'] to debug all shoulder")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlockNumber'] to debug getCurrentBlockNumber")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getCurrentBlock'] to debug getCurrentBlock")
-  info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkBlock'] to debug getForkBlock")
+  info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getParentBlock'] to debug getForkBlock")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkEvent'] to debug getForkEvent")
-
-  val helper = new BlockAccessHelperImpl(config, geth)
 
   val block = BlockWithTxHash()
     .withHash("0x02427f544559dd4ee66f4f1ecfaa02b3f85edb02185019f4795a605cb043fc21")
     .withNumber("0x" + Hex.toHexString(BigInt(43163).toByteArray))
     .withParentHash("0x29c3afc8afe149e8098711cb2bfd65daee4e8bbc9dc940062e8abe729546eb95")
+    .withTimestamp("0x5b21e9ad")
 
   "getCurrentBlockNumber" should "just be initialized yet" in {
     val resultFuture = for {
@@ -60,7 +58,7 @@ class BlockHelperSpec extends FlatSpec {
     info(s"block is ${block.toProtoString}")
   }
 
-  "getForkBlock" should "get first block on chain" in {
+  "getParentBlock" should "get first block on chain" in {
     val resultFuture = for {
       res ← helper.getParentBlock(block)
     } yield res

@@ -83,28 +83,18 @@ class BlockAccessHelperImpl @Inject() (
     } else {
       blockNumberIndex += 1
     }
-    query.insert(Block(
-      blockHash = block.hash,
-      parentHash = block.parentHash,
-      blockNumber = block.number.asBigInteger.longValue(),
-      createdAt = block.timestamp.asBigInteger.longValue()
-    ))
+    query.insert(block2Entity(block))
   }
 
   def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
     parentBlockInDb ← query.getBlock(block.parentHash)
     result ← parentBlockInDb match {
-      case Some(x) ⇒ Future.successful(
-        BlockWithTxHash(
-          hash = x.blockHash,
-          number = safeBlockHex(x.blockNumber),
-          parentHash = x.parentHash
-        )
-      )
+      case Some(x) ⇒ Future.successful(entity2Block(x))
       case _ ⇒ for {
         req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
         blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
         blockOnChain ← getParentBlock(blockOnChainOpt.getResult)
+        _ ← query.insert(block2Entity(blockOnChain))
       } yield blockOnChain
     }
   } yield result
@@ -118,6 +108,21 @@ class BlockAccessHelperImpl @Inject() (
       ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)
     }
   }
+
+  private def block2Entity(src: BlockWithTxHash) = Block(
+    blockHash = src.hash,
+    parentHash = src.parentHash,
+    blockNumber = src.number.asBigInteger.longValue(),
+    createdAt = src.timestamp.asBigInteger.longValue(),
+    updatedAt = src.timestamp.asBigInteger.longValue()
+  )
+
+  private def entity2Block(src: Block) = BlockWithTxHash(
+    hash = src.blockHash,
+    number = safeBlockHex(src.blockNumber),
+    parentHash = src.parentHash,
+    timestamp = safeBlockHex(src.createdAt)
+  )
 
   private def safeBlockHex(blockNumber: BigInt): String = {
     "0x" + blockNumber.intValue().toHexString
