@@ -43,15 +43,17 @@ class OrderUpdater()(implicit
   val balanceManager = Routers.balanceManager
   val ethereumAccessor = Routers.ethereumAccessor
 
+  var settings: OrderUpdaterSettings = null
   def receive: Receive = {
     case settings: OrderUpdaterSettings ⇒
+      this.settings = settings
     case m: UpdateOrders ⇒ for {
       updatedOrders ← Future.sequence {
         m.orders.map { order ⇒
           for {
             getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
               address = order.rawOrder.get.owner,
-              tokens = Seq(order.rawOrder.get.tokenS, "lrcAddress"),
+              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress),
               delegates = Seq(order.rawOrder.get.delegateAddress)
             ))
             balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]

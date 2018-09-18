@@ -40,7 +40,7 @@ class OrderReadCoordinator()(implicit
   def receive: Receive = {
     case settings: OrderReadCoordinatorSettings ⇒
     case m: GetOrders ⇒
-      sender() ! GetOrdersResp()
+      sender ! GetOrdersResp()
 
     case _ ⇒
   }
