@@ -17,7 +17,8 @@
 package org.loopring.lightcone.core.actors
 
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
-import org.loopring.lightcone.core.utils.{ BlockHelper, TransactionHelper }
+import org.loopring.lightcone.core.block._
+import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
@@ -37,7 +38,7 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-    val blockHelper: BlockHelper,
+    val blockHelper: BlockAccessHelper,
     val txHelper: TransactionHelper
 ) extends RepeatedJobActor {
 

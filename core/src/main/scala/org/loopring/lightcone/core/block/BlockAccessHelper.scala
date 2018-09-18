@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+package org.loopring.lightcone.core.block
 
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDal, OrdersDal }
-import slick.basic.{ BasicProfile, DatabaseConfig }
-import slick.jdbc.JdbcProfile
+import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
+import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-trait OrderDatabase {
-  val dbConfig: DatabaseConfig[JdbcProfile]
-  def profile: JdbcProfile = dbConfig.profile
-  def db: BasicProfile#Backend#Database = dbConfig.db
-  def dbec: ExecutionContext
-  def displayDDL(): Unit
-  def generateDDL(): Unit
+case class Block(
+    blockHash: String,
+    parentHash: String,
+    blockNumber: String,
+    blockTime: String
+)
 
-  // table dal
-  val orders: OrdersDal
-  val orderChangeLogs: OrderChangeLogsDal
-
+trait BlockAccessHelper {
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]
+  def getCurrentBlockNumber: Future[BigInt]
+  def getCurrentBlock: Future[BlockWithTxHash]
+  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash]
 }

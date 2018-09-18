@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core.database.base
 
-import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
-import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
+import slick.jdbc.MySQLProfile.api._
+import slick.lifted.Tag
 
-import scala.concurrent.Future
-
-case class Block(
-    blockHash: String,
-    parentHash: String,
-    blockNumber: String,
-    blockTime: String
-)
-
-trait BlockHelper {
-  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack]
-  def getCurrentBlockNumber: Future[BigInt]
-  def getCurrentBlock: Future[BlockWithTxHash]
-  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash]
+abstract class BaseTable[T](tag: Tag, name: String) extends Table[T](tag, "LC_" + name) {
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def createdAt = column[Long]("created_at", O.Default(System.currentTimeMillis))
+  def updatedAt = column[Long]("updated_at", O.Default(System.currentTimeMillis))
 }

@@ -20,9 +20,9 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import akka.actor._
 import org.loopring.lightcone.core.actors.base.CommonSettings
-import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
+import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.{ RawOrder, SaveOrders, SaveUpdatedOrders, SoftCancelOrders }
+import org.loopring.lightcone.proto.order._
 import scala.concurrent._
 
 object OrderChangeLogWriter

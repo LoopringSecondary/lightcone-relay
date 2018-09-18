@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDal, OrdersDal }
-import slick.basic.{ BasicProfile, DatabaseConfig }
-import slick.jdbc.JdbcProfile
+import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.proto.order._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-trait OrderDatabase {
-  val dbConfig: DatabaseConfig[JdbcProfile]
-  def profile: JdbcProfile = dbConfig.profile
-  def db: BasicProfile#Backend#Database = dbConfig.db
-  def dbec: ExecutionContext
-  def displayDDL(): Unit
-  def generateDDL(): Unit
-
-  // table dal
-  val orders: OrdersDal
-  val orderChangeLogs: OrderChangeLogsDal
-
+trait OrderAccessHelper {
+  def saveOrder(order: Order): Future[OrderSaveResult]
 }

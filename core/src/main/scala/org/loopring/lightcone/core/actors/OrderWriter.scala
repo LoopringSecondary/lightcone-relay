@@ -19,11 +19,12 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
-import scala.concurrent.duration._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.common.ErrorResp
+import org.loopring.lightcone.proto.order
 import org.loopring.lightcone.proto.order._
 
 import scala.util._
@@ -40,7 +41,7 @@ class OrderWriter()(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
-  extends Actor {
+  extends Actor with ActorLogging {
 
   def receive: Receive = {
     case settings: OrderWriterSettings ⇒
@@ -51,11 +52,30 @@ class OrderWriter()(implicit
         new ErrorResp()
       }
 
-      Routers.orderAccessor ? unwrapToRawOrder(req) onComplete {
-        case Success(os) ⇒
-          Routers.orderManager ! os
-          os
-        case Failure(e) ⇒ ErrorResp()
+      val generatedOrder = wrapToOrder(req)
+
+      Routers.orderAccessor ? order.SaveOrders(Seq(generatedOrder)) onComplete {
+        case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
+          seq.head match {
+            case OrderSaveResult.SUBMIT_SUCC ⇒
+              Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
+              sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
+            case OrderSaveResult.SUBMIT_FAILED ⇒
+              sender ! ErrorResp()
+            case OrderSaveResult.Unrecognized(_) ⇒
+              sender ! ErrorResp()
+            case m ⇒
+              log.error(s"unexpect SubmitOrderReq result: $m")
+              sender ! ErrorResp()
+          }
+
+        case Success(m) ⇒
+          log.error(s"unexpect SubmitOrderReq result: $m")
+          sender ! ErrorResp()
+
+        case Failure(e) ⇒
+          log.error(s"unexpect SubmitOrderReq result: $e")
+          ErrorResp()
       }
 
     }
@@ -74,7 +94,7 @@ class OrderWriter()(implicit
   }
 
   def checkOrder(rawOrder: RawOrder) = true
-  def unwrapToRawOrder(req: SubmitOrderReq) = RawOrder()
+  def wrapToOrder(req: SubmitOrderReq) = Order()
   def softCancelSignCheck(sign: Option[SoftCancelSign]) = true
 
 }
