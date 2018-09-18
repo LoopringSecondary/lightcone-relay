@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.database
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import org.loopring.lightcone.core.database.dals.{ BlocksDalImpl, OrderChangeLogsDalImpl, OrdersDalImpl }
+import org.loopring.lightcone.lib.time.TimeProvider
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
@@ -26,6 +27,7 @@ import scala.concurrent.ExecutionContext
 
 class MySQLOrderDatabase @Inject() (
     val dbConfig: DatabaseConfig[JdbcProfile],
+    val timeProvider: TimeProvider,
     @Named("db-execution-context") val dbec: ExecutionContext
 ) extends OrderDatabase {
 

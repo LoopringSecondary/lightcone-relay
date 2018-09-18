@@ -27,6 +27,7 @@ import scala.concurrent.Future
 trait BlocksDal extends BaseDalImpl[Blocks, Block] {
   def getBlock(blockHash: String): Future[Option[Block]]
   def getLatestBlock: Future[Option[Block]]
+  def rollback(start: Long, end: Long): Future[Int]
 }
 
 class BlocksDalImpl(val module: OrderDatabase) extends BlocksDal {
@@ -46,5 +47,13 @@ class BlocksDalImpl(val module: OrderDatabase) extends BlocksDal {
 
   def getLatestBlock: Future[Option[Block]] = {
     db.run(query.filter(_.fork === false).sortBy(_.id.desc).result.headOption)
+  }
+
+  def rollback(start: Long, end: Long): Future[Int] = {
+    db.run(query
+      .filter(_.blockNumber > start)
+      .filter(_.blockNumber <= end)
+      .map(c ⇒ (c.fork, c.updatedAt))
+      .update(true, module.timeProvider.getTimeSeconds))
   }
 }
