@@ -19,7 +19,7 @@ package org.loopring.lightcone.core
 import java.util.concurrent.ForkJoinPool
 
 import org.loopring.lightcone.core.database.MySQLOrderDatabase
-import org.loopring.lightcone.core.ethaccessor.{ config, geth }
+import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.lib.time.LocalSystemTimeProvider
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile

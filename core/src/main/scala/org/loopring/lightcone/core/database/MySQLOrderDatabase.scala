@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.database
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import org.loopring.lightcone.core.database.dals.{ BlocksDalImpl, OrderChangeLogsDalImpl, OrdersDalImpl }
+import org.loopring.lightcone.core.database.dals._
 import org.loopring.lightcone.lib.time.TimeProvider
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
