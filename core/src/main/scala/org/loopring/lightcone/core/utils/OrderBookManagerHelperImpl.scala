@@ -19,7 +19,6 @@ package org.loopring.lightcone.core.utils
 import akka.actor._
 import akka.pattern._
 import akka.util._
-import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math._
 import org.loopring.lightcone.proto.cache._

@@ -16,21 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-
-import scala.concurrent.ExecutionContext
 import akka.actor._
-import akka.cluster._
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{ Publish, Subscribe }
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import akka.util.Timeout
 import org.loopring.lightcone.proto.deployment._
-import com.google.inject._
 import org.loopring.lightcone.proto.order.UpdatedOrder.Updated
 import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.ExecutionContext
 
 object OrderUpdateCoordinator
   extends base.Deployable[OrderUpdateCoordinatorSettings] {

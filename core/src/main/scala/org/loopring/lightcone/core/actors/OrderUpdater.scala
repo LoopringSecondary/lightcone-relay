@@ -16,19 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-
-import scala.concurrent.{ ExecutionContext, Future }
 import akka.actor._
-import akka.pattern.{ ask, pipe }
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+import akka.pattern.ask
+import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
-import org.loopring.lightcone.proto.balance.{ GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp }
+import org.loopring.lightcone.proto.balance.{GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp}
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
