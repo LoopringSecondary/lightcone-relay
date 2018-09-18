@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.utils
+package org.loopring.lightcone.core.block
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
@@ -25,11 +25,11 @@ import org.loopring.lightcone.proto.block_chain_event._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class BlockHelperImpl @Inject() (
+class BlockAccessHelperImpl @Inject() (
     val config: Config,
     val accessor: EthClient
 )
-  extends BlockHelper {
+  extends BlockAccessHelper {
 
   // cancel order: 43163
   // submit ring: 43206

@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+package org.loopring.lightcone.core.database.base
 
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDal, OrdersDal }
-import slick.basic.{ BasicProfile, DatabaseConfig }
-import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
+import slick.lifted.Tag
 
-import scala.concurrent.ExecutionContext
-
-trait OrderDatabase {
-  val dbConfig: DatabaseConfig[JdbcProfile]
-  def profile: JdbcProfile = dbConfig.profile
-  def db: BasicProfile#Backend#Database = dbConfig.db
-  def dbec: ExecutionContext
-  def displayDDL(): Unit
-  def generateDDL(): Unit
-
-  // table dal
-  val orders: OrdersDal
-  val orderChangeLogs: OrderChangeLogsDal
-
+abstract class BaseTable[T](tag: Tag, name: String) extends Table[T](tag, "LC_" + name) {
+  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def createdAt = column[Long]("created_at", O.Default(System.currentTimeMillis))
+  def updatedAt = column[Long]("updated_at", O.Default(System.currentTimeMillis))
 }

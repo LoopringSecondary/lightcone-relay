@@ -23,12 +23,13 @@ import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.core.accessor.EthClientImpl
+import org.loopring.lightcone.core.block._
 import org.loopring.lightcone.core.utils._
-import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi, WethAbi }
+import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
-import org.loopring.lightcone.proto.token.{ Token, TokenList }
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+import org.loopring.lightcone.proto.token._
+import org.scalatest._
 
 import scala.concurrent.duration._
 import scala.concurrent.Promise
@@ -72,7 +73,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val loopringAbi = new LoopringAbi("abi/loopring.json")
   val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
-  implicit val detector = new BlockHelperImpl(config, geth)
+  implicit val detector = new BlockAccessHelperImpl(config, geth)
   implicit val processor = new TransactionHelperImpl(tokenlist, geth, erc20Abi, wethAbi, loopringAbi)
   implicit val timeout = Timeout(200 second)
 

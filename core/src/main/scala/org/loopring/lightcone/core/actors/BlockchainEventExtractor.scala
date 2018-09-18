@@ -17,7 +17,8 @@
 package org.loopring.lightcone.core.actors
 
 import org.loopring.lightcone.core.actors.base.RepeatedJobActor
-import org.loopring.lightcone.core.utils.{ BlockHelper, TransactionHelper }
+import org.loopring.lightcone.core.utils._
+import org.loopring.lightcone.core.block._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.solidity._
@@ -36,7 +37,7 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-    val blockHelper: BlockHelper,
+    val blockAccessHelper: BlockAccessHelper,
     val txHelper: TransactionHelper
 ) extends RepeatedJobActor {
 
@@ -52,7 +53,7 @@ class BlockchainEventExtractor()(implicit
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    forkevt ← blockHelper.getForkEvent()
+    forkevt ← blockAccessHelper.getForkEvent()
     list ← if (forkevt.fork.equals(true)) {
       Future(Seq(forkevt))
     } else {
@@ -61,7 +62,7 @@ class BlockchainEventExtractor()(implicit
   } yield list.map(route)
 
   def handleBlock(): Future[Seq[Any]] = for {
-    block ← blockHelper.getBlock()
+    block ← blockAccessHelper.getBlock()
     minedTxs ← txHelper.getMinedTransactions(block.transactions)
     minedSeq = minedTxs.map(txHelper.unpackMinedTransaction)
 
