@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.accessor.EthClient
-import org.loopring.lightcone.proto.eth_jsonrpc.{ BlockWithTxHash, GetBlockWithTxHashByHashReq, GetBlockWithTxHashByNumberReq }
+import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 
 import scala.concurrent.Future
@@ -36,7 +36,7 @@ class BlockAccessHelperImpl @Inject() (
 
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ ← setCurrentBlock(block)
-    forkBlock ← getForkBlock(block)
+    forkBlock ← getParentBlock(block)
     forkEvent ← Future(getRollBackEvent(block, forkBlock))
   } yield forkEvent
 
@@ -47,9 +47,6 @@ class BlockAccessHelperImpl @Inject() (
     res ← accessor.getBlockWithTxHashByNumber(req)
   } yield res.getResult
 
-  // extractor需要遍历链上所有块，不允许漏块
-  // 数据库记录为空时使用config中数据,之后一直使用数据库记录
-  // 同一个块里的数据可能没有处理完 业务数据使用事件推送后全量更新方式不会有问题,其他地方需要做去重
   def getCurrentBlockNumber: Future[BigInt] = for {
     currentBlockNumber ← if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
       for {
@@ -80,18 +77,17 @@ class BlockAccessHelperImpl @Inject() (
     saveBlock(block)
   }
 
-  // 先从本地数据库寻找，本地存在则直接返回，不存在则从链上查询，递归调用
-  def getForkBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+  def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
     parentBlockInDb ← getBlockByHashInDb(block.parentHash)
     result ← if (parentBlockInDb.hash.equals(block.parentHash)) {
-      Future(parentBlockInDb)
+      Future.successful(parentBlockInDb)
     } else if (parentBlockInDb.hash.isEmpty) {
-      Future(BlockWithTxHash())
+      Future.successful(BlockWithTxHash())
     } else {
       for {
         req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
         blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
-        blockOnChain ← getForkBlock(blockOnChainOpt.getResult)
+        blockOnChain ← getParentBlock(blockOnChainOpt.getResult)
       } yield blockOnChain
     }
   } yield result

@@ -38,7 +38,7 @@ object BlockchainEventExtractor
 }
 
 class BlockchainEventExtractor()(implicit
-    val blockHelper: BlockAccessHelper,
+    val blockAccessHelper: BlockAccessHelper,
     val txHelper: TransactionHelper
 ) extends RepeatedJobActor {
 
@@ -54,8 +54,8 @@ class BlockchainEventExtractor()(implicit
   }
 
   override def handleRepeatedJob(): Future[Unit] = for {
-    block ← blockHelper.getCurrentBlock
-    forkevt ← blockHelper.repeatedJobToGetForkEvent(block)
+    block ← blockAccessHelper.getCurrentBlock
+    forkevt ← blockAccessHelper.repeatedJobToGetForkEvent(block)
     list ← if (forkevt.fork.equals(true)) {
       Future(Seq(forkevt))
     } else {
