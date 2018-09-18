@@ -34,7 +34,7 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= akkaDenepdencies,
     libraryDependencies ++= Seq(
       "net.codingwell" %% "scala-guice" % "4.2.1",
-      "org.loopring" %% "lightcore-relay" % "0.0.16-SNAPSHOT"))
+      "org.loopring" %% "lightcore-relay" % "0.0.18-SNAPSHOT"))
 
 lazy val lightcone = (project in file("."))
   .aggregate(proto, lib, core)
