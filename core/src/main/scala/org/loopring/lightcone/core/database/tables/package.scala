@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core.database
 
-import redis._
-import com.google.inject._
+import slick.jdbc.MySQLProfile.api._
 
-final class OrderRedisCache @Inject() (
-    redis: RedisCluster
-)
-  extends OrderCache {
-
+package object tables {
+  val ordersQ = TableQuery[Orders]
+  val orderChangeLogsQ = TableQuery[OrderChangeLogs]
+  val blocksQ = TableQuery[Blocks]
 }

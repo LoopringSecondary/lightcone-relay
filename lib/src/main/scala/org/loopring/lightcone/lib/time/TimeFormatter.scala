@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib.time
 
-import redis._
-import com.google.inject._
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
 
-final class OrderRedisCache @Inject() (
-    redis: RedisCluster
-)
-  extends OrderCache {
+trait TimeFormatter {
+  def format(timeMillis: Long): String
+  def format(timestamp: Timestamp): String = format(timestamp.getTime)
+}
 
+final class SimpleTimeFormatter extends TimeFormatter {
+  private val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+  def format(timeMillis: Long) = simpleDateFormat.format(timeMillis)
 }

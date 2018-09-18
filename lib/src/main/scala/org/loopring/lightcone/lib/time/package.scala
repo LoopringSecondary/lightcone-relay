@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.lib
 
-import redis._
-import com.google.inject._
+import java.sql.Timestamp
 
-final class OrderRedisCache @Inject() (
-    redis: RedisCluster
-)
-  extends OrderCache {
+import org.joda.time.Period
 
+package object time {
+  implicit class RichSqlTimestamp(timestamp: Timestamp) {
+    def +(millis: Long) = new Timestamp(timestamp.getTime + millis)
+    def -(millis: Long) = new Timestamp(timestamp.getTime - millis)
+
+    def +(p: Period) = new Timestamp(timestamp.getTime + p.getMillis)
+    def -(p: Period) = new Timestamp(timestamp.getTime - p.getMillis)
+  }
 }

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core.order
 
-import redis._
-import com.google.inject._
+import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.proto.order._
 
-final class OrderRedisCache @Inject() (
-    redis: RedisCluster
-)
-  extends OrderCache {
+import scala.concurrent.Future
 
+trait OrderAccessHelper {
+  def saveOrder(order: Order): Future[OrderSaveResult]
 }

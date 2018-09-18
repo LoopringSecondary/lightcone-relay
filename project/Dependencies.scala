@@ -7,6 +7,7 @@ object Dependencies {
   lazy val json4sVersion = "3.5.4"
   lazy val akkaVersion = "2.5.14"
   lazy val akkaHttpVersion = "10.1.3"
+  lazy val slickVersion = "3.2.3"
 
   lazy val commonDependency = Seq(
     "com.github.scopt" %% "scopt" % "3.7.0",
@@ -27,6 +28,9 @@ object Dependencies {
     "com.github.etaty" %% "rediscala" % "1.8.0",
     "com.github.nscala-time" %% "nscala-time" % "2.20.0",
     "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+    "mysql" % "mysql-connector-java" % "5.1.22",
+    "com.typesafe.slick" %% "slick" % slickVersion,
+    "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(

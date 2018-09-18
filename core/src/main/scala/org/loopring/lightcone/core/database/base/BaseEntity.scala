@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.cache
+package org.loopring.lightcone.core.database.base
 
-import redis._
-import com.google.inject._
-
-final class OrderRedisCache @Inject() (
-    redis: RedisCluster
-)
-  extends OrderCache {
-
+trait BaseEntity {
+  val id: Long
+  def isValid: Boolean = true
 }

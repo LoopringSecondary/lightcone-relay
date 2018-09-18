@@ -16,27 +16,36 @@
 
 package org.loopring.lightcone.core
 
+import java.util.concurrent.ForkJoinPool
+
 import akka.actor._
 import akka.cluster._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import akka.http.scaladsl.model._
+import akka.http.scaladsl._
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 import com.google.inject._
 import com.google.inject.name._
 import com.typesafe.config.Config
 import net.codingwell.scalaguice._
 import org.loopring.lightcone.core.accessor._
 import org.loopring.lightcone.core.actors._
-import org.loopring.lightcone.core.cache.{ ByteArrayRedisCache, _ }
+import org.loopring.lightcone.core.cache._
 import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.core.order._
+import org.loopring.lightcone.core.block._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
-import org.loopring.lightcone.lib.cache.ByteArrayCache
-import org.loopring.lightcone.proto.token.TokenList
+import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.time._
+import org.loopring.lightcone.proto.token._
 import redis._
 
-import scala.concurrent.{ ExecutionContext, _ }
+import scala.concurrent._
 import scala.concurrent.duration._
 
 class CoreModule(config: Config)
@@ -47,10 +56,20 @@ class CoreModule(config: Config)
     implicit val cluster = Cluster(system)
 
     bind[Config].toInstance(config)
+    bind[DatabaseConfig[JdbcProfile]]
+      .toInstance(DatabaseConfig.forConfig("db.default", config))
+
     bind[ActorSystem].toInstance(system)
-    bind[ExecutionContext].toInstance(system.dispatcher)
     bind[Cluster].toInstance(cluster)
     bind[ActorMaterializer].toInstance(ActorMaterializer())
+
+    bind[ExecutionContext].annotatedWithName("system-dispatcher")
+      .toInstance(system.dispatcher)
+    bind[ExecutionContext].annotatedWithName("db-execution-context")
+      .toInstance(ExecutionContext.fromExecutor(ForkJoinPool.commonPool()))
+
+    bind[TimeProvider].to[LocalSystemTimeProvider]
+    bind[TimeFormatter].to[SimpleTimeFormatter]
 
     bind[Timeout].toInstance(new Timeout(config.getInt("behaviors.future-wait-timeout") seconds))
     bind[Erc20Abi].toInstance(new Erc20Abi(config.getString("abi.erc20")))
@@ -70,14 +89,16 @@ class CoreModule(config: Config)
       .toInstance(config.getInt("ethereum.queueSize"))
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
+
     bind[OrderDatabase].to[MySQLOrderDatabase]
+    bind[OrderCache].to[cache.OrderRedisCache]
+    bind[OrderAccessHelper].to[OrderAccessHelperImpl]
 
     bind[ByteArrayCache].to[ByteArrayRedisCache].in[Singleton]
     bind[BalanceCache].to[cache.BalanceRedisCache]
-    bind[OrderCache].to[cache.OrderRedisCache]
 
     bind[TokenList].toInstance(TokenList(list = Seq()))
-    bind[BlockHelper].to[BlockHelperImpl].in[Singleton]
+    bind[BlockAccessHelper].to[BlockAccessHelperImpl].in[Singleton]
     bind[TransactionHelper].to[TransactionHelperImpl].in[Singleton]
   }
 
@@ -126,7 +147,7 @@ class CoreModule(config: Config)
   def getBlockchainEventExtractorProps()(implicit
     ec: ExecutionContext,
     timeout: Timeout,
-    blockHelper: BlockHelper,
+    blockAccessHelper: BlockAccessHelper,
     transactionHelper: TransactionHelper
   ) = {
     Props(new BlockchainEventExtractor()) // .withDispatcher("ring-dispatcher")
@@ -206,11 +227,11 @@ class CoreModule(config: Config)
 
   @Provides
   @Named("order_db_accessor")
-  def getOrderDBAccessorProps(db: OrderDatabase)(implicit
+  def getOrderDBAccessorProps(helper: OrderAccessHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
   ) = {
-    Props(new OrderDBAccessor(db)) // .withDispatcher("ring-dispatcher")
+    Props(new OrderDBAccessor(helper)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides
