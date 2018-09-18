@@ -42,14 +42,12 @@ class BlockAccessHelperImpl @Inject() (
     _ ← setCurrentBlock(block)
     forkBlock ← getParentBlock(block)
     forkEvent = getRollBackEvent(block, forkBlock)
-    _ ← Future.successful(
-      if (forkEvent.fork) {
-        query.rollback(
-          forkEvent.forkBlockNumber.asBigInteger.longValue(),
-          forkEvent.detectedBlockNumber.asBigInteger.longValue()
-        )
-      }
-    )
+    _ = if (forkEvent.fork) {
+      query.rollback(
+        forkEvent.forkBlockNumber.asBigInteger.longValue(),
+        forkEvent.detectedBlockNumber.asBigInteger.longValue()
+      )
+    }
   } yield forkEvent
 
   def getCurrentBlock: Future[BlockWithTxHash] = for {
