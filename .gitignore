@@ -10,3 +10,9 @@ project/project/
 .idea/
 lib.iml
 logs
+.cache-main
+.project
+.classpath
+.cache-tests
+.settings/
+bin/
