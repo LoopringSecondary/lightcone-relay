@@ -33,12 +33,12 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= commonDependency,
     libraryDependencies ++= akkaDenepdencies,
     libraryDependencies ++= Seq(
-      "net.codingwell" %% "scala-guice" % "4.2.1"))
+      "net.codingwell" %% "scala-guice" % "4.2.1",
+      "org.loopring" %% "lightcore-relay" % "0.0.16-SNAPSHOT"))
 
 lazy val lightcone = (project in file("."))
   .aggregate(proto, lib, core)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
-    libraryDependencies += "org.loopring" %% "ethcube" % "0.0.2-SNAPSHOT",
     update / aggregate := false)
