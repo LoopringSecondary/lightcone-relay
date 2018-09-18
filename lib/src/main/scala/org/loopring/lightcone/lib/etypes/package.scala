@@ -19,7 +19,6 @@ package org.loopring.lightcone.lib
 import java.math.BigInteger
 
 import com.google.protobuf.ByteString
-import org.web3j.utils.Numeric
 
 package object etypes {
 

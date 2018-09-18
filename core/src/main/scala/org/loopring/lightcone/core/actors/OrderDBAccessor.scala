@@ -20,6 +20,7 @@ import akka.util.Timeout
 
 import akka.actor._
 import org.loopring.lightcone.core.database._
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
@@ -48,12 +49,10 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
     case m: SaveUpdatedOrders       ⇒
     case m: SoftCancelOrders        ⇒
     case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
-    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber)
+    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
     case m: NotifyRollbackOrders    ⇒
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: ByteString) = {
-  }
-
+  def rollbackOrders(blockNumber: Long) = {}
 }

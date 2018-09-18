@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+package org.loopring.lightcone.lib.time
 
-import slick.jdbc.MySQLProfile.api._
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
 
-package object tables {
-  val ordersQ = TableQuery[Orders]
-  val orderChangeLogsQ = TableQuery[OrderChangeLogs]
-  val blocksQ = TableQuery[Blocks]
+trait TimeFormatter {
+  def format(timeMillis: Long): String
+  def format(timestamp: Timestamp): String = format(timestamp.getTime)
+}
+
+final class SimpleTimeFormatter extends TimeFormatter {
+  private val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+  def format(timeMillis: Long) = simpleDateFormat.format(timeMillis)
 }

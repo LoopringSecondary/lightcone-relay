@@ -41,6 +41,7 @@ import org.loopring.lightcone.core.block._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache._
+import org.loopring.lightcone.lib.time._
 import org.loopring.lightcone.proto.token._
 import redis._
 
@@ -66,6 +67,9 @@ class CoreModule(config: Config)
       .toInstance(system.dispatcher)
     bind[ExecutionContext].annotatedWithName("db-execution-context")
       .toInstance(ExecutionContext.fromExecutor(ForkJoinPool.commonPool()))
+
+    bind[TimeProvider].to[LocalSystemTimeProvider]
+    bind[TimeFormatter].to[SimpleTimeFormatter]
 
     bind[Timeout].toInstance(new Timeout(config.getInt("behaviors.future-wait-timeout") seconds))
     bind[Erc20Abi].toInstance(new Erc20Abi(config.getString("abi.erc20")))

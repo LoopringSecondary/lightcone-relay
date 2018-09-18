@@ -20,6 +20,7 @@ import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import akka.actor._
 import org.loopring.lightcone.core.actors.base.CommonSettings
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.block_chain_event._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
@@ -44,8 +45,8 @@ class OrderChangeLogWriter()(implicit
     case su: SaveUpdatedOrders             ⇒
     case sc: SoftCancelOrders              ⇒
     case s: SaveOrders                     ⇒
-    case chainRolledBack: ChainRolledBack  ⇒ rollbackOrderChange(chainRolledBack.detectedBlockNumber)
+    case chainRolledBack: ChainRolledBack  ⇒ rollbackOrderChange(chainRolledBack.detectedBlockNumber.asBigInteger.longValue())
   }
 
-  def rollbackOrderChange(blockNumber: com.google.protobuf.ByteString) = {}
+  def rollbackOrderChange(blockNumber: Long) = {}
 }

@@ -23,6 +23,7 @@ import scala.concurrent._
 trait EthClient {
   // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P]
 
+  def ethGetBlockNumber(): Future[EthGetBlockNumberRes]
   def ethGetBalance(req: EthGetBalanceReq): Future[EthGetBalanceRes]
   def getTransactionByHash(req: GetTransactionByHashReq): Future[GetTransactionByHashRes]
   def getTransactionReceipt(req: GetTransactionReceiptReq): Future[GetTransactionReceiptRes]
