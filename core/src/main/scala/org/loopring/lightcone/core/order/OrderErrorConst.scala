@@ -16,10 +16,12 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.common.ErrorResp
 
-import scala.concurrent.Future
-
-trait OrderAccessHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
+object OrderErrorConst {
+  def UNEXPECT_ORDER_SUBMIT_REQ = ErrorResp("UNEXPECT_ORDER_SUBMIT_REQ", "unexpect submitOrderReq")
+  def ORDER_IS_EMPTY = ErrorResp("ORDER_IS_EMPTY", "order request is empty")
+  def GENERATE_HASH_FAILED = ErrorResp("GENERATE_HASH_FAILED", "generate hash failed")
+  def FILL_PRICE_FAILED = ErrorResp("FILL_PRICE_FAILED", "fill price failed")
+  def SAVE_ORDER_FAILED = ErrorResp("SAVE_ORDER_FAILED", "save order failed, please try later")
 }

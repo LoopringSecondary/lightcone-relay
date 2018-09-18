@@ -16,10 +16,10 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.order.Order
 
-import scala.concurrent.Future
+case class ValidateResult(pass: Boolean, rejectReason: String)
 
-trait OrderAccessHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
+trait OrderValidator {
+  def validate(order: Order): ValidateResult
 }

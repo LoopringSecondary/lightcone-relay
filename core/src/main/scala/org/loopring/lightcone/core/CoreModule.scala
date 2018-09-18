@@ -20,8 +20,6 @@ import java.util.concurrent.ForkJoinPool
 
 import akka.actor._
 import akka.cluster._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import akka.http.scaladsl.model._
@@ -86,6 +84,7 @@ class CoreModule(config: Config)
 
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
 
+    bind[OrderWriteHelper].to[OrderWriteHelperImpl]
     bind[OrderDatabase].to[MySQLOrderDatabase]
     bind[OrderCache].to[cache.OrderRedisCache]
     bind[OrderAccessHelper].to[OrderAccessHelperImpl]
@@ -277,11 +276,11 @@ class CoreModule(config: Config)
 
   @Provides
   @Named("order_writer")
-  def getOrderWriterProps()(implicit
+  def getOrderWriterProps(helper: OrderWriteHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
   ) = {
-    Props(new OrderWriter()) // .withDispatcher("ring-dispatcher")
+    Props(new OrderWriter(helper)) // .withDispatcher("ring-dispatcher")
   }
 
   @Provides

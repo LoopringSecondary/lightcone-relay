@@ -16,10 +16,15 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.order.Order
 
-import scala.concurrent.Future
-
-trait OrderAccessHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
+trait OrderWriteHelper {
+  def generateHash(order: Order): Order
+  def fullInOrder(order: Order): Order
+  def validateOrder(order: Order): ValidateResult
+  def isOrderExist(order: Order): Boolean
+  def fillMarket(order: Order)
+  def fillSide(order: Order)
+  def fillPrice(order: Order)
+  def validateSoftCancelSign(): ValidateResult
 }

@@ -19,7 +19,6 @@ package org.loopring.lightcone.core.actors
 import akka.util.Timeout
 
 import akka.actor._
-import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
@@ -27,7 +26,6 @@ import com.google.protobuf.ByteString
 import org.loopring.lightcone.core.order.OrderAccessHelper
 
 import scala.concurrent._
-import scala.util._
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -53,7 +51,6 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: ByteString) = {
-  }
+  def rollbackOrders(blockNumber: ByteString) = {}
 
 }

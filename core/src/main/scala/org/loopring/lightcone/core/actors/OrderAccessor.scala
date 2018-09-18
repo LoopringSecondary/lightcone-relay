@@ -19,18 +19,10 @@ package org.loopring.lightcone.core.actors
 import akka.actor.Actor
 import akka.util.Timeout
 
-import scala.concurrent._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import akka.util.Timeout
-
 import scala.concurrent.ExecutionContext
 import akka.pattern.ask
 
-import scala.concurrent.duration._
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 

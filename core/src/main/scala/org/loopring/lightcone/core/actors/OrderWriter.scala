@@ -19,12 +19,12 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import org.loopring.lightcone.core.order.{ OrderErrorConst, OrderWriteHelper }
 
 import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.common.ErrorResp
-import org.loopring.lightcone.proto.order
 import org.loopring.lightcone.proto.order._
 
 import scala.util._
@@ -37,7 +37,7 @@ object OrderWriter
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderWriter()(implicit
+class OrderWriter(helper: OrderWriteHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
@@ -46,36 +46,42 @@ class OrderWriter()(implicit
   def receive: Receive = {
     case settings: OrderWriterSettings ⇒
     case req: SubmitOrderReq ⇒ {
-      if (req.rawOrder.isEmpty) {
-        new ErrorResp()
-      } else if (checkOrder(req.rawOrder.get)) {
-        new ErrorResp()
+
+      if (req.order.isEmpty) {
+        OrderErrorConst.ORDER_IS_EMPTY
       }
 
-      val generatedOrder = wrapToOrder(req)
+      val order = req.order.get
 
-      Routers.orderAccessor ? order.SaveOrders(Seq(generatedOrder)) onComplete {
+      val validateRst = helper.validateOrder(order)
+      if (!validateRst.pass) {
+        ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
+      }
+
+      val generatedOrder = helper.fullInOrder(order)
+
+      Routers.orderAccessor ? SaveOrders(Seq(generatedOrder)) onComplete {
         case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
           seq.head match {
             case OrderSaveResult.SUBMIT_SUCC ⇒
               Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
               sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
             case OrderSaveResult.SUBMIT_FAILED ⇒
-              sender ! ErrorResp()
+              sender ! OrderErrorConst.SAVE_ORDER_FAILED
             case OrderSaveResult.Unrecognized(_) ⇒
-              sender ! ErrorResp()
+              sender ! OrderErrorConst.SAVE_ORDER_FAILED
             case m ⇒
               log.error(s"unexpect SubmitOrderReq result: $m")
-              sender ! ErrorResp()
+              sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
           }
 
         case Success(m) ⇒
           log.error(s"unexpect SubmitOrderReq result: $m")
-          sender ! ErrorResp()
+          sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
 
         case Failure(e) ⇒
           log.error(s"unexpect SubmitOrderReq result: $e")
-          ErrorResp()
+          sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
       }
 
     }
@@ -93,10 +99,7 @@ class OrderWriter()(implicit
       }
   }
 
-  def checkOrder(rawOrder: RawOrder) = true
-  def wrapToOrder(req: SubmitOrderReq) = Order()
   def softCancelSignCheck(sign: Option[SoftCancelSign]) = true
-
 }
 
 object OrderValidator {

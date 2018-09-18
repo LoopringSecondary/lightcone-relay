@@ -15,11 +15,24 @@
  */
 
 package org.loopring.lightcone.core.order
+import org.loopring.lightcone.proto.order.Order
 
-import org.loopring.lightcone.proto.order._
+class OrderWriteHelperImpl extends OrderWriteHelper {
 
-import scala.concurrent.Future
+  override def generateHash(order: Order): Order = {
+    order
+  }
+  override def fullInOrder(order: Order): Order = ???
 
-trait OrderAccessHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
+  override def validateOrder(order: Order): ValidateResult = ???
+
+  override def isOrderExist(order: Order): Boolean = ???
+
+  override def fillMarket(order: Order): Unit = ???
+
+  override def fillSide(order: Order): Unit = ???
+
+  override def fillPrice(order: Order): Unit = ???
+
+  override def validateSoftCancelSign(): ValidateResult = ???
 }
