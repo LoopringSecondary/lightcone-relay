@@ -70,7 +70,7 @@ class RingFinder()(implicit
         .flatMap(r ⇒ r.ordersSettling))
 
     case getFinderRingCandidates: GetRingCandidates ⇒
-      sender() ! RingCandidates()
+      sender() ! RingCandidates() //todo:
 
     case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled ⇒
       updateCoordinator ! MarkOrdersDeferred(deferOrders =
