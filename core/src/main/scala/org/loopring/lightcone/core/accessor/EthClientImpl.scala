@@ -22,87 +22,47 @@ import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
 import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
 import org.spongycastle.util.encoders.Hex
+import org.loopring.ethcube.EthereumProxy
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 class EthClientImpl @Inject() (
-    val erc20Abi: Erc20Abi,
-    val loopringAbi: LoopringAbi,
-    val ethereumClientFlow: HttpFlow,
-    @Named("ethereum_conn_queuesize") val queueSize: Int
-)(
-    implicit
-    val system: ActorSystem
-) extends EthClient with JsonRpcSupport {
+  @Named("ethereum_proxy") proxy: ActorRef) extends EthClient {
 
-  case class DebugParams(
-      timeout: String,
-      tracer: String
-  )
+  implicit val timeout = Timeout(3 seconds)
 
   def ethGetBalance(req: EthGetBalanceReq) =
-    httpPost[EthGetBalanceRes]("eth_getBalance") {
-      Seq(req.address, req.tag)
-    }
+    (proxy ? req).mapTo[EthGetBalanceRes]
 
   def getTransactionByHash(req: GetTransactionByHashReq) =
-    httpPost[GetTransactionByHashRes]("eth_getTransactionByHash") {
-      Seq(req.hash)
-    }
+    (proxy ? req).mapTo[GetTransactionByHashRes]
 
   def getTransactionReceipt(req: GetTransactionReceiptReq) =
-    httpPost[GetTransactionReceiptRes]("eth_getTransactionReceipt") {
-      Seq(req.hash)
-    }
+    (proxy ? req).mapTo[GetTransactionReceiptRes]
 
   def getBlockWithTxHashByNumber(req: GetBlockWithTxHashByNumberReq) =
-    httpPost[GetBlockWithTxHashByNumberRes]("eth_getBlockByNumber") {
-      Seq(req.blockNumber, false)
-    }
+    (proxy ? req).mapTo[GetBlockWithTxHashByNumberRes]
 
   def getBlockWithTxObjectByNumber(req: GetBlockWithTxObjectByNumberReq) =
-    httpPost[GetBlockWithTxObjectByNumberRes]("eth_getBlockByHash") {
-      Seq(req.blockNumber, true)
-    }
+    (proxy ? req).mapTo[GetBlockWithTxObjectByNumberRes]
 
   def getBlockWithTxHashByHash(req: GetBlockWithTxHashByHashReq) =
-    httpPost[GetBlockWithTxHashByHashRes]("eth_getBlockByHash") {
-      Seq(req.blockHash, false)
-    }
+    (proxy ? req).mapTo[GetBlockWithTxHashByHashRes]
 
   def getBlockWithTxObjectByHash(req: GetBlockWithTxObjectByHashReq) =
-    httpPost[GetBlockWithTxObjectByHashRes]("eth_getBlockByHash") {
-      Seq(req.blockHash, true)
-    }
+    (proxy ? req).mapTo[GetBlockWithTxObjectByHashRes]
 
   def traceTransaction(req: TraceTransactionReq) =
-    httpPost[TraceTransactionRes]("debug_traceTransaction") {
-      val debugParams = DebugParams(DEBUG_TIMEOUT_STR, DEBUG_TRACER)
-      Seq(req.txhash, debugParams)
-    }
+    (proxy ? req).mapTo[TraceTransactionRes]
 
   def getBalance(req: GetBalanceReq) =
-    httpPost[GetBalanceRes](ETH_CALL) {
-      val function = erc20Abi.balanceOf
-      val data = bytesToHex(function.encode(req.owner))
-      val args = TransactionParam().withTo(req.token).withData(data)
-      Seq(args, req.tag)
-    }
+    (proxy ? req).mapTo[GetBalanceRes]
 
   def getAllowance(req: GetAllowanceReq) =
-    httpPost[GetAllowanceRes](ETH_CALL) {
-      val function = erc20Abi.allowance
-      val data = bytesToHex(function.encode(req.owner))
-      val args = TransactionParam().withTo(req.token).withData(data)
-      Seq(args, req.tag)
-    }
+    (proxy ? req).mapTo[GetAllowanceRes]
 
   def sendRawTransaction(req: SendRawTransactionReq) =
-    httpPost[SendRawTransactionRes]("eth_sendRawTransaction") {
-      Seq(req.data)
-    }
-  // def getEstimatedGas() = ???
-
-  // def request[R, P](req: R, method: String, params: Seq[Any]): Future[P] = ???
-
-  def bytesToHex(data: Array[Byte]): String = "0x" + Hex.toHexString(data)
+    (proxy ? req).mapTo[SendRawTransactionRes]
 
 }
