@@ -151,7 +151,7 @@ class OrderBookManagerHelperImpl(
       case Updated.OrderBeingMatched(orderBeingMatched) ⇒
         orderbook.updateOrderLevel3Status(orderBeingMatched.orderHash, OrderLevel3Status.ORDER_STATUS_MATCHING)
 
-      case Updated.OrderStelling(orderSettling) ⇒
+      case Updated.OrderSettling(orderSettling) ⇒
         orderbook.updateOrderLevel3Status(orderSettling.orderHash, OrderLevel3Status.ORDER_STATUS_SETTLEING)
     }
 
