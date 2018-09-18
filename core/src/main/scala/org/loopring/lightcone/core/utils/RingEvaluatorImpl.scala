@@ -20,17 +20,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 import akka.pattern._
 import akka.util.Timeout
-import org.loopring.lightcone.lib.etypes._
+import org.loopring.lightcone.core.richproto._
 import org.loopring.lightcone.core.routing.Routers
+import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring._
-import org.loopring.lightcone.core.richproto._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class RingEvaluatorImpl(
     submitterAddress: String = "",

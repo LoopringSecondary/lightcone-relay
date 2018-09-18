@@ -20,7 +20,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import org.loopring.lightcone.proto.balance.{GetBalanceAndAllowanceReq, GetBalanceAndAllowanceResp}
+import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 
@@ -46,7 +46,7 @@ class OrderUpdater()(implicit
   def receive: Receive = {
     case settings: OrderUpdaterSettings ⇒
     case m: UpdateOrders ⇒ for {
-      updatedOrders ← Future.sequence(m.orders.map { order ⇒
+      updatedOrders ← Future.sequence{m.orders.map { order ⇒
         for {
           getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
             address = order.rawOrder.get.owner,
@@ -59,7 +59,7 @@ class OrderUpdater()(implicit
           //todo:根据balance等确定order的状态以及交易量
           UpdatedOrder()
         }
-      })
+      }}
     } yield {
       sender() ! updatedOrders
       orderUpdateCoordinator ! updatedOrders
