@@ -26,6 +26,7 @@ import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring._
+import org.loopring.lightcone.core.richproto._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
@@ -132,7 +133,7 @@ class RingEvaluatorImpl(
               rawOrder ← Future.successful(order.rawOrder.get)
               amountS = rawOrder.amountS.asBigInt
               rateAmountS = Rational(amountS) * reduceRate
-              (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(rawOrder, reduceRate)
+              (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(order, reduceRate)
             } yield OrderFill(
               rawOrder,
               sPrice,
@@ -173,7 +174,8 @@ class RingEvaluatorImpl(
     }
   } yield res
 
-  private def computeFillAmountStep1(rawOrder: RawOrder, reduceRate: Rational) = for {
+  private def computeFillAmountStep1(order: Order, reduceRate: Rational) = for {
+    rawOrder ← Future.successful(order.rawOrder.get)
     availableAmountBig ← getAvailableAmount(
       rawOrder.owner,
       rawOrder.tokenS,
@@ -184,8 +186,7 @@ class RingEvaluatorImpl(
 
     sPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt) * reduceRate
 
-    remainedAmountS = Rational(1) //todo:
-    remainedAmountB = Rational(1)
+    (remainedAmountS, remainedAmountB) = order.getRemained()
 
     (fillAmountS, fillAmountB) = if (rawOrder.buyNoMoreThanAmountB) {
       val availableAmountB = remainedAmountB

@@ -64,6 +64,11 @@ message OneOrder {
     Order order = 1;
 }
 
+message GetOrderInfo {
+}
+message OrderInfo {
+}
+
 message GetOrders {
     PaginationQuery page = 1;
     OrderQuery query = 2;

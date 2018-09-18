@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.actors
 
 import akka.util.Timeout
+
 import scala.concurrent.ExecutionContext
 import akka.actor._
 import akka.cluster._
@@ -25,6 +26,7 @@ import akka.cluster.routing._
 import org.loopring.lightcone.core.routing.Routers
 import com.typesafe.config.Config
 import org.loopring.lightcone.proto.deployment._
+import org.loopring.lightcone.proto.order._
 
 object OrderReadCoordinator
   extends base.Deployable[OrderReadCoordinatorSettings] {
@@ -42,6 +44,9 @@ class OrderReadCoordinator()(implicit
 
   def receive: Receive = {
     case settings: OrderReadCoordinatorSettings ⇒
+    case m: GetOrders ⇒
+      sender() ! GetOrdersResp()
+
     case _ ⇒
   }
 }
