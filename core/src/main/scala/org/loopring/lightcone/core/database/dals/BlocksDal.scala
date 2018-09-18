@@ -19,102 +19,32 @@ package org.loopring.lightcone.core.database.dals
 import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
-import org.loopring.lightcone.proto.order.{ Order, OrderChangeLog, OrderLevel1Status, OrderStatus }
+import org.loopring.lightcone.proto.block.Block
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
 
-trait BlocksDal extends BaseDalImpl[Orders, Order] {
-  //  def getOrder(orderHash: String): Future[Option[Order]]
-  //  def getOrders(condition: QueryCondition, skip: Int, take: Int): Future[Seq[Order]]
-  //  def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int])
-  //  def saveOrder(order: Order): Future[Int]
-  //  def softCancelByMarket(owner: String, market: String): Future[Int]
-  //  def softCancelByOwner(owner: String): Future[Int]
-  //  def softCancelByTime(cutoff: Long): Future[Int]
-  //  def softCancelByHash(orderHash: String): Future[Int]
+trait BlocksDal extends BaseDalImpl[Blocks, Block] {
+  def getBlock(blockHash: String): Future[Option[Block]]
+  def getLatestBlock: Future[Option[Block]]
 }
 
-class BlocksDalImpl(val module: OrderDatabase) {
-  //  val query = ordersQ
-  //
-  //  override def update(row: Order): Future[Int] = {
-  //    db.run(query.filter(_.id === row.id).update(row))
-  //  }
-  //
-  //  override def update(rows: Seq[Order]): Future[Unit] = {
-  //    db.run(DBIO.seq(rows.map(r ⇒ query.filter(_.id === r.id).update(r)): _*))
-  //  }
-  //
-  //  def saveOrder(order: Order): Future[Int] = module.db.run(query += order)
-  //
-  //  def getOrder(orderHash: String): Future[Option[Order]] = {
-  //    findByFilter(_.orderHash === orderHash).map(_.headOption)
-  //  }
-  //
-  //  def getOrders(condition: QueryCondition, skip: Int, take: Int): Future[Seq[Order]] = {
-  //
-  //    db.run(unwrapContition(condition)
-  //      .drop(skip)
-  //      .take(take)
-  //      .result)
-  //  }
-  //
-  //  def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int]) = {
-  //
-  //    val action = unwrapContition(condition)
-  //      .drop(skip)
-  //      .take(take)
-  //
-  //    (db.run(action.drop(skip).take(take).result), db.run(action.length.result))
-  //  }
-  //
-  //  def softCancelByMarket(owner: String, market: String): Future[Int] = {
-  //    db.run(query
-  //      .filter(_.owner === owner)
-  //      .filter(_.market === market)
-  //      .map(o ⇒ (o.status, o.updatedAt))
-  //      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
-  //  }
-  //
-  //  def softCancelByOwner(owner: String): Future[Int] = {
-  //    db.run(query
-  //      .filter(_.owner === owner)
-  //      .map(o ⇒ (o.status, o.updatedAt))
-  //      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
-  //  }
-  //
-  //  def softCancelByTime(cutoff: Long): Future[Int] = {
-  //    db.run(query
-  //      .filter(_.validUntil >= cutoff)
-  //      .map(o ⇒ (o.status, o.updatedAt))
-  //      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
-  //  }
-  //
-  //  def softCancelByHash(orderHash: String): Future[Int] = {
-  //    db.run(query
-  //      .filter(_.orderHash === orderHash)
-  //      .map(o ⇒ (o.status, o.updatedAt))
-  //      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
-  //  }
-  //
-  //  def unwrapContition(condition: QueryCondition) = {
-  //
-  //    query
-  //      .filter { o ⇒
-  //        condition.owner.map(o.owner === _).getOrElse(true: Rep[Boolean])
-  //      }
-  //      .filter { o ⇒
-  //        condition.orderType.map(o.orderType === _).getOrElse(true: Rep[Boolean])
-  //      }
-  //      .filter { o ⇒
-  //        condition.side.map(o.side === _).getOrElse(true: Rep[Boolean])
-  //      }
-  //      .filter { o ⇒
-  //        condition.market.map(o.market === _).getOrElse(true: Rep[Boolean])
-  //      }
-  //      .filter(_.status inSet condition.status)
-  //      .filter(_.orderHash inSet condition.orderHashes)
-  //      .sortBy(_.createdAt.desc)
-  //  }
+class BlocksDalImpl(val module: OrderDatabase) extends BlocksDal {
+  val query = blocksQ
+
+  override def update(row: Block): Future[Int] = {
+    db.run(query.filter(_.id === row.id).update(row))
+  }
+
+  override def update(rows: Seq[Block]): Future[Unit] = {
+    db.run(DBIO.seq(rows.map(r ⇒ query.filter(_.id === r.id).update(r)): _*))
+  }
+
+  def getBlock(blockHash: String): Future[Option[Block]] = {
+    db.run(query.filter(_.blockHash === blockHash).filter(_.fork === false).result.headOption)
+  }
+
+  def getLatestBlock: Future[Option[Block]] = {
+    db.run(query.filter(_.fork === false).sortBy(_.id.desc).result.headOption)
+  }
 }

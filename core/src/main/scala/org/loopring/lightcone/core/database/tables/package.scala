@@ -21,4 +21,5 @@ import slick.jdbc.MySQLProfile.api._
 package object tables {
   val ordersQ = TableQuery[Orders]
   val orderChangeLogsQ = TableQuery[OrderChangeLogs]
+  val blocksQ = TableQuery[Blocks]
 }

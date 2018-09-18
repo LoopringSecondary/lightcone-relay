@@ -20,7 +20,9 @@ import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.block.Block
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 
 import scala.concurrent.Future
@@ -28,11 +30,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlockAccessHelperImpl @Inject() (
     val config: Config,
-    val accessor: EthClient
+    val accessor: EthClient,
+    val db: OrderDatabase
 )
   extends BlockAccessHelper {
 
   var blockNumberIndex = BigInt(0)
+  val query = db.blocks
 
   def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
     _ ← setCurrentBlock(block)
@@ -50,11 +54,10 @@ class BlockAccessHelperImpl @Inject() (
   def getCurrentBlockNumber: Future[BigInt] = for {
     currentBlockNumber ← if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
       for {
-        dbBlockNumber ← readLatestBlockFromDb
-      } yield if (dbBlockNumber.compare(0).equals(0)) {
-        config.getString("extractor.start-block").asBigInt
-      } else {
-        dbBlockNumber
+        latestBlockInDb ← query.getLatestBlock
+      } yield latestBlockInDb match {
+        case Some(x) ⇒ BigInt(x.blockNumber)
+        case _       ⇒ config.getString("extractor.start-block").asBigInt
       }
     } else {
       for {
@@ -68,23 +71,31 @@ class BlockAccessHelperImpl @Inject() (
     }
   } yield currentBlockNumber
 
-  private def setCurrentBlock(block: BlockWithTxHash): Future[Unit] = {
+  private def setCurrentBlock(block: BlockWithTxHash): Future[Long] = {
     if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
       blockNumberIndex = block.number.asBigInt
     } else {
       blockNumberIndex += 1
     }
-    saveBlock(block)
+    query.insert(Block(
+      blockHash = block.hash,
+      parentHash = block.parentHash,
+      blockNumber = block.number.asBigInteger.longValue(),
+      createdAt = block.timestamp.asBigInteger.longValue()
+    ))
   }
 
   def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
-    parentBlockInDb ← getBlockByHashInDb(block.parentHash)
-    result ← if (parentBlockInDb.hash.equals(block.parentHash)) {
-      Future.successful(parentBlockInDb)
-    } else if (parentBlockInDb.hash.isEmpty) {
-      Future.successful(BlockWithTxHash())
-    } else {
-      for {
+    parentBlockInDb ← query.getBlock(block.parentHash)
+    result ← parentBlockInDb match {
+      case Some(x) ⇒ Future.successful(
+        BlockWithTxHash(
+          hash = x.blockHash,
+          number = safeBlockHex(x.blockNumber),
+          parentHash = x.parentHash
+        )
+      )
+      case _ ⇒ for {
         req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
         blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
         blockOnChain ← getParentBlock(blockOnChainOpt.getResult)
@@ -101,18 +112,6 @@ class BlockAccessHelperImpl @Inject() (
       ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)
     }
   }
-
-  // todo: relay mysql
-  private def saveBlock(block: BlockWithTxHash): Future[Unit] = Future()
-
-  // test fork: set hash, todo: rely mysql
-  private def getBlockByHashInDb(hash: String): Future[BlockWithTxHash] =
-    Future { BlockWithTxHash() }
-
-  // todo: rely mysql
-  private def readLatestBlockFromDb: Future[BigInt] = for {
-    block ← Future { BigInt(0) }
-  } yield block
 
   private def safeBlockHex(blockNumber: BigInt): String = {
     "0x" + blockNumber.intValue().toHexString

@@ -93,6 +93,7 @@ message BlockWithTxHash {
     string timestamp = 17;
     repeated string transactions = 18;
     repeated string uncles = 19;
+    bool fork = 20;
 }
 
 message BlockWithTxObject {

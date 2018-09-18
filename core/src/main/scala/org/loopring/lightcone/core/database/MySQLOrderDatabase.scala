@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.database
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDalImpl, OrdersDalImpl }
+import org.loopring.lightcone.core.database.dals.{ BlocksDalImpl, OrderChangeLogsDalImpl, OrdersDalImpl }
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
@@ -31,17 +31,20 @@ class MySQLOrderDatabase @Inject() (
 
   val orders = new OrdersDalImpl(this)
   val orderChangeLogs = new OrderChangeLogsDalImpl(this)
+  val blocks = new BlocksDalImpl(this)
 
   def generateDDL(): Unit = {
     Seq(
       orders.createTable(),
-      orderChangeLogs.createTable()
+      orderChangeLogs.createTable(),
+      blocks.createTable()
     )
   }
 
   def displayDDL(): Unit = {
     orders.displayTableSchema()
     orderChangeLogs.displayTableSchema()
+    blocks.displayTableSchema()
   }
 
 }

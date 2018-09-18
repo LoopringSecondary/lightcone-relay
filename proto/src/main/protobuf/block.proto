@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+syntax = "proto3";
 
-import org.loopring.lightcone.core.database.dals._
-import slick.basic._
-import slick.jdbc.JdbcProfile
+option java_multiple_files = true;
+option java_package = "org.loopring.lightcone.proto";
+package org.loopring.lightcone.proto;
 
-import scala.concurrent.ExecutionContext
+///////////////////////////////////////////
+//
+// ethereum original type
+//
+///////////////////////////////////////////
 
-trait OrderDatabase {
-  val dbConfig: DatabaseConfig[JdbcProfile]
-  def profile: JdbcProfile = dbConfig.profile
-  def db: BasicProfile#Backend#Database = dbConfig.db
-  def dbec: ExecutionContext
-  def displayDDL(): Unit
-  def generateDDL(): Unit
-
-  // table dal
-  val orders: OrdersDal
-  val orderChangeLogs: OrderChangeLogsDal
-  val blocks: BlocksDal
+message Block {
+    int64 id = 1;
+    string block_hash = 2;
+    int64 block_number = 3;
+    string parent_hash = 4;
+    bool fork = 5;
+    int64 created_at = 6;
+    int64 updated_at = 7;
 }

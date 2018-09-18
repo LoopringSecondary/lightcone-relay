@@ -21,13 +21,6 @@ import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
 
 import scala.concurrent.Future
 
-case class Block(
-    blockHash: String,
-    parentHash: String,
-    blockNumber: String,
-    blockTime: String
-)
-
 trait BlockAccessHelper {
 
   // 轮询分叉事件
