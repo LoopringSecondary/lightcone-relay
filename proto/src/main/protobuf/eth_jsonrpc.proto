@@ -93,6 +93,7 @@ message BlockWithTxHash {
     string timestamp = 17;
     repeated string transactions = 18;
     repeated string uncles = 19;
+    bool fork = 20;
 }
 
 message BlockWithTxObject {
@@ -161,6 +162,12 @@ message TransactionParam {
 // ethereum json rpc params
 //
 ///////////////////////////////////////////
+
+message EthGetBlockNumberRes {
+    int32 id = 1;
+    string jsonrpc = 2;
+    string result = 3;
+}
 
 // eth_getBalance
 message EthGetBalanceReq {

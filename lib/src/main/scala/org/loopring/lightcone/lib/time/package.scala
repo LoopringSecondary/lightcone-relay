@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.database
+package org.loopring.lightcone.lib
 
-import slick.jdbc.MySQLProfile.api._
+import java.sql.Timestamp
 
-package object tables {
-  val ordersQ = TableQuery[Orders]
-  val orderChangeLogsQ = TableQuery[OrderChangeLogs]
-  val blocksQ = TableQuery[Blocks]
+import org.joda.time.Period
+
+package object time {
+  implicit class RichSqlTimestamp(timestamp: Timestamp) {
+    def +(millis: Long) = new Timestamp(timestamp.getTime + millis)
+    def -(millis: Long) = new Timestamp(timestamp.getTime - millis)
+
+    def +(p: Period) = new Timestamp(timestamp.getTime + p.getMillis)
+    def -(p: Period) = new Timestamp(timestamp.getTime - p.getMillis)
+  }
 }
