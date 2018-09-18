@@ -16,8 +16,8 @@
 
 package org.loopring.lightcone.core.database
 
-import org.loopring.lightcone.core.database.dals.{ OrderChangeLogsDal, OrdersDal }
-import slick.basic.{ BasicProfile, DatabaseConfig }
+import org.loopring.lightcone.core.database.dals._
+import slick.basic._
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.ExecutionContext
@@ -33,5 +33,5 @@ trait OrderDatabase {
   // table dal
   val orders: OrdersDal
   val orderChangeLogs: OrderChangeLogsDal
-
+  //val blocks: BlocksDal
 }

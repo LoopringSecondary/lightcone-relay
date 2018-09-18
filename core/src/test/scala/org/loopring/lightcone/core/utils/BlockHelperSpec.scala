@@ -16,6 +16,7 @@
 
 package org.loopring.lightcone.core.utils
 
+import org.loopring.lightcone.core.block.BlockAccessHelperImpl
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.proto.eth_jsonrpc.BlockWithTxHash
@@ -32,7 +33,7 @@ class BlockHelperSpec extends FlatSpec {
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkBlock'] to debug getForkBlock")
   info("execute cmd [sbt core/'testOnly *BlockHelperSpec -- -z getForkEvent'] to debug getForkEvent")
 
-  val helper = new BlockHelperImpl(config, geth)
+  val helper = new BlockAccessHelperImpl(config, geth)
 
   val block = BlockWithTxHash()
     .withHash("0x02427f544559dd4ee66f4f1ecfaa02b3f85edb02185019f4795a605cb043fc21")
@@ -61,7 +62,7 @@ class BlockHelperSpec extends FlatSpec {
 
   "getForkBlock" should "get first block on chain" in {
     val resultFuture = for {
-      res ← helper.getForkBlock(block)
+      res ← helper.getParentBlock(block)
     } yield res
 
     val forkBlock = Await.result(resultFuture, timeout.duration)
