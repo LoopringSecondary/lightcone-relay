@@ -17,9 +17,9 @@
 package org.loopring.lightcone.core
 
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.{Order, RawOrder}
+import org.loopring.lightcone.proto.order.{ Order, RawOrder }
 import org.loopring.lightcone.lib.etypes._
-import org.web3j.crypto._
+import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
 import org.web3j.utils.Numeric
 
 package object richproto {
@@ -28,15 +28,16 @@ package object richproto {
 
     def getSignerAddr(): String = {
       val orderHash = Numeric.hexStringToByteArray(rawOrder.hash)
-      val hash = Hash.sha3(("\u0019Ethereum Signed Message:\n" + orderHash.length).getBytes() ++ orderHash)
+      val hash = web3Hash.sha3(("\u0019Ethereum Signed Message:\n" + orderHash.length).getBytes() ++ orderHash)
       val publicKey = Sign.recoverFromSignature(
         (rawOrder.v - 27).toByte,
         new ECDSASignature(rawOrder.r.asBigInteger, rawOrder.s.asBigInteger),
-        hash)
+        hash
+      )
       Keys.getAddress(publicKey)
     }
 
-    def getHash():String = {
+    def getHash(): String = {
       val buyNoMoreThanB = if (rawOrder.buyNoMoreThanAmountB) 1 else 0
 
       val data = Numeric.hexStringToByteArray(rawOrder.delegateAddress) ++
@@ -52,7 +53,7 @@ package object richproto {
         Numeric.toBytesPadded(rawOrder.lrcFee.asBigInteger, 32) ++
         Array[Byte](buyNoMoreThanB.toByte, rawOrder.marginSplitPercentage.toByte)
 
-      Numeric.toHexString(Hash.sha3(data))
+      Numeric.toHexString(web3Hash.sha3(data))
     }
   }
 
