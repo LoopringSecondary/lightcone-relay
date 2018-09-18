@@ -18,9 +18,9 @@ package org.loopring.lightcone.core
 
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.{Order, RawOrder}
+import org.loopring.lightcone.proto.order.{ Order, RawOrder }
 import org.loopring.lightcone.proto.ring.Ring
-import org.web3j.crypto.{Hash ⇒ web3Hash, _}
+import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
 import org.web3j.utils.Numeric
 
 package object richproto {
@@ -94,20 +94,20 @@ package object richproto {
 
   }
 
-  implicit class RichRing(ring:Ring) {
-    def getHash():String = {
+  implicit class RichRing(ring: Ring) {
+    def getHash(): String = {
       val data = ring.getUniqueId() ++
-      Numeric.hexStringToByteArray(ring.feeReceipt) ++
-        Numeric.toBytesPadded(ring.feeSelection(), 2)
+        Numeric.hexStringToByteArray(ring.feeReceipt) ++
+        Numeric.toBytesPadded(ring.getFeeSelection().bigInteger, 2)
       Numeric.toHexString(web3Hash.sha3(data))
     }
 
-    def feeSelection(): BigInt = {
+    def getFeeSelection(): BigInt = {
       var selection = BigInt(0)
       selection //todo:实现2.0 应该不需要该函数
     }
 
-    def getUniqueId():Array[Byte] = {
+    def getUniqueId(): Array[Byte] = {
       val uniqueId = ring.orders
         .map(order ⇒ BigInt(Numeric.toBigInt(order.rawOrder.get.hash)))
         .reduceLeft(_ ^ _)

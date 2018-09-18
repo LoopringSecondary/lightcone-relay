@@ -30,7 +30,7 @@ import org.loopring.lightcone.proto.ring._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class RingEvaluatorImpl(
     submitterAddress: String = "",

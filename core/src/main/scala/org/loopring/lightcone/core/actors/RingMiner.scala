@@ -28,7 +28,7 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order.OrderSettling
 import org.loopring.lightcone.proto.ring._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object RingMiner
   extends base.Deployable[RingMinerSettings] {

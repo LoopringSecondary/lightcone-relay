@@ -29,7 +29,7 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.orderbook._
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{ Await, ExecutionContext }
 
 object OrderBookManager
   extends base.Deployable[OrderBookManagerSettings] {

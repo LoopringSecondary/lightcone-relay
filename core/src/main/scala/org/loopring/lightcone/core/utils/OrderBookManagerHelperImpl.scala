@@ -152,6 +152,8 @@ class OrderBookManagerHelperImpl(
 
       case Updated.OrderSettling(orderSettling) ⇒
         orderbook.updateOrderLevel3Status(orderSettling.orderHash, OrderLevel3Status.ORDER_STATUS_SETTLEING)
+
+      case _ ⇒
     }
 
   }

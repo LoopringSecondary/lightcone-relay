@@ -24,7 +24,7 @@ import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
@@ -46,20 +46,22 @@ class OrderUpdater()(implicit
   def receive: Receive = {
     case settings: OrderUpdaterSettings ⇒
     case m: UpdateOrders ⇒ for {
-      updatedOrders ← Future.sequence{m.orders.map { order ⇒
-        for {
-          getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
-            address = order.rawOrder.get.owner,
-            tokens = Seq(order.rawOrder.get.tokenS, "lrcAddress"),
-            delegates = Seq(order.rawOrder.get.delegateAddress)
-          ))
-          balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]
-          orderInfo ← ethereumAccessor ? GetOrderInfo()
-        } yield {
-          //todo:根据balance等确定order的状态以及交易量
-          UpdatedOrder()
+      updatedOrders ← Future.sequence {
+        m.orders.map { order ⇒
+          for {
+            getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
+              address = order.rawOrder.get.owner,
+              tokens = Seq(order.rawOrder.get.tokenS, "lrcAddress"),
+              delegates = Seq(order.rawOrder.get.delegateAddress)
+            ))
+            balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]
+            orderInfo ← ethereumAccessor ? GetOrderInfo()
+          } yield {
+            //todo:根据balance等确定order的状态以及交易量
+            UpdatedOrder()
+          }
         }
-      }}
+      }
     } yield {
       sender() ! updatedOrders
       orderUpdateCoordinator ! updatedOrders
