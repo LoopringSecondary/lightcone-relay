@@ -23,7 +23,7 @@ import org.loopring.lightcone.core.actors.base.RepeatedJobActor
 import org.loopring.lightcone.core.managing.NodeData
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.{ DeferOrder, MarkOrdersBeingMatched, MarkOrdersDeferred, MarkOrdersSettling }
+import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.orderbook.{ CrossingOrderSets, GetCrossingOrderSets }
 import org.loopring.lightcone.proto.ring._
 
@@ -49,7 +49,7 @@ class RingFinder()(implicit
 
   lazy val id = settings.id
   lazy val orderBookManager: ActorRef = Routers.orderBookManager(id)
-  lazy val orderManager: ActorRef = Routers.orderManager
+  lazy val updateCoordinator: ActorRef = Routers.orderUpdateCoordinator
 
   def marketConfig(): MarketConfig = NodeData.getMarketConfigById(id)
 
@@ -60,21 +60,21 @@ class RingFinder()(implicit
       initAndStartNextRound(settings.scheduleDelay)
 
     case m: NotifyRingSettlementDecisions ⇒
-      orderManager ! MarkOrdersDeferred(deferOrders =
+      updateCoordinator ! MarkOrdersDeferred(deferOrders =
         m.ringSettlementDecisions
           .filter(r ⇒ r.decision == SettlementDecision.UnSettled)
-          .flatMap(r ⇒ r.ordersSettleAmount.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100))))
+          .flatMap(r ⇒ r.ordersSettling.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100))))
 
-      orderManager ! MarkOrdersSettling(ordersSettleAmount = m.ringSettlementDecisions
+      updateCoordinator ! MarkOrdersSettling(ordersSettling = m.ringSettlementDecisions
         .filter(r ⇒ r.decision == SettlementDecision.Settled)
-        .flatMap(r ⇒ r.ordersSettleAmount))
+        .flatMap(r ⇒ r.ordersSettling))
 
     case getFinderRingCandidates: GetRingCandidates ⇒
-      sender() ! RingCandidates()
+      sender() ! RingCandidates() //todo:
 
     case m: RingSettlementDecision if m.decision == SettlementDecision.UnSettled ⇒
-      orderManager ! MarkOrdersDeferred(deferOrders =
-        m.ordersSettleAmount.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100)))
+      updateCoordinator ! MarkOrdersDeferred(deferOrders =
+        m.ordersSettling.map(o ⇒ DeferOrder(orderHash = o.orderHash, deferredTime = 100)))
 
   }
 
@@ -87,8 +87,11 @@ class RingFinder()(implicit
   } yield {
     crossingOrderSets match {
       case orders: CrossingOrderSets ⇒
-        orderManager ! MarkOrdersBeingMatched(orderHashes =
-          (orders.sellTokenAOrders ++ orders.sellTokenBOrders).map(o ⇒ o.rawOrder.get.hash))
+        updateCoordinator ! MarkOrdersBeingMatched(
+          ordersBeingMatched =
+            (orders.sellTokenAOrders ++ orders.sellTokenBOrders)
+              .map(o ⇒ OrderBeingMatched(o.rawOrder.get.hash))
+        )
       case e: AskTimeoutException ⇒
     }
   }
