@@ -48,14 +48,14 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
     case req: SubmitOrderReq ⇒ {
 
       if (req.order.isEmpty) {
-        OrderErrorConst.ORDER_IS_EMPTY
+        sender ! OrderErrorConst.ORDER_IS_EMPTY
       }
 
       val order = req.order.get
 
       val validateRst = helper.validateOrder(order)
       if (!validateRst.pass) {
-        ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
+        sender ! ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
       }
 
       val generatedOrder = helper.fullInOrder(order)

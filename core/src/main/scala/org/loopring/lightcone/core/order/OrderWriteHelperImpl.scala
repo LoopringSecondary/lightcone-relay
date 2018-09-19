@@ -19,9 +19,7 @@ import org.loopring.lightcone.proto.order.Order
 
 class OrderWriteHelperImpl extends OrderWriteHelper {
 
-  override def generateHash(order: Order): Order = {
-    order
-  }
+  override def generateHash(order: Order): Order = ???
   override def fullInOrder(order: Order): Order = ???
 
   override def validateOrder(order: Order): ValidateResult = ???
