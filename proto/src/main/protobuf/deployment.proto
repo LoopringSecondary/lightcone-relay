@@ -104,6 +104,7 @@ message OrderUpdateCoordinatorSettings {
 message OrderUpdaterSettings {
     repeated string roles = 1;
     int32 instances = 2;
+    string lrc_address = 3;
 }
 
 message OrderWriterSettings {

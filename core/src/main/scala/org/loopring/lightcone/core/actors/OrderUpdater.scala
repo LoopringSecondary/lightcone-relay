@@ -16,16 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
+import akka.pattern.ask
+import akka.util.Timeout
 import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import org.loopring.lightcone.proto.balance._
 import org.loopring.lightcone.proto.deployment._
-import org.loopring.lightcone.proto.order.{ CalculateOrdersStatus, UpdateOrders }
+import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 object OrderUpdater
   extends base.Deployable[OrderUpdaterSettings] {
@@ -40,10 +39,35 @@ class OrderUpdater()(implicit
     timeout: Timeout
 )
   extends Actor {
+  val orderUpdateCoordinator = Routers.orderUpdateCoordinator
+  val balanceManager = Routers.balanceManager
+  val ethereumAccessor = Routers.ethereumAccessor
 
+  var settings: OrderUpdaterSettings = null
   def receive: Receive = {
     case settings: OrderUpdaterSettings ⇒
-    case UpdateOrders                   ⇒
-    case CalculateOrdersStatus          ⇒
+      this.settings = settings
+    case m: UpdateOrders ⇒ for {
+      updatedOrders ← Future.sequence {
+        m.orders.map { order ⇒
+          for {
+            getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
+              address = order.rawOrder.get.owner,
+              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress),
+              delegates = Seq(order.rawOrder.get.delegateAddress)
+            ))
+            balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]
+            orderInfo ← ethereumAccessor ? GetOrderInfo()
+          } yield {
+            //todo:根据balance等确定order的状态以及交易量
+            UpdatedOrder()
+          }
+        }
+      }
+    } yield {
+      sender() ! updatedOrders
+      orderUpdateCoordinator ! updatedOrders
+    }
+    case m: CalculateOrdersStatus ⇒
   }
 }
