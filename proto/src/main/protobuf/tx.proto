@@ -7,3 +7,59 @@ package org.loopring.lightcone.proto;
 message GetNextNonce {}
 
 
+message GetTransactionsByHashReq {
+    string owner = 1;
+    repeated string hash_list = 2;
+}
+
+message GetPendingTransactionsReq {
+    string owner = 1;
+}
+
+message GetAllTransactionCountReq {
+    string owner = 1;
+    string symbol = 2;
+    string status = 3;
+    string typ = 4;
+}
+
+message GetAllTransactionsReq {
+    string owner = 1;
+    string symbol = 2;
+    string status = 3;
+    string typ = 4;
+    int32 limit = 5;
+    int32 offset = 6;
+}
+
+message GetTransactionsRes {
+    repeated TransactionResult list = 1;
+}
+
+message TransactionResult {
+    string protocol = 1;
+    string owner = 2;
+    string from = 3;
+    string to = 4;
+    string tx_hash = 5;
+    string symbol = 6;
+    string content = 7;
+    string block_number = 8;
+    string value = 9;
+    int32 log_index = 10;
+    string type = 11;
+    string status = 12;
+    string gas_price = 13;
+    string gas_limit = 14;
+    string gas_used = 15;
+    string nonce = 16;
+    int32 create_time = 17;
+    int32 update_time = 18;
+}
+
+message TransactionContent {
+    string market = 1;
+    string order_hash = 2;
+    string fill = 3;
+}
+

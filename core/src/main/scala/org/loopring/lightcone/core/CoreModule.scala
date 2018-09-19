@@ -306,4 +306,22 @@ class CoreModule(config: Config)
     Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
   }
 
+  @Provides
+  @Named("transaction_manager")
+  def getTransactionManagerProps()(implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+  ) = {
+    Props(new TransactionManager())
+  }
+
+  @Provides
+  @Named("transaction_reader")
+  def getTransactionReaderProps()(implicit
+    ec: ExecutionContext,
+    timeout: Timeout
+  ) = {
+    Props(new TransactionReader())
+  }
+
 }
