@@ -16,23 +16,29 @@
 
 package org.loopring.lightcone.core.actors
 
+import java.util.concurrent.ForkJoinPool
+
 import akka.actor.{ ActorSystem, Props }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpResponse
 import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
 import org.loopring.lightcone.core.accessor.EthClientImpl
 import org.loopring.lightcone.core.block._
+import org.loopring.lightcone.core.database.MySQLOrderDatabase
+import org.loopring.lightcone.core.ethaccessor._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
+import org.loopring.lightcone.lib.time.LocalSystemTimeProvider
 import org.loopring.lightcone.proto.common.StartNewRound
 import org.loopring.lightcone.proto.deployment.BlockchainEventExtractorSettings
 import org.loopring.lightcone.proto.token._
 import org.scalatest._
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
-import scala.concurrent.Promise
+import scala.concurrent._
 
 class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -43,12 +49,14 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
     TestKit.shutdownActorSystem(system)
   }
 
-  val config = ConfigFactory.defaultApplication()
   val httpFlow = Http().cachedHostConnectionPool[Promise[HttpResponse]](
     host = config.getString("ethereum.host"),
     port = config.getInt("ethereum.port")
   )
-  val queueSize = 5
+  val timeProvider = new LocalSystemTimeProvider
+  val dbConfig: DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig("db.default", config)
+  val context = ExecutionContext.fromExecutor(ForkJoinPool.commonPool())
+  val database = new MySQLOrderDatabase(dbConfig, timeProvider, context)
 
   val tokenlist = TokenList(list = Seq[Token](
     Token(
@@ -73,7 +81,7 @@ class ExtractorSpec() extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   val loopringAbi = new LoopringAbi("abi/loopring.json")
   val geth = new EthClientImpl(erc20Abi, loopringAbi, httpFlow, queueSize)
 
-  implicit val detector = new BlockAccessHelperImpl(config, geth)
+  implicit val detector = new BlockAccessHelperImpl(config, geth, database)
   implicit val processor = new TransactionHelperImpl(tokenlist, geth, erc20Abi, wethAbi, loopringAbi)
   implicit val timeout = Timeout(200 second)
 

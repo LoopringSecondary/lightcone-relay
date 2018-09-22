@@ -46,11 +46,10 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
     case m: SaveUpdatedOrders       ⇒
     case m: SoftCancelOrders        ⇒
     case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
-    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber)
+    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
     case m: NotifyRollbackOrders    ⇒
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
   def rollbackOrders(blockNumber: ByteString) = {}
-
 }

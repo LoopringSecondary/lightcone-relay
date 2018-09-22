@@ -28,6 +28,7 @@ object Dependencies {
     "com.github.etaty" %% "rediscala" % "1.8.0",
     "com.github.nscala-time" %% "nscala-time" % "2.20.0",
     "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+    "mysql" % "mysql-connector-java" % "5.1.22",
     "com.typesafe.slick" %% "slick" % slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "io.spray" %% "spray-json" % "1.3.4")

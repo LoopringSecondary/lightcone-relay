@@ -18,58 +18,112 @@ package org.loopring.lightcone.core.block
 
 import com.google.inject.Inject
 import com.typesafe.config.Config
-import org.loopring.lightcone.core.accessor._
+import org.loopring.lightcone.lib.etypes._
+import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.proto.block_chain_event._
+import org.loopring.lightcone.proto.block.Block
+import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlockAccessHelperImpl @Inject() (
     val config: Config,
-    val accessor: EthClient
+    val accessor: EthClient,
+    val db: OrderDatabase
 )
   extends BlockAccessHelper {
 
-  // cancel order: 43163
-  // submit ring: 43206
-  // cutoff all: 43168
-  // cutoff pair: 43170
-  val currentBlock = BigInt(43163)
+  var blockNumberIndex = BigInt(0)
+  val query = db.blocks
 
-  def getBlock(): Future[BlockWithTxHash] = for {
-    _ ← Future {}
-    block = safeBlockHex(currentBlock)
-    blockReq = GetBlockWithTxHashByNumberReq(block)
-    block ← accessor.getBlockWithTxHashByNumber(blockReq)
-  } yield block.getResult
+  def repeatedJobToGetForkEvent(block: BlockWithTxHash): Future[ChainRolledBack] = for {
+    _ ← setCurrentBlock(block)
+    forkBlock ← getParentBlock(block)
+    forkEvent = getRollBackEvent(block, forkBlock)
+    _ = if (forkEvent.fork) {
+      query.rollback(
+        forkEvent.forkBlockNumber.asBigInteger.longValue(),
+        forkEvent.detectedBlockNumber.asBigInteger.longValue()
+      )
+    }
+  } yield forkEvent
 
-  // todo: get block from config and compare with data in db, set the big one as current block while server restart
-  // todo: compare this.currentBlock and Block.blockNumber, set the bigger as current block while server running
-  def getCurrentBlock(): Future[BigInt] = for {
-    _ ← Future {}
-  } yield currentBlock
+  def getCurrentBlock: Future[BlockWithTxHash] = for {
+    blockNumber ← getCurrentBlockNumber
+    blockNumberStr = safeBlockHex(blockNumber)
+    req = GetBlockWithTxHashByNumberReq(blockNumberStr)
+    res ← accessor.getBlockWithTxHashByNumber(req)
+  } yield res.getResult
 
-  // todo: set this.currentBlock and write in db
-  def setCurrentBlock(block: Block): Future[Unit] = for {
-    _ ← Future {}
-  } yield null
+  def getCurrentBlockNumber: Future[BigInt] = for {
+    currentBlockNumber ← if (blockNumberIndex.compare(BigInt(0)).equals(0)) {
+      for {
+        latestBlockInDb ← query.getLatestBlock
+      } yield latestBlockInDb match {
+        case Some(x) ⇒ BigInt(x.blockNumber)
+        case _       ⇒ config.getString("extractor.start-block").asBigInt
+      }
+    } else {
+      for {
+        blockOnChainRes ← accessor.ethGetBlockNumber()
+        blockNumberOnChain = blockOnChainRes.result.asBigInt
+      } yield if (blockNumberOnChain.compare(blockNumberIndex) < 0) {
+        blockNumberOnChain
+      } else {
+        blockNumberIndex
+      }
+    }
+  } yield currentBlockNumber
 
-  // todo: find parent block in db, if not exist, get it from geth/parity recursive, and return
-  def getForkBlock(): Future[BigInt] = for {
-    ret ← Future { BigInt(0) }
-  } yield ret
+  private def setCurrentBlock(block: BlockWithTxHash): Future[Long] = {
+    if (!block.number.asBigInt.compare(blockNumberIndex).equals(0)) {
+      blockNumberIndex = block.number.asBigInt
+    } else {
+      blockNumberIndex += 1
+    }
+    query.insert(block2Entity(block))
+  }
 
-  def isBlockForked(): Future[Boolean] = for {
-    _ ← Future {}
-  } yield false
+  def getParentBlock(block: BlockWithTxHash): Future[BlockWithTxHash] = for {
+    parentBlockInDb ← query.getBlock(block.parentHash)
+    result ← parentBlockInDb match {
+      case Some(x) ⇒ Future.successful(entity2Block(x))
+      case _ ⇒ for {
+        req ← Future(GetBlockWithTxHashByHashReq(block.parentHash))
+        blockOnChainOpt ← accessor.getBlockWithTxHashByHash(req)
+        blockOnChain ← getParentBlock(blockOnChainOpt.getResult)
+        _ ← query.insert(block2Entity(blockOnChain))
+      } yield blockOnChain
+    }
+  } yield result
 
-  // todo
-  def getForkEvent(): Future[ChainRolledBack] = for {
-    _ ← Future {}
-  } yield ChainRolledBack()
+  private def getRollBackEvent(block: BlockWithTxHash, forkBlock: BlockWithTxHash) = {
+    if (forkBlock.equals(BlockWithTxHash())) {
+      ChainRolledBack().withFork(false)
+    } else if (forkBlock.hash.equals(block.parentHash)) {
+      ChainRolledBack().withFork(false)
+    } else {
+      ChainRolledBack(block.number, block.hash, forkBlock.number, forkBlock.hash, true)
+    }
+  }
 
-  // todo: 使用Hex.toHexString会导致多出一些0,而现有的方式为转为int后toHexString
+  private def block2Entity(src: BlockWithTxHash) = Block(
+    blockHash = src.hash,
+    parentHash = src.parentHash,
+    blockNumber = src.number.asBigInteger.longValue(),
+    createdAt = src.timestamp.asBigInteger.longValue(),
+    updatedAt = src.timestamp.asBigInteger.longValue()
+  )
+
+  private def entity2Block(src: Block) = BlockWithTxHash(
+    hash = src.blockHash,
+    number = safeBlockHex(src.blockNumber),
+    parentHash = src.parentHash,
+    timestamp = safeBlockHex(src.createdAt)
+  )
+
   private def safeBlockHex(blockNumber: BigInt): String = {
     "0x" + blockNumber.intValue().toHexString
   }
