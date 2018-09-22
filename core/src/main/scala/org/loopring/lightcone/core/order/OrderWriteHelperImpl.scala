@@ -15,7 +15,7 @@
  */
 
 package org.loopring.lightcone.core.order
-import org.loopring.lightcone.proto.order.Order
+import org.loopring.lightcone.proto.order.{ Order, SoftCancelSign }
 
 class OrderWriteHelperImpl extends OrderWriteHelper {
 
@@ -32,5 +32,5 @@ class OrderWriteHelperImpl extends OrderWriteHelper {
 
   override def fillPrice(order: Order): Unit = ???
 
-  override def validateSoftCancelSign(): ValidateResult = ???
+  def validateSoftCancelSign(optSign: Option[SoftCancelSign]): ValidateResult = ???
 }

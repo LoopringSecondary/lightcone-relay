@@ -19,7 +19,7 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import org.loopring.lightcone.core.order.{OrderErrorConst, OrderWriteHelper, ValidateResult}
+import org.loopring.lightcone.core.order.{ OrderErrorConst, OrderWriteHelper, ValidateResult }
 
 import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
@@ -87,14 +87,12 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
     }
     case req: CancelOrdersReq ⇒
       helper.validateSoftCancelSign(req.sign) match {
-          case ValidateResult(false, reason) => sender ! ErrorResp(OrderErrorConst.SOFT_CANCEL_SIGN_CHECK_FAILED.errorCode, reason)
-          case ValidateResult(true, _) =>
-            Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
-              case Success(os) ⇒
-                Routers.orderManager ! os
-                os
-              case Failure(_) ⇒ ErrorResp()
-            }
+        case ValidateResult(false, reason) ⇒ sender ! ErrorResp(OrderErrorConst.SOFT_CANCEL_SIGN_CHECK_FAILED.errorCode, reason)
+        case ValidateResult(true, _) ⇒
+          Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
+            case Success(os) ⇒ Routers.orderManager ! os
+            case Failure(_)  ⇒ ErrorResp()
+          }
       }
   }
 }

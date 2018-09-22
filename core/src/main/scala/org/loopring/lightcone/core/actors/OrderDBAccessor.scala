@@ -24,6 +24,7 @@ import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
 import com.google.protobuf.ByteString
 import org.loopring.lightcone.core.order.OrderAccessHelper
+import org.loopring.lightcone.lib.etypes._
 
 import scala.concurrent._
 
@@ -51,5 +52,5 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}
-  def rollbackOrders(blockNumber: ByteString) = {}
+  def rollbackOrders(blockNumber: Long) = {}
 }
