@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.order.Order
+import org.loopring.lightcone.proto.order.{Order, SoftCancelSign}
 
 trait OrderWriteHelper {
   def generateHash(order: Order): Order
@@ -26,5 +26,5 @@ trait OrderWriteHelper {
   def fillMarket(order: Order)
   def fillSide(order: Order)
   def fillPrice(order: Order)
-  def validateSoftCancelSign(): ValidateResult
+  def validateSoftCancelSign(optSign : Option[SoftCancelSign]): ValidateResult
 }

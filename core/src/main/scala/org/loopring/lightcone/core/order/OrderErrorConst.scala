@@ -24,4 +24,5 @@ object OrderErrorConst {
   def GENERATE_HASH_FAILED = ErrorResp("GENERATE_HASH_FAILED", "generate hash failed")
   def FILL_PRICE_FAILED = ErrorResp("FILL_PRICE_FAILED", "fill price failed")
   def SAVE_ORDER_FAILED = ErrorResp("SAVE_ORDER_FAILED", "save order failed, please try later")
+  def SOFT_CANCEL_SIGN_CHECK_FAILED = ErrorResp("SOFT_CANCEL_SIGN_CHECK_FAILED", "soft check sign is incorrect")
 }
