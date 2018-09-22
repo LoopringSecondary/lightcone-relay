@@ -19,6 +19,7 @@ package org.loopring.lightcone.lib
 import java.math.BigInteger
 
 import com.google.protobuf.ByteString
+import org.web3j.utils.Numeric
 
 package object etypes {
 
@@ -27,9 +28,9 @@ package object etypes {
 
     def asHash(): Hash = Hash(bytes)
 
-    def asBigInt(): BigInt = new String(bytes).asBigInt
+    def asBigInt(): BigInt = Numeric.toBigInt(bytes)
 
-    def asBigInteger(): BigInteger = new String(bytes).asBigInteger
+    def asBigInteger(): BigInteger = Numeric.toBigInt(bytes)
   }
 
   implicit class RichString(hex: String) {
@@ -38,12 +39,9 @@ package object etypes {
 
     def asHash: Hash = hex.getBytes.asHash()
 
-    def asBigInt: BigInt = {
-      if (!hex.toLowerCase.startsWith("0x")) BigInt(hex)
-      else BigInt(hex.substring(2), 16)
-    }
+    def asBigInt: BigInt = Numeric.toBigInt(hex)
 
-    def asBigInteger: BigInteger = hex.asBigInt.bigInteger
+    def asBigInteger: BigInteger = Numeric.toBigInt(hex)
 
     def asProtoByteString(): ByteString = {
       ByteString.copyFrom(hex.getBytes())
@@ -56,7 +54,7 @@ package object etypes {
       ByteString.copyFrom(i.toByteArray)
     }
 
-    def toHex: String = "0x" + i.toString(16)
+    def toHex: String = Numeric.toHexString(i.toByteArray)
   }
 
 }

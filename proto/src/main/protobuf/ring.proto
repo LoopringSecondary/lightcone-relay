@@ -49,7 +49,7 @@ enum SettlementDecision {
 message RingSettlementDecision {
     string ring_hash = 1;
     SettlementDecision decision = 2;
-    repeated OrderSettleAmount orders_settle_amount = 3;
+    repeated OrderSettling orders_settling = 3;
 }
 message NotifyRingSettlementDecisions {
     repeated RingSettlementDecision ringSettlementDecisions = 1;

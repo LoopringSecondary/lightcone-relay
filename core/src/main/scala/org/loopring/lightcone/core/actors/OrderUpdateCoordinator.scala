@@ -16,16 +16,15 @@
 
 package org.loopring.lightcone.core.actors
 
-import akka.util.Timeout
-import scala.concurrent.ExecutionContext
 import akka.actor._
-import akka.cluster._
-import akka.routing._
-import akka.cluster.routing._
-import org.loopring.lightcone.core.routing.Routers
-import com.typesafe.config.Config
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import akka.util.Timeout
 import org.loopring.lightcone.proto.deployment._
-import com.google.inject._
+import org.loopring.lightcone.proto.order.UpdatedOrder.Updated
+import org.loopring.lightcone.proto.order._
+
+import scala.concurrent.ExecutionContext
 
 object OrderUpdateCoordinator
   extends base.Deployable[OrderUpdateCoordinatorSettings] {
@@ -41,8 +40,34 @@ class OrderUpdateCoordinator()(implicit
 )
   extends Actor {
 
+  val name = OrderUpdateCoordinator.name
+  val mediator = DistributedPubSub(context.system).mediator
+
   def receive: Receive = {
     case settings: OrderUpdateCoordinatorSettings ⇒
+    case m: MarkOrdersDeferred ⇒
+      val updatedOrders = UpdatedOrders(
+        orders = m.deferOrders.map { defer ⇒
+          UpdatedOrder(updated = Updated.DeferOrder(defer))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: MarkOrdersBeingMatched ⇒
+      val updatedOrders = UpdatedOrders(
+        orders = m.ordersBeingMatched.map { orderMatched ⇒
+          UpdatedOrder(updated = Updated.OrderBeingMatched(orderMatched))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: MarkOrdersSettling ⇒
+      val updatedOrders = UpdatedOrders(
+        orders = m.ordersSettling.map { orderSettling ⇒
+          UpdatedOrder(updated = Updated.OrderSettling(orderSettling))
+        }
+      )
+      mediator ! Publish(name, updatedOrders)
+    case m: SoftCancelOrders ⇒
+      mediator ! Publish(name, m)
     case _ ⇒
   }
 }
