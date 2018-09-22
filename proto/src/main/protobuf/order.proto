@@ -287,4 +287,5 @@ message OrderChangeLog {
 enum OrderSaveResult {
     SUBMIT_SUCC = 0;
     SUBMIT_FAILED = 1;
+    ORDER_EXIST = 2;
 }

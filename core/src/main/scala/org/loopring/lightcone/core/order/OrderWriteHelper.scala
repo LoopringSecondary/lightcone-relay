@@ -16,15 +16,15 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.order.{ Order, SoftCancelSign }
+import org.loopring.lightcone.proto.order.{ MarketSide, Order, SoftCancelSign }
 
 trait OrderWriteHelper {
-  def generateHash(order: Order): Order
-  def fullInOrder(order: Order): Order
+  def generateHash(order: Order): String
+  def fillInOrder(order: Order): Order
   def validateOrder(order: Order): ValidateResult
   def isOrderExist(order: Order): Boolean
-  def fillMarket(order: Order)
-  def fillSide(order: Order)
-  def fillPrice(order: Order)
+  def getMarket(order: Order): String
+  def getSide(order: Order): MarketSide
+  def getPrice(order: Order): Double
   def validateSoftCancelSign(optSign: Option[SoftCancelSign]): ValidateResult
 }

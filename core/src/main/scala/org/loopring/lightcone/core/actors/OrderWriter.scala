@@ -44,47 +44,45 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
   extends Actor with ActorLogging {
 
   def receive: Receive = {
-    case settings: OrderWriterSettings ⇒
-    case req: SubmitOrderReq ⇒ {
+    case _: OrderWriterSettings ⇒
+    case req: SubmitOrderReq ⇒ req match {
+      case _ if req.order.isEmpty ⇒ sender ! OrderErrorConst.ORDER_IS_EMPTY
+      case _ ⇒
+        val order = req.order.get
+        val validateRst = helper.validateOrder(order)
+        if (!helper.validateOrder(req.order.get).pass)
+          sender ! ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
+        else {
+          val generatedOrder = helper.fillInOrder(order)
 
-      if (req.order.isEmpty) {
-        sender ! OrderErrorConst.ORDER_IS_EMPTY
-      }
+          Routers.orderAccessor ? SaveOrders(Seq(generatedOrder)) onComplete {
+            case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
+              seq.head match {
+                case OrderSaveResult.SUBMIT_SUCC ⇒
+                  Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
+                  sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
+                case OrderSaveResult.SUBMIT_FAILED ⇒
+                  sender ! OrderErrorConst.SAVE_ORDER_FAILED
+                case OrderSaveResult.ORDER_EXIST ⇒
+                  sender ! OrderErrorConst.ORDER_EXIST
+                case OrderSaveResult.Unrecognized(_) ⇒
+                  sender ! OrderErrorConst.SAVE_ORDER_FAILED
+                case m ⇒
+                  log.error(s"unexpect SubmitOrderReq result: $m")
+                  sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
+              }
 
-      val order = req.order.get
-
-      val validateRst = helper.validateOrder(order)
-      if (!validateRst.pass) {
-        sender ! ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
-      }
-
-      val generatedOrder = helper.fullInOrder(order)
-
-      Routers.orderAccessor ? SaveOrders(Seq(generatedOrder)) onComplete {
-        case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
-          seq.head match {
-            case OrderSaveResult.SUBMIT_SUCC ⇒
-              Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
-              sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
-            case OrderSaveResult.SUBMIT_FAILED ⇒
-              sender ! OrderErrorConst.SAVE_ORDER_FAILED
-            case OrderSaveResult.Unrecognized(_) ⇒
-              sender ! OrderErrorConst.SAVE_ORDER_FAILED
-            case m ⇒
+            case Success(m) ⇒
               log.error(s"unexpect SubmitOrderReq result: $m")
               sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
+
+            case Failure(e) ⇒
+              log.error(s"unexpect SubmitOrderReq result: $e")
+              sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
           }
-
-        case Success(m) ⇒
-          log.error(s"unexpect SubmitOrderReq result: $m")
-          sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
-
-        case Failure(e) ⇒
-          log.error(s"unexpect SubmitOrderReq result: $e")
-          sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
-      }
-
+        }
     }
+
     case req: CancelOrdersReq ⇒
       helper.validateSoftCancelSign(req.sign) match {
         case ValidateResult(false, reason) ⇒ sender ! ErrorResp(OrderErrorConst.SOFT_CANCEL_SIGN_CHECK_FAILED.errorCode, reason)

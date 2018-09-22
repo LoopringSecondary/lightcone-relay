@@ -89,6 +89,7 @@ class CoreModule(config: Config)
     bind[RedisCluster].toProvider[cache.RedisClusterProvider].in[Singleton]
 
     bind[OrderWriteHelper].to[OrderWriteHelperImpl]
+    bind[OrderValidator].to[OrderValidatorImpl]
     bind[OrderDatabase].to[MySQLOrderDatabase]
     bind[OrderCache].to[cache.OrderRedisCache]
     bind[OrderAccessHelper].to[OrderAccessHelperImpl]

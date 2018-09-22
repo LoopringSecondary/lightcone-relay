@@ -22,4 +22,5 @@ import scala.concurrent.Future
 
 trait OrderAccessHelper {
   def saveOrder(order: Order): Future[OrderSaveResult]
+  def getOrderByHash(orderHash : String) : Future[Option[Order]]
 }

@@ -15,22 +15,26 @@
  */
 
 package org.loopring.lightcone.core.order
-import org.loopring.lightcone.proto.order.{ Order, SoftCancelSign }
+import com.google.inject.Inject
+import org.loopring.lightcone.proto.order.{ MarketSide, Order, OrderType, SoftCancelSign }
 
-class OrderWriteHelperImpl extends OrderWriteHelper {
+class OrderWriteHelperImpl @Inject() (validator: OrderValidator) extends OrderWriteHelper {
 
-  override def generateHash(order: Order): Order = ???
-  override def fullInOrder(order: Order): Order = ???
+  override def generateHash(order: Order): String = ???
+  override def fillInOrder(order: Order): Order = {
+    val filledRawOrder = order.rawOrder.get.copy(hash = generateHash(order))
+    order.copy(rawOrder = Some(filledRawOrder), market = getMarket(order), side = getSide(order).name, price = getPrice(order))
+  }
 
-  override def validateOrder(order: Order): ValidateResult = ???
+  override def validateOrder(order: Order): ValidateResult = validator.validate(order)
 
   override def isOrderExist(order: Order): Boolean = ???
 
-  override def fillMarket(order: Order): Unit = ???
+  override def getMarket(order: Order): String = ???
 
-  override def fillSide(order: Order): Unit = ???
+  override def getSide(order: Order): MarketSide = ???
 
-  override def fillPrice(order: Order): Unit = ???
+  override def getPrice(order: Order): Double = ???
 
   def validateSoftCancelSign(optSign: Option[SoftCancelSign]): ValidateResult = ???
 }

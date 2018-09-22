@@ -17,11 +17,12 @@
 package org.loopring.lightcone.core.order
 
 import com.google.inject.Inject
-import org.loopring.lightcone.core.database.{ OrderDatabase, tables }
-import org.loopring.lightcone.proto.order.{ Order, OrderChangeLog, OrderSaveResult }
+import org.loopring.lightcone.core.database.{OrderDatabase, tables}
+import org.loopring.lightcone.proto.order.{Order, OrderChangeLog, OrderSaveResult}
 
-import scala.concurrent.Future
-import scala.util.{ Failure, Success }
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 
 class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderAccessHelper {
 
@@ -29,7 +30,18 @@ class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderA
   implicit val executor = module.dbec
   import profile.api._
 
-  def saveOrder(order: Order): Future[OrderSaveResult] = {
+  override def saveOrder(order: Order): Future[OrderSaveResult] = {
+
+    if (order.rawOrder.isEmpty) {
+      return Future(OrderSaveResult.SUBMIT_FAILED)
+    }
+
+    val getOrderRst = getOrderByHash(order.rawOrder.get.hash)
+    val optOrder = Await.result(getOrderRst, 1 seconds)
+    if (optOrder.isDefined) {
+      return Future(OrderSaveResult.ORDER_EXIST)
+    }
+
     val changeLog = OrderChangeLog()
 
     val a = (for {
@@ -48,4 +60,6 @@ class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderA
     }
     module.db.run(withErrorHandling)
   }
+
+  override def getOrderByHash(orderHash : String) : Future[Option[Order]] = module.orders.getOrder(orderHash)
 }
