@@ -18,7 +18,7 @@ package org.loopring.lightcone.core.order
 
 import org.loopring.lightcone.proto.order.Order
 
-case class ValidateResult(pass: Boolean, rejectReason: String)
+case class ValidateResult(pass: Boolean = false, rejectReason: String = "")
 
 trait OrderValidator {
   def validate(order: Order): ValidateResult

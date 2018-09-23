@@ -25,7 +25,7 @@ import org.loopring.lightcone.core.order.OrderAccessHelper
 import org.loopring.lightcone.lib.etypes._
 
 import scala.concurrent._
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -45,12 +45,17 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
     case m: OrderDBAccessorSettings ⇒
     case m: SaveUpdatedOrders       ⇒
     case m: SoftCancelOrders        ⇒
+    case m: GetSoftCancelOrders     ⇒ sender ! helper.getSoftCancelOrders(m.cancelOption)
     case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
     case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
     case m: NotifyRollbackOrders    ⇒
-    case m: GetOrder    ⇒  helper.getOrderByHash(m.orderHash) onComplete {
-      case Success(v) => sender ! OneOrder(v)
-      case Failure(_) => sender ! OneOrder(None)
+    case m: GetOrder ⇒ helper.getOrderByHash(m.orderHash) onComplete {
+      case Success(v) ⇒ sender ! OneOrder(v)
+      case Failure(_) ⇒ sender ! OneOrder(None)
+    }
+    case m: GetOrders ⇒ helper.pageQueryOrders(m.query, m.page) onComplete {
+      case Success(v) ⇒ sender ! v
+      case Failure(_) ⇒ sender ! MultiOrders()
     }
   }
 

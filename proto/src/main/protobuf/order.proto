@@ -49,9 +49,9 @@ message CancelOrdersReq {
 message CancelOrderOption {
     string order_hash = 1;
     int64 cut_off_time = 2;
-    string token_s = 3;
-    string token_b = 4;
-    string type = 5;
+    string market = 3;
+    SoftCancelType cancel_type = 4;
+    string owner = 5;
 }
 // use common empty response replaced
 //message CancelOrdersResp {
@@ -124,6 +124,12 @@ message UpdatedOrders {
 }
 
 message SoftCancelOrders {
+    CancelOrderOption cancel_option = 1;
+}
+message SoftCancelOrderByHashes {
+    repeated string order_hashes = 1;
+}
+message GetSoftCancelOrders {
     CancelOrderOption cancel_option = 1;
 }
 message OrdersSoftCancelled {

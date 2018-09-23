@@ -16,11 +16,14 @@
 
 package org.loopring.lightcone.core.order
 
+import org.loopring.lightcone.proto.common.PaginationQuery
 import org.loopring.lightcone.proto.order._
 
 import scala.concurrent.Future
 
 trait OrderAccessHelper {
   def saveOrder(order: Order): Future[OrderSaveResult]
-  def getOrderByHash(orderHash : String) : Future[Option[Order]]
+  def getOrderByHash(orderHash: String): Future[Option[Order]]
+  def pageQueryOrders(optOrderQuery: Option[OrderQuery], optPage: Option[PaginationQuery]): Future[MultiOrders]
+  def getSoftCancelOrders(cancelOption: Option[CancelOrderOption]): Future[Seq[Order]]
 }

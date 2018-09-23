@@ -24,13 +24,15 @@ import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
 
-case class QueryCondition(delegateAddress: String, owner: Option[String],
-    market: Option[String], status: Seq[String], orderHashes: Seq[String],
-    orderType: Option[String], side: Option[String])
+case class QueryCondition(delegateAddress: String = "", owner: Option[String] = None,
+    market: Option[String] = None, status: Seq[String] = Seq(), orderHashes: Seq[String] = Seq(),
+    orderType: Option[String] = None, side: Option[String] = None)
 
 trait OrdersDal extends BaseDalImpl[Orders, Order] {
   def getOrder(orderHash: String): Future[Option[Order]]
   def getOrders(condition: QueryCondition, skip: Int, take: Int): Future[Seq[Order]]
+  def count(condition: QueryCondition): Future[Int]
+  def getOrders(condition: QueryCondition): Future[Seq[Order]]
   def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int])
   def saveOrder(order: Order): Future[Int]
   def softCancelByMarket(owner: String, market: String): Future[Int]
@@ -64,6 +66,14 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
       .result)
   }
 
+  def count(condition: QueryCondition): Future[Int] = db.run(unwrapContition(condition).length.result)
+
+  // 用来查询所有相关订单， 没有分页参数，主要用来做软取消，慎用
+  def getOrders(condition: QueryCondition): Future[Seq[Order]] = {
+    db.run(unwrapContition(condition)
+      .result)
+  }
+
   def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int]) = {
 
     val action = unwrapContition(condition)
@@ -77,6 +87,7 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
     db.run(query
       .filter(_.owner === owner)
       .filter(_.market === market)
+      .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
       .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
@@ -84,6 +95,7 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
   def softCancelByOwner(owner: String): Future[Int] = {
     db.run(query
       .filter(_.owner === owner)
+      .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
       .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
@@ -91,6 +103,7 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
   def softCancelByTime(cutoff: Long): Future[Int] = {
     db.run(query
       .filter(_.validUntil >= cutoff)
+      .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
       .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }
@@ -98,6 +111,7 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
   def softCancelByHash(orderHash: String): Future[Int] = {
     db.run(query
       .filter(_.orderHash === orderHash)
+      .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
       .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
   }

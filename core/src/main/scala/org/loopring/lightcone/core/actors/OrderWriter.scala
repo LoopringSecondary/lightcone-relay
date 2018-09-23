@@ -87,6 +87,17 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
       helper.validateSoftCancelSign(req.sign) match {
         case ValidateResult(false, reason) ⇒ sender ! ErrorResp(OrderErrorConst.SOFT_CANCEL_SIGN_CHECK_FAILED.errorCode, reason)
         case ValidateResult(true, _) ⇒
+          Routers.orderAccessor ? GetSoftCancelOrders(req.cancelOption) onComplete {
+            case Success(v: Seq[Order]) ⇒
+              if (v.isEmpty)
+                sender ! OrderErrorConst.NO_ORDER_WILL_BE_SOFT_CANCELLED
+              else {
+
+              }
+            case Failure(_) ⇒ sender ! OrderErrorConst.UNEXPECT_ORDER_SOFT_CANCEL_REQ
+            case _          ⇒ sender ! OrderErrorConst.UNEXPECT_ORDER_SOFT_CANCEL_REQ
+          }
+
           Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
             case Success(os) ⇒ Routers.orderManager ! os
             case Failure(_)  ⇒ ErrorResp()

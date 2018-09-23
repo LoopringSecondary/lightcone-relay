@@ -17,8 +17,11 @@
 package org.loopring.lightcone.core.order
 import com.google.inject.Inject
 import org.loopring.lightcone.proto.order.{ MarketSide, Order, OrderType, SoftCancelSign }
+import org.loopring.lightcone.core.richproto._
 
 class OrderWriteHelperImpl @Inject() (validator: OrderValidator) extends OrderWriteHelper {
+
+  val MAX_SOFT_CANCEL_INTERVAL: Long = 60 * 10 // 10 minute
 
   override def generateHash(order: Order): String = ???
   override def fillInOrder(order: Order): Order = {
@@ -36,5 +39,16 @@ class OrderWriteHelperImpl @Inject() (validator: OrderValidator) extends OrderWr
 
   override def getPrice(order: Order): Double = ???
 
-  def validateSoftCancelSign(optSign: Option[SoftCancelSign]): ValidateResult = ???
+  override def validateSoftCancelSign(optSign: Option[SoftCancelSign]): ValidateResult = optSign match {
+    case None ⇒
+      ValidateResult(false, "sign context is empty")
+    case Some(v) if v.owner.isEmpty ⇒
+      ValidateResult(false, "owner must be applied")
+    case Some(v) if math.abs(System.currentTimeMillis / 1000 - v.timestamp) > MAX_SOFT_CANCEL_INTERVAL ⇒
+      ValidateResult(false, "timestamp had expired")
+    case Some(v) if !v.owner.equalsIgnoreCase(v.getSignerAddr()) ⇒
+      ValidateResult(false, "sign address is not match")
+    case _ ⇒
+      ValidateResult(true)
+  }
 }

@@ -21,10 +21,11 @@ import akka.util.Timeout
 
 import scala.concurrent.ExecutionContext
 import akka.pattern.ask
-
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
+
+import scala.util.{ Failure, Success }
 
 object OrderAccessor
   extends base.Deployable[OrderAccessorSettings] {
@@ -43,6 +44,9 @@ class OrderAccessor()(implicit
   def receive: Receive = {
     case settings: OrderAccessorSettings ⇒
     case m: SaveOrders ⇒ sender ! Routers.orderDBAccessor ? m
+    case m: GetSoftCancelOrders ⇒ sender ! Routers.orderDBAccessor ? m
+    case m: SoftCancelOrders ⇒ sender ! Routers.orderDBAccessor ? m
+
     case any ⇒ Routers.orderDBAccessor forward any
   }
 }
