@@ -36,13 +36,13 @@ object OrderValidateConfig {
   def fromConfig(config: Config): OrderValidateConfig = {
     new OrderValidateConfig(
       config.getLong("order.validate.min_lrc_fee"),
-      config.getLong("order.validate.min_lrc_fee"),
-      config.getDouble("order.validate.min_lrc_fee"),
-      config.getDouble("order.validate.min_lrc_fee"),
-      config.getDouble("order.validate.min_lrc_fee"),
-      config.getLong("order.validate.min_lrc_fee"),
+      config.getLong("order.validate.min_lrc_hold"),
+      config.getDouble("order.validate.min_split_percentage"),
+      config.getDouble("order.validate.max_split_percentage"),
+      config.getDouble("order.validate.min_token_s_usd_amount"),
+      config.getLong("order.validate.max_valid_since_interval"),
       decodeMinTokenSAmount(config),
-      config.getString("order.validate.min_lrc_fee")
+      config.getString("order.validate.pow_difficulty")
     )
   }
 }
