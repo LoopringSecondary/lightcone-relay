@@ -129,11 +129,11 @@ message SoftCancelOrders {
 message SoftCancelOrderByHashes {
     repeated string order_hashes = 1;
 }
-message GetSoftCancelOrders {
-    CancelOrderOption cancel_option = 1;
-}
 message OrdersSoftCancelled {
     repeated string order_hashes = 1;
+}
+message FatOrdersSoftCancelled {
+    repeated Order orders = 1;
 }
 //message OrderCancelled {}
 

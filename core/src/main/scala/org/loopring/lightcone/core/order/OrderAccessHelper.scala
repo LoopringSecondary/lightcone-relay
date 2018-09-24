@@ -25,5 +25,5 @@ trait OrderAccessHelper {
   def saveOrder(order: Order): Future[OrderSaveResult]
   def getOrderByHash(orderHash: String): Future[Option[Order]]
   def pageQueryOrders(optOrderQuery: Option[OrderQuery], optPage: Option[PaginationQuery]): Future[MultiOrders]
-  def getSoftCancelOrders(cancelOption: Option[CancelOrderOption]): Future[Seq[Order]]
+  def softCancelOrders(cancelOrderOption: Option[CancelOrderOption]): Future[Seq[Order]]
 }

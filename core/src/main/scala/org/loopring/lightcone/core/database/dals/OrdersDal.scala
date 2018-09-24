@@ -20,7 +20,9 @@ import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.database.base._
 import org.loopring.lightcone.core.database.tables._
 import org.loopring.lightcone.proto.order.{ Order, OrderChangeLog, OrderLevel1Status, OrderStatus }
+import slick.dbio.Effect
 import slick.jdbc.MySQLProfile.api._
+import slick.sql.FixedSqlAction
 
 import scala.concurrent.Future
 
@@ -35,10 +37,11 @@ trait OrdersDal extends BaseDalImpl[Orders, Order] {
   def getOrders(condition: QueryCondition): Future[Seq[Order]]
   def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int])
   def saveOrder(order: Order): Future[Int]
-  def softCancelByMarket(owner: String, market: String): Future[Int]
-  def softCancelByOwner(owner: String): Future[Int]
-  def softCancelByTime(cutoff: Long): Future[Int]
-  def softCancelByHash(orderHash: String): Future[Int]
+  def softCancelByMarket(owner: String, market: String): FixedSqlAction[Int, NoStream, Effect.Write]
+  def softCancelByOwner(owner: String): FixedSqlAction[Int, NoStream, Effect.Write]
+  def softCancelByTime(owner: String, cutoff: Long): FixedSqlAction[Int, NoStream, Effect.Write]
+  def softCancelByHash(orderHash: String): FixedSqlAction[Int, NoStream, Effect.Write]
+  def unwrapCondition(condition: QueryCondition): Query[Orders, Order, Seq]
 }
 
 class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
@@ -60,63 +63,64 @@ class OrdersDalImpl(val module: OrderDatabase) extends OrdersDal {
 
   def getOrders(condition: QueryCondition, skip: Int, take: Int): Future[Seq[Order]] = {
 
-    db.run(unwrapContition(condition)
+    db.run(unwrapCondition(condition)
       .drop(skip)
       .take(take)
       .result)
   }
 
-  def count(condition: QueryCondition): Future[Int] = db.run(unwrapContition(condition).length.result)
+  def count(condition: QueryCondition): Future[Int] = db.run(unwrapCondition(condition).length.result)
 
   // 用来查询所有相关订单， 没有分页参数，主要用来做软取消，慎用
   def getOrders(condition: QueryCondition): Future[Seq[Order]] = {
-    db.run(unwrapContition(condition)
+    db.run(unwrapCondition(condition)
       .result)
   }
 
   def getOrdersWithCount(condition: QueryCondition, skip: Int, take: Int): (Future[Seq[Order]], Future[Int]) = {
 
-    val action = unwrapContition(condition)
+    val action = unwrapCondition(condition)
       .drop(skip)
       .take(take)
 
     (db.run(action.drop(skip).take(take).result), db.run(action.length.result))
   }
 
-  def softCancelByMarket(owner: String, market: String): Future[Int] = {
-    db.run(query
+  def softCancelByMarket(owner: String, market: String): FixedSqlAction[Int, NoStream, Effect.Write] = {
+    query
       .filter(_.owner === owner)
       .filter(_.market === market)
       .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
-      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000)
   }
 
-  def softCancelByOwner(owner: String): Future[Int] = {
-    db.run(query
+  def softCancelByOwner(owner: String): FixedSqlAction[Int, NoStream, Effect.Write] = {
+    query
       .filter(_.owner === owner)
       .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
-      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000)
   }
 
-  def softCancelByTime(cutoff: Long): Future[Int] = {
-    db.run(query
+  def softCancelByTime(owner: String, cutoff: Long): FixedSqlAction[Int, NoStream, Effect.Write] = {
+    query
+      .filter(_.owner === owner)
       .filter(_.validUntil >= cutoff)
       .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
-      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000)
   }
 
-  def softCancelByHash(orderHash: String): Future[Int] = {
-    db.run(query
+  def softCancelByHash(orderHash: String): FixedSqlAction[Int, NoStream, Effect.Write] = {
+    query
       .filter(_.orderHash === orderHash)
       .filter(_.status === OrderLevel1Status.ORDER_STATUS_NEW.name)
       .map(o ⇒ (o.status, o.updatedAt))
-      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000))
+      .update(OrderLevel1Status.ORDER_STATUS_SOFT_CANCELLED.name, System.currentTimeMillis / 1000)
   }
 
-  def unwrapContition(condition: QueryCondition) = {
+  override def unwrapCondition(condition: QueryCondition): Query[Orders, Order, Seq] = {
 
     query
       .filter { o ⇒

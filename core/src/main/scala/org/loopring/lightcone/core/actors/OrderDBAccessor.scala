@@ -44,11 +44,11 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
   def receive: Receive = {
     case m: OrderDBAccessorSettings ⇒
     case m: SaveUpdatedOrders       ⇒
-    case m: SoftCancelOrders        ⇒
-    case m: GetSoftCancelOrders     ⇒ sender ! helper.getSoftCancelOrders(m.cancelOption)
-    case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
-    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
-    case m: NotifyRollbackOrders    ⇒
+    case m: SoftCancelOrders ⇒
+      sender ! helper.softCancelOrders(m.cancelOption).map(FatOrdersSoftCancelled(_))
+    case m: SaveOrders           ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
+    case m: ChainRolledBack      ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
+    case m: NotifyRollbackOrders ⇒
     case m: GetOrder ⇒ helper.getOrderByHash(m.orderHash) onComplete {
       case Success(v) ⇒ sender ! OneOrder(v)
       case Failure(_) ⇒ sender ! OneOrder(None)

@@ -28,4 +28,5 @@ object OrderErrorConst {
   def SAVE_ORDER_FAILED = ErrorResp("SAVE_ORDER_FAILED", "save order failed, please try later")
   def SOFT_CANCEL_SIGN_CHECK_FAILED = ErrorResp("SOFT_CANCEL_SIGN_CHECK_FAILED", "soft check sign is incorrect")
   def NO_ORDER_WILL_BE_SOFT_CANCELLED = ErrorResp("NO_ORDER_WILL_BE_SOFT_CANCELLED", "no order will be cancelled by the soft cancel condition")
+  def SOFT_CANCEL_FAILED = ErrorResp("SOFT_CANCEL_FAILED", "soft cancel failed, please try again")
 }
