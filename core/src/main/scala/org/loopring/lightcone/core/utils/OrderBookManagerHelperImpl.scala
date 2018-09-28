@@ -176,7 +176,7 @@ class OrderBookManagerHelperImpl(
   }
 
   override def crossingPrices(
-    canBeMatched: PartialFunction[OrderWithStatus, Boolean]
+    canBeMatched: OrderWithStatus ⇒ Boolean
   ): (Rational, Rational) = {
     //可以成交的最大和最小价格
     var minPrice: Rational = null

@@ -25,7 +25,7 @@ import scala.concurrent.Future
 trait OrderBookManagerHelper {
   def updateOrder(order: UpdatedOrder)
   def crossingOrdersBetweenPrices(minPrice: Rational, maxPrice: Rational): TokenOrders
-  def crossingPrices(canBeMatched: PartialFunction[OrderWithStatus, Boolean]): (Rational, Rational) //minPrice, maxPrice
+  def crossingPrices(canBeMatched: OrderWithStatus ⇒ Boolean): (Rational, Rational) //minPrice, maxPrice
   def resetOrders(query: OrderQuery): Future[Unit]
   def purgeOrders(orderHashes: Seq[String]): Future[Unit]
   def purgeOrders(purge: Purge.AllOrderForAddress): Future[Unit]

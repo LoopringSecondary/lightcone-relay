@@ -110,21 +110,19 @@ class OrderBookManager()(implicit
     case _ ⇒
   }
 
-  val canBeMatched: PartialFunction[OrderWithStatus, Boolean] = {
-    case OrderWithStatus(order, postponed) ⇒
-      order.status match {
-        case None ⇒ true
-        case Some(OrderStatus(level1Status, level2Status, level3Status)) ⇒
-          val currentTime = System.currentTimeMillis
-          if (level1Status == OrderLevel1Status.ORDER_STATUS_NEW
-            && postponed <= currentTime
-            && level3Status == OrderLevel3Status.ORDER_STATUS_ACTIVE)
-            //todo:增加灰尘单的过滤，需要依赖于marketcap
-            true
-          else
-            false
-      }
-    case _ ⇒ false
+  def canBeMatched(orderWithStatus: OrderWithStatus): Boolean = {
+    orderWithStatus.order.status match {
+      case None ⇒ true
+      case Some(OrderStatus(level1Status, level2Status, level3Status)) ⇒
+        val currentTime = System.currentTimeMillis
+        if (level1Status == OrderLevel1Status.ORDER_STATUS_NEW
+          && orderWithStatus.postponed <= currentTime
+          && level3Status == OrderLevel3Status.ORDER_STATUS_ACTIVE)
+          //todo:增加灰尘单的过滤，需要依赖于marketcap
+          true
+        else
+          false
+    }
   }
 
 }
