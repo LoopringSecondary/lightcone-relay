@@ -19,12 +19,12 @@ package org.loopring.lightcone.core.actors
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import org.loopring.lightcone.core.order.{ OrderErrorConst, OrderWriteHelper, ValidateResult }
 
 import scala.concurrent.ExecutionContext
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.common.ErrorResp
-import org.loopring.lightcone.proto.order
 import org.loopring.lightcone.proto.order._
 
 import scala.util._
@@ -37,68 +37,69 @@ object OrderWriter
     base.CommonSettings(None, s.roles, s.instances)
 }
 
-class OrderWriter()(implicit
+class OrderWriter(helper: OrderWriteHelper)(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
   extends Actor with ActorLogging {
 
   def receive: Receive = {
-    case settings: OrderWriterSettings ⇒
-    case req: SubmitOrderReq ⇒ {
-      if (req.rawOrder.isEmpty) {
-        new ErrorResp()
-      } else if (checkOrder(req.rawOrder.get)) {
-        new ErrorResp()
-      }
+    case _: OrderWriterSettings ⇒
+    case req: SubmitOrderReq ⇒ req match {
+      case _ if req.order.isEmpty ⇒ sender ! OrderErrorConst.ORDER_IS_EMPTY
+      case _ ⇒
+        val order = req.order.get
+        val validateRst = helper.validateOrder(order)
+        if (!helper.validateOrder(req.order.get).pass)
+          sender ! ErrorResp(OrderErrorConst.FILL_PRICE_FAILED.errorCode, validateRst.rejectReason)
+        else {
+          val generatedOrder = helper.fillInOrder(order)
 
-      val generatedOrder = wrapToOrder(req)
+          Routers.orderAccessor ? SaveOrders(Seq(generatedOrder)) onComplete {
+            case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
+              seq.head match {
+                case OrderSaveResult.SUBMIT_SUCC ⇒
+                  Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
+                  sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
+                case OrderSaveResult.SUBMIT_FAILED ⇒
+                  sender ! OrderErrorConst.SAVE_ORDER_FAILED
+                case OrderSaveResult.ORDER_EXIST ⇒
+                  sender ! OrderErrorConst.ORDER_EXIST
+                case OrderSaveResult.Unrecognized(_) ⇒
+                  sender ! OrderErrorConst.SAVE_ORDER_FAILED
+                case m ⇒
+                  log.error(s"unexpect SubmitOrderReq result: $m")
+                  sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
+              }
 
-      Routers.orderAccessor ? order.SaveOrders(Seq(generatedOrder)) onComplete {
-        case Success(seq: Seq[Any]) if seq.nonEmpty ⇒
-          seq.head match {
-            case OrderSaveResult.SUBMIT_SUCC ⇒
-              Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
-              sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
-            case OrderSaveResult.SUBMIT_FAILED ⇒
-              sender ! ErrorResp()
-            case OrderSaveResult.Unrecognized(_) ⇒
-              sender ! ErrorResp()
-            case m ⇒
+            case Success(m) ⇒
               log.error(s"unexpect SubmitOrderReq result: $m")
-              sender ! ErrorResp()
+              sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
+
+            case Failure(e) ⇒
+              log.error(s"unexpect SubmitOrderReq result: $e")
+              sender ! OrderErrorConst.UNEXPECT_ORDER_SUBMIT_REQ
           }
-
-        case Success(m) ⇒
-          log.error(s"unexpect SubmitOrderReq result: $m")
-          sender ! ErrorResp()
-
-        case Failure(e) ⇒
-          log.error(s"unexpect SubmitOrderReq result: $e")
-          ErrorResp()
-      }
-
-    }
-    case req: CancelOrdersReq ⇒
-      if (!softCancelSignCheck(req.sign)) {
-        new ErrorResp()
-
-        Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
-          case Success(os) ⇒
-            Routers.orderManager ! os
-            os
-          case Failure(_) ⇒ ErrorResp()
         }
+    }
 
+    case req: CancelOrdersReq ⇒
+      helper.validateSoftCancelSign(req.sign) match {
+        case ValidateResult(false, reason) ⇒ sender ! ErrorResp(OrderErrorConst.SOFT_CANCEL_SIGN_CHECK_FAILED.errorCode, reason)
+        case ValidateResult(true, _) ⇒
+          Routers.orderAccessor ? SoftCancelOrders(req.cancelOption) onComplete {
+            case Success(rst: FatOrdersSoftCancelled) ⇒
+              if (rst.orders.isEmpty) {
+                sender ! OrderErrorConst.NO_ORDER_WILL_BE_SOFT_CANCELLED
+              } else {
+                sender ! OrdersSoftCancelled(rst.orders.map(_.rawOrder.get.hash))
+                Routers.orderManager ! OrdersSoftCancelled(rst.orders.map(_.rawOrder.get.hash))
+                // notify socktio ! OrdersSoftCancelled(os.map(_.rawOrder.get.hash))
+              }
+            case Success(_) ⇒ sender ! OrderErrorConst.SOFT_CANCEL_FAILED
+            case Failure(_) ⇒ sender ! OrderErrorConst.SOFT_CANCEL_FAILED
+
+          }
       }
   }
-
-  def checkOrder(rawOrder: RawOrder) = true
-  def wrapToOrder(req: SubmitOrderReq) = Order()
-  def softCancelSignCheck(sign: Option[SoftCancelSign]) = true
-
-}
-
-object OrderValidator {
-
 }

@@ -16,14 +16,10 @@
 
 package org.loopring.lightcone.core.order
 
-import org.loopring.lightcone.proto.common.PaginationQuery
-import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.order.Order
 
-import scala.concurrent.Future
+case class ValidateResult(pass: Boolean = false, rejectReason: String = "")
 
-trait OrderAccessHelper {
-  def saveOrder(order: Order): Future[OrderSaveResult]
-  def getOrderByHash(orderHash: String): Future[Option[Order]]
-  def pageQueryOrders(optOrderQuery: Option[OrderQuery], optPage: Option[PaginationQuery]): Future[MultiOrders]
-  def softCancelOrders(cancelOrderOption: Option[CancelOrderOption]): Future[Seq[Order]]
+trait OrderValidator {
+  def validate(order: Order): ValidateResult
 }

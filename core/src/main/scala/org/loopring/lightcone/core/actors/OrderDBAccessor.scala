@@ -17,18 +17,15 @@
 package org.loopring.lightcone.core.actors
 
 import akka.util.Timeout
-
 import akka.actor._
-import org.loopring.lightcone.core.database._
-import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.block_chain_event.ChainRolledBack
 import org.loopring.lightcone.proto.deployment._
 import org.loopring.lightcone.proto.order._
-import com.google.protobuf.ByteString
 import org.loopring.lightcone.core.order.OrderAccessHelper
+import org.loopring.lightcone.lib.etypes._
 
 import scala.concurrent._
-import scala.util._
+import scala.util.{ Failure, Success }
 
 object OrderDBAccessor
   extends base.Deployable[OrderDBAccessorSettings] {
@@ -47,10 +44,19 @@ class OrderDBAccessor(helper: OrderAccessHelper)(implicit
   def receive: Receive = {
     case m: OrderDBAccessorSettings ⇒
     case m: SaveUpdatedOrders       ⇒
-    case m: SoftCancelOrders        ⇒
-    case m: SaveOrders              ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
-    case m: ChainRolledBack         ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
-    case m: NotifyRollbackOrders    ⇒
+    case m: SoftCancelOrders ⇒
+      sender ! helper.softCancelOrders(m.cancelOption).map(FatOrdersSoftCancelled(_))
+    case m: SaveOrders           ⇒ sender ! Future.sequence(m.orders.map(helper.saveOrder))
+    case m: ChainRolledBack      ⇒ rollbackOrders(m.detectedBlockNumber.asBigInteger.longValue())
+    case m: NotifyRollbackOrders ⇒
+    case m: GetOrder ⇒ helper.getOrderByHash(m.orderHash) onComplete {
+      case Success(v) ⇒ sender ! OneOrder(v)
+      case Failure(_) ⇒ sender ! OneOrder(None)
+    }
+    case m: GetOrders ⇒ helper.pageQueryOrders(m.query, m.page) onComplete {
+      case Success(v) ⇒ sender ! v
+      case Failure(_) ⇒ sender ! MultiOrders()
+    }
   }
 
   def writeToDB(orders: Seq[RawOrder]) = {}

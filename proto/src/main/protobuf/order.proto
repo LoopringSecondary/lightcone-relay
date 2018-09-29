@@ -7,7 +7,7 @@ package org.loopring.lightcone.proto;
 import public "common.proto";
 
 message SubmitOrderReq {
-    RawOrder raw_order = 1;
+    Order order = 1;
 }
 message SubmitOrderResp {
     string order_hash = 1;
@@ -49,9 +49,9 @@ message CancelOrdersReq {
 message CancelOrderOption {
     string order_hash = 1;
     int64 cut_off_time = 2;
-    string token_s = 3;
-    string token_b = 4;
-    string type = 5;
+    string market = 3;
+    SoftCancelType cancel_type = 4;
+    string owner = 5;
 }
 // use common empty response replaced
 //message CancelOrdersResp {
@@ -126,8 +126,14 @@ message UpdatedOrders {
 message SoftCancelOrders {
     CancelOrderOption cancel_option = 1;
 }
+message SoftCancelOrderByHashes {
+    repeated string order_hashes = 1;
+}
 message OrdersSoftCancelled {
     repeated string order_hashes = 1;
+}
+message FatOrdersSoftCancelled {
+    repeated Order orders = 1;
 }
 //message OrderCancelled {}
 
@@ -287,4 +293,5 @@ message OrderChangeLog {
 enum OrderSaveResult {
     SUBMIT_SUCC = 0;
     SUBMIT_FAILED = 1;
+    ORDER_EXIST = 2;
 }
