@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
 import akka.pattern.{ ask, pipe }
 import akka.util.Timeout
@@ -35,7 +35,7 @@ import scala.concurrent.duration._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import com.typesafe.config.Config
 import org.json4s._
-import org.loopring.ethcube.proto.data._
+import org.loopring.lightcone.ethconn.proto.data._
 
 object EthereumProxyEndpoints {
   implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {

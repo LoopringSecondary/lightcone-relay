@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
-import org.loopring.ethcube.proto.data._
+import org.loopring.lightcone.ethconn.proto.data._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{ read, write }
 import org.json4s.NoTypeHints

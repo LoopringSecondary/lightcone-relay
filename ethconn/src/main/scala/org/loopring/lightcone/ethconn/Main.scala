@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
 import akka.actor._
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.typesafe.config._
-import org.loopring.ethcube.proto.data.EthereumProxySettings
+import org.loopring.lightcone.ethconn.proto.data.EthereumProxySettings
 import org.slf4j.LoggerFactory
 
 object Main extends App {

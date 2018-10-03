@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
 import akka.actor._
 import akka.routing._
 import akka.util.Timeout
 import akka.stream.ActorMaterializer
-import org.loopring.ethcube.proto.data._
+import org.loopring.lightcone.ethconn.proto.data._
 import scala.collection.immutable.IndexedSeq
 
 class EthereumProxy(settings: EthereumProxySettings)(

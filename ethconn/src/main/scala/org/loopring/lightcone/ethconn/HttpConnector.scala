@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
 import scala.util._
 import scala.concurrent._
@@ -29,7 +29,7 @@ import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import org.json4s._
-import org.loopring.ethcube.proto.data._
+import org.loopring.lightcone.ethconn.proto.data._
 import scalapb.json4s.JsonFormat
 
 private class HttpConnector(node: EthereumProxySettings.Node)(implicit val materilizer: ActorMaterializer)

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.ethcube
+package org.loopring.lightcone.ethconn
 
 import scala.concurrent._
 import akka.pattern.ask
 import akka.actor._
 import akka.util.Timeout
 import akka.routing._
-import org.loopring.ethcube.proto.data._
+import org.loopring.lightcone.ethconn.proto.data._
 import scala.concurrent.duration._
 import scala.util.Random
 import org.json4s.native.JsonMethods._
