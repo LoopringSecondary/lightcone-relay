@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.loopring.ethcube.proto";
+package org.loopring.ethcube.proto;
+
+message EthereumProxySettings {
+    message Node {
+        string host = 1;
+        int32 port = 2;
+        string ipcPath = 3;
+    }
+    int32 pool_size = 1;
+    int32 check_interval_seconds = 2;
+    float healthy_threshold = 3;
+    repeated Node nodes = 4;
+}
+
+message CheckBlockHeight{}
+
+message CheckBlockHeightResp{
+    int32 current_block = 1;
+    int32 height_block = 2;
+}
+
+message JsonRpcReq {
+    string json = 1;
+}
+
+message JsonRpcErr {
+    int32 code = 1;
+    string message = 2;
+}
+
+message JsonRpcRes {
+    string json = 1;
+}
