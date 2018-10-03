@@ -10,8 +10,9 @@ object Dependencies {
   lazy val slickVersion = "3.2.3"
 
   lazy val commonDependency = Seq(
+    "org.scalatest" %% "scalatest" % "3.0.0" % Test,
     "com.github.scopt" %% "scopt" % "3.7.0",
-    "com.google.inject" % "guice" % "4.2.0",
+    "net.codingwell" %% "scala-guice" % "4.2.1",
     "com.thesamet.scalapb" %% "scalapb-json4s" % "0.7.0",
     "de.heikoseeberger" %% "akka-http-json4s" % "1.21.0",
     "org.web3j" % "core" % "3.4.0",
@@ -27,7 +28,6 @@ object Dependencies {
     "org.json4s" %% "json4s-ext" % json4sVersion,
     "com.github.etaty" %% "rediscala" % "1.8.0",
     "com.github.nscala-time" %% "nscala-time" % "2.20.0",
-    "org.scalatest" %% "scalatest" % "3.0.0" % Test,
     "mysql" % "mysql-connector-java" % "5.1.22",
     "com.typesafe.slick" %% "slick" % slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
@@ -37,6 +37,7 @@ object Dependencies {
     "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")
 
   lazy val akkaDenepdencies = Seq(
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-remote" % akkaVersion,
@@ -45,6 +46,5 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 }
