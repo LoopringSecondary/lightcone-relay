@@ -28,6 +28,7 @@ import slick.sql.FixedSqlAction
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 import scala.concurrent.duration._
+import slick.dbio.Effect.Write
 
 class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderAccessHelper {
 
@@ -146,16 +147,18 @@ class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderA
     }
   }
 
-  def getSoftCancelAction(condition: CancelOrderOption): FixedSqlAction[Int, NoStream, slick.dbio.Effect.Write] = condition.cancelType match {
-    case SoftCancelType.BY_OWNER ⇒
-      module.orders.softCancelByOwner(condition.owner)
-    case SoftCancelType.BY_ORDER_HASH ⇒
-      module.orders.softCancelByHash(condition.orderHash)
-    case SoftCancelType.BY_TIME ⇒
-      module.orders.softCancelByTime(condition.owner, condition.cutOffTime)
-    case SoftCancelType.BY_MARKET ⇒
-      module.orders.softCancelByHash(condition.orderHash)
-  }
+  def getSoftCancelAction(condition: CancelOrderOption): FixedSqlAction[Int, NoStream, Write] =
+    condition.cancelType match {
+      case SoftCancelType.BY_OWNER ⇒
+        module.orders.softCancelByOwner(condition.owner)
+      case SoftCancelType.BY_ORDER_HASH ⇒
+        module.orders.softCancelByHash(condition.orderHash)
+      case SoftCancelType.BY_TIME ⇒
+        module.orders.softCancelByTime(condition.owner, condition.cutOffTime)
+      case SoftCancelType.BY_MARKET ⇒
+        module.orders.softCancelByHash(condition.orderHash)
+      case m ⇒ throw new Exception(s"unknown CancelOrderOption $m")
+    }
 
   private def buildChangeLog(order: Order): OrderChangeLog = {
     OrderChangeLog(
