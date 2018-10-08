@@ -48,7 +48,7 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def cancelledAmountB = column[String]("cancelled_amount_b", O.SqlType("VARCHAR(64)"))
   def splitAmountS = column[String]("split_amount_s", O.SqlType("VARCHAR(64)"))
   def splitAmountB = column[String]("split_amount_b", O.SqlType("VARCHAR(64)"))
-  def status = column[String]("status", O.SqlType("TINYINT(4)"))
+  def status = column[String]("status", O.SqlType("VARCHAR(64)"))
   //  def minerBlockMark = column[Long]("miner_block_mark")
   def broadcastTime = column[Int]("broadcast_time")
   def market = column[String]("market", O.SqlType("VARCHAR(32)"))

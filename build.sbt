@@ -6,39 +6,46 @@ import Dependencies._
 lazy val proto = (project in file("proto"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    basicSettings,
-    libraryDependencies ++= Seq(
-      "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion,
-      "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"),
+    basicSettings)
+  .settings(
     PB.targets in Compile := Seq(
-      // PB.gens.java -> (sourceManaged in Compile).value,
-      scalapb.gen(
-        // javaConversions = true,
-        flatPackage = false) -> (sourceManaged in Compile).value))
+      scalapb.gen(flatPackage = false) -> (sourceManaged in Compile).value))
 
 lazy val lib = (project in file("lib"))
-  .dependsOn(proto)
   .enablePlugins(AutomateHeaderPlugin)
+  .dependsOn(proto)
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
     libraryDependencies ++= ethereumDependency)
 
-lazy val core = (project in file("core"))
-  .dependsOn(proto)
-  .dependsOn(lib)
+lazy val ethconn = (project in file("ethconn"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
     libraryDependencies ++= akkaDenepdencies,
-    libraryDependencies ++= Seq(
-      "net.codingwell" %% "scala-guice" % "4.2.1"))
+    libraryDependencies ++= ethereumDependency)
+  .settings(
+    PB.targets in Compile := Seq(
+      scalapb.gen(
+        flatPackage = false) -> (sourceManaged in Compile).value))
+
+lazy val core = (project in file("core"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(proto)
+  .dependsOn(lib)
+  .dependsOn(ethconn)
+  .settings(
+    basicSettings,
+    libraryDependencies ++= commonDependency,
+    libraryDependencies ++= akkaDenepdencies)
 
 lazy val lightcone = (project in file("."))
-  .aggregate(proto, lib, core)
+  .aggregate(proto, lib, ethconn, core)
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
     basicSettings,
-    libraryDependencies += "org.loopring" %% "ethcube" % "0.0.2-SNAPSHOT",
     update / aggregate := false)

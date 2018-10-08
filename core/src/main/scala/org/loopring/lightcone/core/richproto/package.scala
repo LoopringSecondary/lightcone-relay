@@ -18,7 +18,7 @@ package org.loopring.lightcone.core
 
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.{ Order, RawOrder }
+import org.loopring.lightcone.proto.order.{ Order, RawOrder, SoftCancelSign }
 import org.loopring.lightcone.proto.ring.Ring
 import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
 import org.web3j.utils.Numeric
@@ -114,5 +114,23 @@ package object richproto {
       uniqueId.toByteArray
     }
 
+  }
+
+  implicit class RichSoftCancelSign(sign: SoftCancelSign) {
+    def getSignerAddr(): String = {
+      val signHash = Numeric.hexStringToByteArray(getHash())
+      val hash = web3Hash.sha3((ethereumPrefix + signHash.length).getBytes() ++ signHash)
+      val publicKey = Sign.recoverFromSignature(
+        (sign.v - 27).toByte,
+        new ECDSASignature(sign.r.asBigInteger, sign.s.asBigInteger),
+        hash
+      )
+      Keys.getAddress(publicKey)
+    }
+
+    def getHash(): String = {
+      val data = sign.timestamp.toString.getBytes
+      Numeric.toHexString(web3Hash.sha3(data))
+    }
   }
 }
