@@ -43,7 +43,6 @@ class OrderAccessor()(implicit
     case settings: OrderAccessorSettings ⇒
     case m: SaveOrders ⇒ sender ! Routers.orderDBAccessor ? m
     case m: SoftCancelOrders ⇒ sender ! Routers.orderDBAccessor ? m
-
     case any ⇒ Routers.orderDBAccessor forward any
   }
 }
