@@ -5,6 +5,7 @@ option java_package = "org.loopring.lightcone.proto";
 package org.loopring.lightcone.proto;
 
 import "balance.proto";
+import "order.proto";
 
 message Purge {
     message Balance {
@@ -18,6 +19,7 @@ message Purge {
     }
     message Order {
         string order_hash = 1;
+        string owner = 2;
     }
     message AllOrderForAddress {
         string address = 1;
@@ -28,15 +30,44 @@ message Purge {
         repeated string addresses = 1;
     }
     message AllAfterBlock {
-        string block_number = 1;
+        string from = 1;
+        string newest = 2;
     }
     message All {}
 }
 
 message GetOrdersFromCache {
-    repeated string order_hashes = 1;
+    repeated OrderReq orders = 1;
 }
-message CachedMultiOrders {}
+
+message DelOrders {
+    repeated OrderReq orders = 1;
+}
+
+message OrderReq {
+    string order_hash = 1;
+    string owner = 2;
+}
+
+message CachedOrder {
+    string order_hash = 1;
+    string cancelled_amount_s = 2;
+    string cancelled_amount_b = 3;
+    string dealt_amount_s = 4;
+    string dealt_amount_b = 5;
+    string split_amount_s = 6;
+    string split_amount_b = 7;
+    OrderStatus status = 8;
+    int64 block_number = 9;
+    string owner = 10;
+}
+message CachedMultiOrders {
+     map<string, CachedOrder> orders = 1;
+}
+
+message SaveOrdersToCache {
+    repeated CachedOrder orders = 1;
+}
 
 message CacheBalanceInfo {
     string address = 1;
