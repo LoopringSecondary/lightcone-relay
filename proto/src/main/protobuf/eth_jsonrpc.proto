@@ -163,6 +163,8 @@ message TransactionParam {
 //
 ///////////////////////////////////////////
 
+message EthGetBlockNumberReq {}
+
 message EthGetBlockNumberRes {
     int32 id = 1;
     string jsonrpc = 2;

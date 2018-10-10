@@ -45,6 +45,8 @@ import redis._
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import org.loopring.lightcone.ethconn.proto.data.EthereumProxySettings
+import org.loopring.lightcone.ethconn.EthereumProxy
 
 class CoreModule(config: Config)
   extends AbstractModule with ScalaModule {
@@ -304,6 +306,38 @@ class CoreModule(config: Config)
     timeout: Timeout
   ) = {
     Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
+  }
+
+  @Provides
+  @Singleton
+  @Named("ethereum_proxy")
+  def provideEthereumProxy(settings: EthereumProxySettings)(
+    implicit
+    sys: ActorSystem,
+    materilizer: ActorMaterializer
+  ) = {
+    sys.actorOf(Props(classOf[EthereumProxy], settings), "ethereum_proxy")
+  }
+
+  @Provides
+  @Singleton
+  def provideProxySettings(implicit config: Config): EthereumProxySettings = {
+    import collection.JavaConverters._
+
+    val sub = config.getConfig("ethereum-proxy")
+    EthereumProxySettings(
+      sub.getInt("pool-size"),
+      sub.getInt("check-interval-seconds"),
+      sub.getDouble("healthy-threshold").toFloat,
+      sub.getConfigList("nodes").asScala map {
+        c ⇒
+          EthereumProxySettings.Node(
+            c.getString("host"),
+            c.getInt("port"),
+            c.getString("ipcpath")
+          )
+      }
+    )
   }
 
 }
