@@ -20,22 +20,17 @@ import akka.actor._
 import com.google.inject._
 import com.google.inject.name._
 import org.loopring.lightcone.proto.eth_jsonrpc._
-import org.loopring.lightcone.lib.abi.{ Erc20Abi, LoopringAbi }
-import org.spongycastle.util.encoders.Hex
-import org.loopring.ethcube.EthereumProxy
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
 
 class EthClientImpl @Inject() (
-  @Named("ethereum_proxy") proxy: ActorRef) extends EthClient {
+    @Named("ethereum_proxy") proxy: ActorRef
+) extends EthClient {
 
   implicit val timeout = Timeout(3 seconds)
 
-  def ethGetBlockNumber() =
-    httpPost[EthGetBlockNumberRes]("eth_blockNumber") {
-      Seq()
-    }
+  def ethGetBlockNumber() = (proxy ? EthGetBlockNumberReq).mapTo[EthGetBlockNumberRes]
 
   def ethGetBalance(req: EthGetBalanceReq) =
     (proxy ? req).mapTo[EthGetBalanceRes]
