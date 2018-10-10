@@ -45,7 +45,7 @@ class OrderCacher(cache: OrderCache)(
     case m: SaveOrdersToCache ⇒
       cache.addOrUpdateOrders(m)
     case m: Purge.Order ⇒
-      cache.purgeOrders(DelOrders(Seq(OrderReq(m.orderHash, m.orderHash))))
+      cache.purgeOrders(DelOrders(Seq(OrderReq(m.orderHash, m.owner))))
     case m: Purge.AllOrderForAddress ⇒
       cache.purgeAllForAddresses(Seq(m.address))
     case m: Purge.AllForAddresses ⇒
