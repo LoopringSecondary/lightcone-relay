@@ -19,21 +19,15 @@ package org.loopring.lightcone.ethconn
 import akka.pattern.{ ask, pipe }
 import akka.util.Timeout
 import akka.actor._
-import akka.cluster._
-import akka.http.scaladsl.Http
 import akka.event.Logging
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.model._
 import akka.stream._
-import akka.pattern.AskTimeoutException
 import akka.event.LogSource
-import scalapb.json4s.JsonFormat
 import scala.concurrent._
 import scala.concurrent.duration._
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
-import com.typesafe.config.Config
 import org.json4s._
 import org.loopring.lightcone.ethconn.proto.data._
 

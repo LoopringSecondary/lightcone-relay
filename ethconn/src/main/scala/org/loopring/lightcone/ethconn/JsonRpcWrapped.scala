@@ -16,12 +16,11 @@
 
 package org.loopring.lightcone.ethconn
 
-import org.loopring.lightcone.ethconn.proto.data._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{ read, write }
-import org.json4s.NoTypeHints
+import org.json4s.{ DefaultFormats, NoTypeHints }
 import org.json4s.native.JsonMethods._
-import org.json4s.DefaultFormats
+import org.json4s.native.Serialization
+import org.json4s.native.Serialization.write
+import org.loopring.lightcone.ethconn.proto.data._
 
 case class JsonRpcReqWrapped(id: Int, jsonrpc: String = "2.0", method: String, params: Any) { self ⇒
   implicit val formats = Serialization.formats(NoTypeHints)

@@ -24,9 +24,7 @@ import akka.routing._
 import org.loopring.lightcone.ethconn.proto.data._
 import scala.concurrent.duration._
 import scala.util.Random
-import org.json4s.native.JsonMethods._
 import org.json4s.DefaultFormats
-import javax.swing.Spring.HeightSpring
 
 private class ConnectionManager(
     requestRouterActor: ActorRef,

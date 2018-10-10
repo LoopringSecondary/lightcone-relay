@@ -19,18 +19,14 @@ package org.loopring.lightcone.ethconn
 import scala.util._
 import scala.concurrent._
 import akka.actor._
-import akka.routing._
 import akka.stream._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl._
 import akka.stream.scaladsl._
 import akka.pattern.pipe
-import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport
 import org.json4s._
 import org.loopring.lightcone.ethconn.proto.data._
-import scalapb.json4s.JsonFormat
 
 private class HttpConnector(node: EthereumProxySettings.Node)(implicit val materilizer: ActorMaterializer)
   extends Actor

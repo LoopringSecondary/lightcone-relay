@@ -17,7 +17,6 @@
 package org.loopring.lightcone.ethconn
 
 import akka.actor._
-import akka.routing._
 import scalapb.json4s.JsonFormat
 import jnr.unixsocket._
 import java.io._
@@ -28,8 +27,6 @@ import org.loopring.lightcone.ethconn.proto.data._
 private class IpcConnector(node: EthereumProxySettings.Node)
   extends Actor
   with ActorLogging {
-
-  import context.dispatcher
 
   val address = new UnixSocketAddress(new File(node.ipcPath))
   val channel = UnixSocketChannel.open(address)
@@ -54,6 +51,9 @@ private class IpcConnector(node: EthereumProxySettings.Node)
       } catch {
         case e: Throwable ⇒ log.error(e.getMessage)
       }
+
+    case _ ⇒
+      throw new Exception("not support case type by ipc connector")
 
   }
 }
