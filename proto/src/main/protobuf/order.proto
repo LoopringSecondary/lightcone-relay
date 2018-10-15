@@ -248,14 +248,14 @@ message RawOrder {
     string amount_s = 5;
     string amount_b = 6;
     int64 valid_since = 7;
-    string token_spendable_s = 8;
-    string token_spendable_fee = 9;
+    //string token_spendable_s = 8;
+    //string token_spendable_fee = 9;
 
     string dual_auth_address = 10;
-    string broker = 11;
-    string broker_spendable_s = 12;
-    string broker_spendable_fee = 13;
-    string order_interceptor = 14;
+    //string broker = 11;
+    //string broker_spendable_s = 12;
+    //string broker_spendable_fee = 13;
+    //string order_interceptor = 14;
     string wallet = 15;
     int64 valid_until = 16;
     string sig = 17;
@@ -271,7 +271,7 @@ message RawOrder {
     int32 wallet_split_percentage = 27;
 
     string hash = 28;
-    string dual_private_key = 29;
+    //string dual_private_key = 29;
 }
 
 

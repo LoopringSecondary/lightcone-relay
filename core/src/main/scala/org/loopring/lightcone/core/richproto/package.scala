@@ -18,14 +18,15 @@ package org.loopring.lightcone.core
 
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
-import org.loopring.lightcone.proto.order.{ Order, RawOrder, SoftCancelSign }
+import org.loopring.lightcone.proto.order.{Order, RawOrder, SoftCancelSign}
 import org.loopring.lightcone.proto.ring.Ring
-import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
+import org.web3j.crypto.{Hash ⇒ web3Hash, _}
 import org.web3j.utils.Numeric
 
 package object richproto {
 
   val ethereumPrefix = "\u0019Ethereum Signed Message:\n"
+
   implicit class RichRawOrder(rawOrder: RawOrder) {
 
     def getSignerAddr(): String = {
@@ -42,19 +43,28 @@ package object richproto {
     }
 
     def getHash(): String = {
-      val data = Array[Byte]()
-      //        Numeric.hexStringToByteArray(rawOrder.delegateAddress) ++
-      //        Numeric.hexStringToByteArray(rawOrder.owner) ++
-      //        Numeric.hexStringToByteArray(rawOrder.tokenS) ++
-      //        Numeric.hexStringToByteArray(rawOrder.tokenB) ++
-      //        Numeric.hexStringToByteArray(rawOrder.walletAddress) ++
-      //        Numeric.hexStringToByteArray(rawOrder.authAddr) ++
-      //        Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
-      //        Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
-      //        Numeric.toBytesPadded(BigInt(rawOrder.validSince).bigInteger, 32) ++
-      //        Numeric.toBytesPadded(BigInt(rawOrder.validUntil).bigInteger, 32) ++
-      //        Numeric.toBytesPadded(rawOrder.lrcFee.asBigInteger, 32) ++
-      //        Array[Byte](buyNoMoreThanB.toByte, rawOrder.marginSplitPercentage.toByte)
+      val allOrNone = if (rawOrder.allOrNone) 1 else 0
+      println("cc", rawOrder.amountS.asBigInteger)
+      val data = Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
+        Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
+        Numeric.toBytesPadded(rawOrder.feeAmount.asBigInteger, 32) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.validSince).bigInteger, 32) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.validUntil).bigInteger, 32) ++
+        Numeric.hexStringToByteArray(rawOrder.owner) ++
+        Numeric.hexStringToByteArray(rawOrder.tokenS) ++
+        Numeric.hexStringToByteArray(rawOrder.tokenB) ++
+        Numeric.hexStringToByteArray(rawOrder.dualAuthAddress) ++
+        //todo:
+        Numeric.hexStringToByteArray("0x000000000000000000000000000000000000000") ++
+        Numeric.hexStringToByteArray("0x000000000000000000000000000000000000000") ++
+        Numeric.hexStringToByteArray(rawOrder.wallet) ++
+        Numeric.hexStringToByteArray(rawOrder.tokenRecipient) ++
+        Numeric.hexStringToByteArray(rawOrder.feeToken) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.walletSplitPercentage).bigInteger, 2) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.feePercentage).bigInteger, 2) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.tokenSFeePercentage).bigInteger, 2) ++
+        Numeric.toBytesPadded(BigInt(rawOrder.tokenBFeePercentage).bigInteger, 2) ++
+        Array[Byte](allOrNone.toByte)
 
       Numeric.toHexString(web3Hash.sha3(data))
     }
@@ -136,4 +146,5 @@ package object richproto {
       Numeric.toHexString(web3Hash.sha3(data))
     }
   }
+
 }

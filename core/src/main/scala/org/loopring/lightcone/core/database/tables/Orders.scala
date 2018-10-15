@@ -22,49 +22,83 @@ import slick.jdbc.MySQLProfile.api._
 
 class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def version = column[String]("version", O.SqlType("VARCHAR(64)"))
+
   def owner = column[String]("owner", O.SqlType("VARCHAR(64)"))
+
   def tokenS = column[String]("token_s", O.SqlType("VARCHAR(64)"))
+
   def tokenB = column[String]("token_b", O.SqlType("VARCHAR(64)"))
+
   def amountS = column[String]("amount_s", O.SqlType("VARCHAR(64)"))
+
   def amountB = column[String]("amount_b", O.SqlType("VARCHAR(64)"))
+
   def validSince = column[Long]("valid_since")
-  def tokenSpendableS = column[String]("token_spendable_s", O.SqlType("VARCHAR(64)"))
-  def tokenSpendableFee = column[String]("token_spendable_fee", O.SqlType("VARCHAR(64)"))
+
+  //  def tokenSpendableS = column[String]("token_spendable_s", O.SqlType("VARCHAR(64)"))
+  //  def tokenSpendableFee = column[String]("token_spendable_fee", O.SqlType("VARCHAR(64)"))
   def dualAuthAddress = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
-  def broker = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
-  def brokerSpendableS = column[String]("broker_spendable_s", O.SqlType("VARCHAR(64)"))
-  def brokerSpendableFee = column[String]("broker_spendable_fee", O.SqlType("VARCHAR(64)"))
-  def orderInterceptor = column[String]("order_interceptor", O.SqlType("VARCHAR(64)"))
+
+  //  def broker = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
+  //  def brokerSpendableS = column[String]("broker_spendable_s", O.SqlType("VARCHAR(64)"))
+  //  def brokerSpendableFee = column[String]("broker_spendable_fee", O.SqlType("VARCHAR(64)"))
+  //  def orderInterceptor = column[String]("order_interceptor", O.SqlType("VARCHAR(64)"))
   def wallet = column[String]("wallet", O.SqlType("VARCHAR(64)"))
+
   def validUntil = column[Long]("valid_until")
+
   def sig = column[String]("sig", O.SqlType("VARCHAR(256)"))
+
   def dualAuthSig = column[String]("dual_auth_sig", O.SqlType("VARCHAR(256)"))
+
   def allOrNone = column[Boolean]("all_or_none")
+
   def feeToken = column[String]("fee_token", O.SqlType("VARCHAR(64)"))
+
   def feeAmount = column[String]("fee_amount", O.SqlType("VARCHAR(64)"))
+
   def feePercentage = column[Int]("fee_percentage")
+
   def waiveFeePercentage = column[Int]("waive_fee_percentage")
+
   def tokenSFeePercentage = column[Int]("token_s_fee_percentage")
+
   def tokenBFeePercentage = column[Int]("token_b_fee_percentage")
+
   def tokenRecipient = column[String]("token_recipient", O.SqlType("VARCHAR(64)"))
+
   def walletSplitPercentage = column[Int]("wallet_split_percentage")
-  def dualPrivateKey = column[String]("dual_private_key", O.SqlType("VARCHAR(128)"))
+
+  //  def dualPrivateKey = column[String]("dual_private_key", O.SqlType("VARCHAR(128)"))
   def orderHash = column[String]("order_hash", O.SqlType("VARCHAR(128)"))
 
   def powNonce = column[Long]("pow_nonce")
+
   def updatedBlock = column[Long]("updated_block")
+
   def dealtAmountS = column[String]("dealt_amount_s", O.SqlType("VARCHAR(64)"))
+
   def dealtAmountB = column[String]("dealt_amount_b", O.SqlType("VARCHAR(64)"))
+
   def cancelledAmountS = column[String]("cancelled_amount_s", O.SqlType("VARCHAR(64)"))
+
   def cancelledAmountB = column[String]("cancelled_amount_b", O.SqlType("VARCHAR(64)"))
+
   def splitAmountS = column[String]("split_amount_s", O.SqlType("VARCHAR(64)"))
+
   def splitAmountB = column[String]("split_amount_b", O.SqlType("VARCHAR(64)"))
+
   def status = column[String]("status", O.SqlType("VARCHAR(64)"))
+
   //  def minerBlockMark = column[Long]("miner_block_mark")
   def broadcastTime = column[Int]("broadcast_time")
+
   def market = column[String]("market", O.SqlType("VARCHAR(32)"))
+
   def side = column[String]("side", O.SqlType("VARCHAR(32)"))
+
   def price = column[Double]("price", O.SqlType("DECIMAL(28,16)"))
+
   def orderType = column[String]("order_type", O.SqlType("VARCHAR(32)"))
 
   def * = (
@@ -96,14 +130,14 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
     amountS,
     amountB,
     validSince,
-    tokenSpendableS,
-    tokenSpendableFee,
+    //    tokenSpendableS,
+    //    tokenSpendableFee,
     dualAuthAddress,
-    broker ,
-    brokerSpendableS,
-    brokerSpendableFee ,
+    //    broker,
+    //    brokerSpendableS,
+    //    brokerSpendableFee,
+    //    orderInterceptor,
     wallet,
-    orderInterceptor,
     validUntil,
     sig,
     dualAuthSig,
@@ -116,12 +150,12 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
     tokenBFeePercentage,
     tokenRecipient,
     walletSplitPercentage,
-    dualPrivateKey,
+    //    dualPrivateKey,
     orderHash,
   ) <> (
-      (RawOrder.apply _).tupled,
-      RawOrder.unapply
-    )
+    (RawOrder.apply _).tupled,
+    RawOrder.unapply
+  )
 
   private def extendTupled = (i: Tuple18[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Double, Long, String, String, String, Long, Long]) ⇒
     Order.apply(
@@ -189,12 +223,12 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
   def unwrapStatus(status: Option[OrderStatus]): String =
     status match {
       case Some(value) ⇒ value.level1Status.name
-      case None        ⇒ OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN.name
+      case None ⇒ OrderLevel1Status.ORDER_STATUS_LEVEL1_UNKNOWN.name
     }
 
   def wrapType(src: String): OrderType =
     OrderType.fromName(src) match {
       case Some(value) ⇒ value
-      case None        ⇒ OrderType.UNKNOWN
+      case None ⇒ OrderType.UNKNOWN
     }
 }
