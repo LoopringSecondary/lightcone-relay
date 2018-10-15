@@ -17,39 +17,39 @@ message UintArray {
 // abi functions
 //
 ///////////////////////////////////////////////////////
-
-message SubmitRingFunction {
-    repeated BytesArray addressList = 1;
-    repeated BytesArray bigintArgsList = 2;
-    repeated UintArray uintArgsList = 3;
-    repeated bool buyNoMoreThanBList = 4;
-    repeated uint32 vList = 5;
-    repeated bytes rList = 6;
-    repeated bytes sList = 7;
-    bytes feeRecipient = 8;
-    uint32 feeSelection = 9;
+// IRingSubmitter
+message SubmitRingsFunction {
+    string data = 1;
 }
 
-message CancelOrderFunction {
-    BytesArray addressList = 1;
-    BytesArray OrderValues = 2;
-    bool buyNoMoreThanAmountB = 3;
-    uint32 marginSplit = 4;
-    uint32 v = 5;
-    bytes r = 6;
-    bytes s = 7;
+// IRingCanceller
+message CancelOrdersFunction {
+    string order_hashs = 1;
 }
 
-message CutoffFunction {
-    bytes cutoff = 1;
+message CancelAllOrdersForTradingPairFunction {
+    string token1 = 1;
+    string token2 = 2;
+    string cutoff = 3;
 }
 
-message CutoffPairFunction {
-    bytes token1 = 1;
-    bytes token2 = 2;
-    bytes cutoff = 3;
+message CancelAllOrdersFunction {
+    string cutoff = 1;
 }
 
+message CancelAllOrdersForTradingPairOfOwnerFunction {
+    string owner = 1;
+    string token1 = 2;
+    string token2 = 3;
+    string cutoff = 4;
+}
+
+message CancelAllOrdersOfOwnerFunction {
+    string owner = 1;
+    string cutoff = 2;
+}
+
+// weth
 message WethDepositFunction {
     bytes value = 1;
 }
@@ -58,6 +58,7 @@ message WethWithdrawalFunction {
     bytes value = 1;
 }
 
+// erc20
 message ApproveFunction {
     bytes spender = 1;
     bytes value = 2;
@@ -80,51 +81,66 @@ message TransferFromFunction {
 //
 ///////////////////////////////////////////////////////
 
+// IRingSubmitter
+message Fill {
+    string order_hash = 1;
+    string owner = 2;
+    string token_s = 3;
+    string amount_s = 4;
+    string split = 5;
+    string fee_amount = 6;
+}
+
 message RingMinedEvent {
-    bytes ringIndex = 1;
-    bytes ringhash = 2;
-    bytes miner = 3;
-    bytes feeRecipient = 4;
-    UintArray orderInfoList = 5;
+    int32 ring_index = 1;
+    string ring_hash = 2; // indexed
+    string fee_receipt = 3; // indexed
+    repeated Fill fills = 4;
 }
 
-message OrderCancelledEvent {
-    bytes orderHash = 1;
-    bytes amountCancelled = 2;
+message InvalidRingEvent {
+    string ring_hash = 1;
 }
 
-message CutoffEvent {
-    bytes address = 1;
-    bytes cutoff = 2;
+// IRingCanceller
+message OrdersCancelledEvent {
+    string broker = 1; // indexed
+    repeated string order_hashs = 2;
 }
 
-message CutoffPairEvent {
-    bytes address = 1;
-    bytes token1 = 2;
-    bytes token2 = 3;
-    bytes cutoff = 4;
+message AllOrdersCancelledForTradingPairEvent {
+    string broker = 1; // indexed
+    string token1 = 2;
+    string token2 = 3;
+    string cutoff = 4;
 }
 
-message TokenRegisteredEvent {
-    bytes token = 1;
-    string symbol = 2;
+message AllOrdersCancelledEvent {
+    string broker = 1; // indexed
+    string cutoff = 2;
 }
 
-message TokenUnRegisteredEvent {
-    bytes token = 1;
-    string symbol = 2;
+message OrdersCancelledByBrokerEvent {
+    string broker = 1; // indexed
+    string owner = 2; // indexed
+    repeated string order_hashs = 3;
 }
 
-message AddressAuthorizedEvent {
-    bytes protocol = 1;
-    int32 number = 2;
+message AllOrdersCancelledForTradingPairByBrokerEvent {
+    string broker = 1; // indexed
+    string owner = 2; // indexed
+    string token1 = 3;
+    string token2 = 4;
+    string cutoff = 5;
 }
 
-message AddressDeAuthorizedEvent {
-    bytes protocol = 1;
-    int32 number = 2;
+message AllOrdersCancelledByBroker {
+    string broker = 1; // indexed
+    string owner = 2; // indexed
+    string cutoff = 3;
 }
 
+// weth
 message WethDepositEvent {
     bytes dstAddress = 1;
     bytes value = 2;
@@ -135,6 +151,7 @@ message WethWithdrawalEvent {
     bytes value = 2;
 }
 
+// erc20
 message TransferEvent {
 	bytes from = 1;
 	bytes to = 2;
