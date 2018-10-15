@@ -31,57 +31,60 @@ package object richproto {
     def getSignerAddr(): String = {
       val orderHash = Numeric.hexStringToByteArray(rawOrder.hash)
       val hash = web3Hash.sha3((ethereumPrefix + orderHash.length).getBytes() ++ orderHash)
-      val publicKey = Sign.recoverFromSignature(
-        (rawOrder.v - 27).toByte,
-        new ECDSASignature(rawOrder.r.asBigInteger, rawOrder.s.asBigInteger),
-        hash
-      )
-      Keys.getAddress(publicKey)
+      //      val publicKey =
+      //        Sign.recoverFromSignature(
+      //        (rawOrder.v - 27).toByte,
+      //        new ECDSASignature(rawOrder.r.asBigInteger, rawOrder.s.asBigInteger),
+      //        hash
+      //      )
+      //      Keys.getAddress(publicKey)
+      "0x"
     }
 
     def getHash(): String = {
-      val buyNoMoreThanB = if (rawOrder.buyNoMoreThanAmountB) 1 else 0
-
-      val data = Numeric.hexStringToByteArray(rawOrder.delegateAddress) ++
-        Numeric.hexStringToByteArray(rawOrder.owner) ++
-        Numeric.hexStringToByteArray(rawOrder.tokenS) ++
-        Numeric.hexStringToByteArray(rawOrder.tokenB) ++
-        Numeric.hexStringToByteArray(rawOrder.walletAddress) ++
-        Numeric.hexStringToByteArray(rawOrder.authAddr) ++
-        Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
-        Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
-        Numeric.toBytesPadded(BigInt(rawOrder.validSince).bigInteger, 32) ++
-        Numeric.toBytesPadded(BigInt(rawOrder.validUntil).bigInteger, 32) ++
-        Numeric.toBytesPadded(rawOrder.lrcFee.asBigInteger, 32) ++
-        Array[Byte](buyNoMoreThanB.toByte, rawOrder.marginSplitPercentage.toByte)
+      val data = Array[Byte]()
+      //        Numeric.hexStringToByteArray(rawOrder.delegateAddress) ++
+      //        Numeric.hexStringToByteArray(rawOrder.owner) ++
+      //        Numeric.hexStringToByteArray(rawOrder.tokenS) ++
+      //        Numeric.hexStringToByteArray(rawOrder.tokenB) ++
+      //        Numeric.hexStringToByteArray(rawOrder.walletAddress) ++
+      //        Numeric.hexStringToByteArray(rawOrder.authAddr) ++
+      //        Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
+      //        Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
+      //        Numeric.toBytesPadded(BigInt(rawOrder.validSince).bigInteger, 32) ++
+      //        Numeric.toBytesPadded(BigInt(rawOrder.validUntil).bigInteger, 32) ++
+      //        Numeric.toBytesPadded(rawOrder.lrcFee.asBigInteger, 32) ++
+      //        Array[Byte](buyNoMoreThanB.toByte, rawOrder.marginSplitPercentage.toByte)
 
       Numeric.toHexString(web3Hash.sha3(data))
     }
   }
 
   implicit class RichOrder(order: Order) {
+    //todo:protocol 2.0 逻辑更改，需要重新计算
     def getRemained(): (Rational, Rational) = {
-      if (order.rawOrder.get.buyNoMoreThanAmountB) {
-        val sellPrice = order.sellPrice()
-        val remainedAmountB = Rational(
-          order.rawOrder.get.amountB.asBigInt - (
-            order.dealtAmountS.asBigInt +
-            order.cancelledAmountB.asBigInt +
-            order.splitAmountB.asBigInt
-          )
-        )
-        (remainedAmountB * sellPrice, remainedAmountB)
-      } else {
-        val remainedAmountS = Rational(
-          order.rawOrder.get.amountS.asBigInt - (
-            order.dealtAmountS.asBigInt +
-            order.cancelledAmountS.asBigInt +
-            order.splitAmountS.asBigInt
-          )
-        )
-        val buyPrice = order.buyPrice()
-        (remainedAmountS, remainedAmountS * buyPrice)
-      }
+      (Rational(1), Rational(1))
+      //      if (order.rawOrder.get.buyNoMoreThanAmountB) {
+      //        val sellPrice = order.sellPrice()
+      //        val remainedAmountB = Rational(
+      //          order.rawOrder.get.amountB.asBigInt - (
+      //            order.dealtAmountS.asBigInt +
+      //            order.cancelledAmountB.asBigInt +
+      //            order.splitAmountB.asBigInt
+      //          )
+      //        )
+      //        (remainedAmountB * sellPrice, remainedAmountB)
+      //      } else {
+      //        val remainedAmountS = Rational(
+      //          order.rawOrder.get.amountS.asBigInt - (
+      //            order.dealtAmountS.asBigInt +
+      //            order.cancelledAmountS.asBigInt +
+      //            order.splitAmountS.asBigInt
+      //          )
+      //        )
+      //        val buyPrice = order.buyPrice()
+      //        (remainedAmountS, remainedAmountS * buyPrice)
+      //      }
     }
 
     def sellPrice(): Rational = {
