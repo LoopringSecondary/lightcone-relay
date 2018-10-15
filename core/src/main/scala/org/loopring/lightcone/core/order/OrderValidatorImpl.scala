@@ -17,10 +17,10 @@
 package org.loopring.lightcone.core.order
 
 import com.google.inject.Inject
-import org.loopring.lightcone.proto.order.{ Order, OrderType }
+import org.loopring.lightcone.proto.order.{Order, OrderType}
 import com.typesafe.config.Config
 
-class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
+class OrderValidatorImpl @Inject()(config: Config) extends OrderValidator {
 
   val addrLength = 20
   val hashLength = 32
@@ -62,7 +62,8 @@ class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
       //TODO(xiaolu) check protocol and delegateAddress. need fukun apply method
       // case o if isProtocolMatched =>  PROTOCOL_AND_DELEGATE_ADDRESS_NOT_MATCH
       // market order must apply auth private key
-      case o if o.orderType == OrderType.MARKET && o.rawOrder.get.dualPrivateKey.isEmpty ⇒ MARKET_ORDER_MUST_HAVE_PRIVATE_KEY
+      //todo:
+      //      case o if o.orderType == OrderType.MARKET && o.rawOrder.get.dualPrivateKey.isEmpty ⇒ MARKET_ORDER_MUST_HAVE_PRIVATE_KEY
       //TODO(xiaolu) token s min amount check, need apply token amount convert method
       //      case o if (o.rawOrder.get.amountS).toBigInt < validateConfig.minAmountS[o.rawOrder.get.TokenS] =>
       //TODO(xiaolu) token s and token b if in the supported token list

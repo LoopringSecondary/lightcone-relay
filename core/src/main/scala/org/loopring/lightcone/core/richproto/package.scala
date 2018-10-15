@@ -44,7 +44,6 @@ package object richproto {
 
     def getHash(): String = {
       val allOrNone = if (rawOrder.allOrNone) 1 else 0
-      println("cc", rawOrder.amountS.asBigInteger)
       val data = Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
         Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
         Numeric.toBytesPadded(rawOrder.feeAmount.asBigInteger, 32) ++
@@ -55,8 +54,8 @@ package object richproto {
         Numeric.hexStringToByteArray(rawOrder.tokenB) ++
         Numeric.hexStringToByteArray(rawOrder.dualAuthAddress) ++
         //todo:
-        Numeric.hexStringToByteArray("0x000000000000000000000000000000000000000") ++
-        Numeric.hexStringToByteArray("0x000000000000000000000000000000000000000") ++
+        Numeric.hexStringToByteArray("0x0000000000000000000000000000000000000000") ++
+        Numeric.hexStringToByteArray("0x0000000000000000000000000000000000000000") ++
         Numeric.hexStringToByteArray(rawOrder.wallet) ++
         Numeric.hexStringToByteArray(rawOrder.tokenRecipient) ++
         Numeric.hexStringToByteArray(rawOrder.feeToken) ++
