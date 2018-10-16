@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.lib.solidity
 
-import org.loopring.lightcone.lib.abi.BitStream
+import org.loopring.lightcone.lib.abi.Bitstream
 import org.scalatest.FlatSpec
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.core.richproto._

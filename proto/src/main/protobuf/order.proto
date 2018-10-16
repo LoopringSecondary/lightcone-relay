@@ -251,7 +251,7 @@ message RawOrder {
     //string token_spendable_s = 8; //辅助计算
     //string token_spendable_fee = 9; //辅助计算
 
-    string dual_auth_address = 10;
+    string dual_auth_address = 10; // 原来的auth address
     //string broker = 11;
     //string broker_spendable_s = 12; //辅助计算
     //string broker_spendable_fee = 13; //辅助计算
