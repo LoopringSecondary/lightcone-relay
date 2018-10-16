@@ -16,72 +16,67 @@
 
 package org.loopring.lightcone.lib.abi
 
-import org.loopring.lightcone.lib.etypes._
+import org.web3j.utils.Numeric
 
-case class BitStream() {
+case class BitStream(initbs: Array[Byte]) {
 
-  var data: String
+  var data = initbs
 
-  def getData: String = {
+  def getData: Array[Byte] = {
     if (this.data.length.equals(0)) {
-      "0x0"
+      "0x0".getBytes()
     } else {
-      "0x" + this.data
+      "0x".getBytes ++ this.data
     }
   }
 
-  public addNumber(x: number, numBytes = 4, forceAppend = true) {
-    // Check if we need to encode this number as negative
-    if (x < 0) {
-      const encoded = abi.rawEncode(["int256"], [x.toString(10)]);
-      const hex = encoded.toString("hex").slice(-(numBytes * 2));
-      return this.addHex(hex, forceAppend);
-    } else {
-      return this.addBigNumber(new BigNumber(x), numBytes, forceAppend);
+//  public addNumber(x: number, numBytes = 4, forceAppend = true) {
+//    // Check if we need to encode this number as negative
+//    if (x < 0) {
+//      const encoded = abi.rawEncode(["int256"], [x.toString(10)]);
+//      const hex = encoded.toString("hex").slice(-(numBytes * 2));
+//      return this.addHex(hex, forceAppend);
+//    } else {
+//      return this.addBigNumber(new BigNumber(x), numBytes, forceAppend);
+//    }
+//  }
+
+  def addAddress(address: String): Array[Byte] = data ++ Numeric.toBytesPadded(Numeric.toBigInt(address), 20)
+
+  def addUint256(num: BigInt): Array[Byte] = data ++ Numeric.toBytesPadded(num.bigInteger, 32)
+
+  // todo: fuk 负数问题
+  def addInt(num: BigInt): Array[Byte] = data ++ Numeric.toBytesPadded(num.bigInteger, 2)
+
+  def addBoolean(b: Boolean): Array[Byte] = data :+ (if (b) 1 else 0).toByte
+
+  def addRawBytes(otherBytes: Array[Byte]): Array[Byte] = data ++ otherBytes
+
+  def addHex(hex: String): Array[Byte] = data ++ Numeric.hexStringToByteArray(hex)
+
+  def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
+
+  def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
+
+  def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
+
+  def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
+
+  def extractAddress(offset: Int): Array[Byte] = "0x".getBytes ++ this.extractBytesX(offset, 20)
+
+  def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
+
+  def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
+
+  private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
+
+  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
+    val start = offset * 2
+    val end = start + length * 2
+    if (this.data.length < end) {
+      throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
     }
+    this.data.slice(start, end)
   }
 
-  def addNumber(x: Int, numBytes: Int = 4, forceAppend: Boolean = true): Unit = {
-    if (x < 0) {
-
-    } else {
-      this.addBigNumber(BigInt(x), numBytes, forceAppend)
-    }
-  }
-
-  def addBigNumber(x: BigInt, numBytes: Int = 32, forceAppend: Boolean = true) : Unit = {
-    val formattedData = this.padString(x.toHex, numBytes * 2)
-    this.insert(formattedData, forceAppend)
-  }
-
-  def addAddress(x: String, numBytes: Int = 20, forceAppend: Boolean = true): Unit = {
-    val formattedData = this.padString(x.slice(0, 2), numBytes * 2)
-    this.insert(formattedData, forceAppend)
-  }
-
-  def addHex(x: String, forceAppend: Boolean = true): Unit = {
-    if (x.startsWith("0x")) {
-      this.insert(x.slice(0, 2), forceAppend)
-    } else {
-      this.insert(x, forceAppend)
-    }
-  }
-
-  // offset 暂时没有任何用途,看后续合约如何变化
-  private def insert(x: String, forceAppend: Boolean = true): Int = {
-    this.data += x
-    0
-  }
-
-  private def padString(s: String, targetLength: Int): String = {
-    var x: String = s
-
-    if (x.length > targetLength) {
-      throw new Exception("0x" + x + " is too big to fit in the requested length (" + targetLength + ")")
-    }
-    while(x.length < targetLength) {
-      x = "0" + x
-    }
-    x
-  }
 }
