@@ -16,7 +16,7 @@
 
 package org.loopring.lightcone.lib.math
 
-import java.math.{ MathContext, RoundingMode }
+import java.math.{MathContext, RoundingMode}
 
 import scala.math._
 

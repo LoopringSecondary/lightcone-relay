@@ -53,8 +53,8 @@ class OrderUpdater()(implicit
           for {
             getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
               address = order.rawOrder.get.owner,
-              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress),
-              delegates = Seq(order.rawOrder.get.delegateAddress)
+              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress)
+            //              delegates = Seq(order.rawOrder.get.delegateAddress)
             ))
             balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]
             orderInfo ← ethereumAccessor ? GetOrderInfo()

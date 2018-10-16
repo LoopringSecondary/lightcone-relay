@@ -241,26 +241,40 @@ enum SoftCancelType {
 }
 
 message RawOrder {
-    string protocol = 1;
-    string delegate_address = 2;
+    string version = 1;
+    string owner = 2;
     string token_s = 3;
     string token_b = 4;
     string amount_s = 5;
     string amount_b = 6;
     int64 valid_since = 7;
-    int64 valid_until = 8;
-    string lrc_fee = 9;
-    bool buy_no_more_than_amount_b = 10;
-    int32 margin_split_percentage = 11;
-    string owner = 12;
-    string wallet_address = 13;
-    string auth_addr = 14;
-    string auth_private_key = 15;
-    int32 v = 16;
-    string r = 17;
-    string s = 18;
-    string hash = 19;
+    //string token_spendable_s = 8; //辅助计算
+    //string token_spendable_fee = 9; //辅助计算
+
+    string dual_auth_address = 10;
+    //string broker = 11;
+    //string broker_spendable_s = 12; //辅助计算
+    //string broker_spendable_fee = 13; //辅助计算
+    //string order_interceptor = 14;
+    string wallet = 15;
+    int64 valid_until = 16;
+    string sig = 17;
+    string dual_auth_sig = 18;
+    bool all_or_none = 19;
+    string fee_token = 20;
+    string fee_amount = 21;
+    int32 fee_percentage = 22;         //按照amount_b,百分比扣费，所有百分比均为1000为基数
+    int32 waive_fee_percentage = 23; // 给做市商优惠百分比, -1，1
+    int32 token_s_fee_percentage = 24;    //p2p 使用
+    int32 token_b_fee_percentage = 25;   //p2p 使用
+    string token_recipient = 26;
+    int32 wallet_split_percentage = 27;
+
+
+    string hash = 28;
+    //string dual_private_key = 29;
 }
+
 
 message SoftCancelSign {
     int64 timestamp = 1;

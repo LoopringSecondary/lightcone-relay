@@ -48,39 +48,41 @@ class RingEvaluatorImpl(
 
   var orderFillAmount = Map.empty[String, BigInt]
 
-  def getRingCadidatesToSettle(candidates: RingCandidates): Future[Seq[RingCandidate]] =
-    for {
-      _ ← Future.successful(0)
-      //订单已成交量
-      orderFillAmount = Map[String, BigInt]()
-      //账户可用金额等
-      avaliableAmounts = new ConcurrentHashMap[String, BigInt]() asScala
-
-      ringCandidates = candidates.rings
-        .map(r ⇒ Some(RingCandidate(rawRing = r)))
-
-      ringsToSettle ← getRingCadidatesToSettle(Seq(), ringCandidates)
-        .mapTo[Seq[Option[RingCandidate]]]
-    } yield ringsToSettle.filter(_.nonEmpty).map(_.get)
+  //todo:合约2.0 需要重新计算
+  def getRingCadidatesToSettle(candidates: RingCandidates): Future[Seq[RingCandidate]] = ???
+  //    for {
+  //      _ ← Future.successful(0)
+  //      //订单已成交量
+  //      orderFillAmount = Map[String, BigInt]()
+  //      //账户可用金额等
+  //      avaliableAmounts = new ConcurrentHashMap[String, BigInt]() asScala
+  //
+  //      ringCandidates = candidates.rings
+  //        .map(r ⇒ Some(RingCandidate(rawRing = r)))
+  //
+  //      ringsToSettle ← getRingCadidatesToSettle(Seq(), ringCandidates)
+  //        .mapTo[Seq[Option[RingCandidate]]]
+  //    } yield ringsToSettle.filter(_.nonEmpty).map(_.get)
 
   //  @tailrec
+  //todo:合约2.0 需要重新计算
   private def getRingCadidatesToSettle(
     candidatesForSubmit: Seq[Option[RingCandidate]],
     candidates: Seq[Option[RingCandidate]]
-  ) =
-    for {
-      ringCandidates ← Future.sequence(candidates
-        .filter(_.nonEmpty)
-        .map(c ⇒ generateRingCandidate(c.get.rawRing)))
-
-      //    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
-      //    (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
-      //    if (candidatesComputeAgain.size <= 0) {
-      //      candidatesForSubmit ++ candidatesForSubmit1
-      //    } else {
-      //    getRingForSubmit(candidatesForSubmit ++ candidatesForSubmit1, candidatesComputeAgain)
-      //    }
-    } yield ringCandidates
+  ) = ???
+  //    for {
+  //      ringCandidates ← Future.sequence(candidates
+  //        .filter(_.nonEmpty)
+  //        .map(c ⇒ generateRingCandidate(c.get.rawRing)))
+  //
+  //      //    //todo:相同地址的，需要根据余额再次计算成交量等，否则第二笔可能成交量与收益不足
+  //      //    (candidatesForSubmit1, candidatesComputeAgain) = (ringCandidates, Seq[Option[RingCandidate]]())
+  //      //    if (candidatesComputeAgain.size <= 0) {
+  //      //      candidatesForSubmit ++ candidatesForSubmit1
+  //      //    } else {
+  //      //    getRingForSubmit(candidatesForSubmit ++ candidatesForSubmit1, candidatesComputeAgain)
+  //      //    }
+  //    } yield ringCandidates
 
   //余额以及授权金额
   private def getAvailableAmount(
@@ -106,152 +108,161 @@ class RingEvaluatorImpl(
         } yield min
     } yield amount
 
-  private def priceReduceRate(ring: Ring): Rational = {
-    val priceMul = ring.orders.map { order ⇒
-      val rawOrder = order.rawOrder.get
-      Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
-    }.reduceLeft(_ * _)
+  private def priceReduceRate(ring: Ring): Rational = ???
+  //  {
+  //    val priceMul = ring.orders.map { order ⇒
+  //      val rawOrder = order.rawOrder.get
+  //      Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+  //    }.reduceLeft(_ * _)
+  //
+  //    val root = priceMul.pow(Rational(1, ring.orders.size))
+  //    val reduceRate = Rational(root)
+  //    Rational(1) / reduceRate
+  //  }
 
-    val root = priceMul.pow(Rational(1, ring.orders.size))
-    val reduceRate = Rational(root)
-    Rational(1) / reduceRate
-  }
+  private def checkRing(ring: Ring) = ???
+  //  {
+  //    ring.orders.map(_.rawOrder.isDefined).reduceLeft(_ && _)
+  //  }
 
-  private def checkRing(ring: Ring) = {
-    ring.orders.map(_.rawOrder.isDefined).reduceLeft(_ && _)
-  }
+  //todo:合约2.0 需要重新计算
+  def generateRingCandidate(ring: Ring) = ???
+  //    for {
+  //    res ← if (!checkRing(ring)) {
+  //      Future.successful(None)
+  //    } else {
+  //      for {
+  //        reduceRate ← Future.successful { priceReduceRate(ring) }
+  //        orderFillsStep1 ← Future.sequence(ring.orders.map {
+  //          order ⇒
+  //            for {
+  //              rawOrder ← Future.successful(order.rawOrder.get)
+  //              amountS = rawOrder.amountS.asBigInt
+  //              rateAmountS = Rational(amountS) * reduceRate
+  //              (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(order, reduceRate)
+  //            } yield OrderFill(
+  //              rawOrder,
+  //              sPrice,
+  //              rateAmountS,
+  //              fillAmountS,
+  //              fillAmountB,
+  //              reduceRate
+  //            )
+  //        }).mapTo[Seq[OrderFill]]
+  //
+  //        orderFillsStep2 = computeFillAmountStep2(orderFillsStep1)
+  //
+  //        orderFillsSeq ← Future.sequence(orderFillsStep2.map {
+  //          orderFill ⇒
+  //            for {
+  //              (feeSelection, receivedFiat) ← computeFeeOfOrder(orderFill)
+  //              x = (
+  //                orderFill.rawOrder.hash,
+  //                orderFill.copy(
+  //                  feeSelection = feeSelection,
+  //                  receivedFiat = receivedFiat
+  //                )
+  //              )
+  //            } yield x
+  //        }).mapTo[Seq[(String, OrderFill)]]
+  //
+  //        orderFillsMap = orderFillsSeq.toMap
+  //        ringReceivedFiat = orderFillsMap.foldLeft(Rational(0))(_ + _._2.receivedFiat)
+  //        gasPrice = Rational(1) //todo:fiat
+  //        gasFiat = Rational(gasUsedOfOrders(orderFillsStep2.size)) * gasPrice
+  //
+  //        result = Some(RingCandidate(
+  //          rawRing = ring,
+  //          receivedFiat = ringReceivedFiat - gasFiat,
+  //          orderFills = orderFillsMap
+  //        ))
+  //      } yield result
+  //    }
+  //  } yield res
 
-  def generateRingCandidate(ring: Ring) = for {
-    res ← if (!checkRing(ring)) {
-      Future.successful(None)
-    } else {
-      for {
-        reduceRate ← Future.successful { priceReduceRate(ring) }
-        orderFillsStep1 ← Future.sequence(ring.orders.map {
-          order ⇒
-            for {
-              rawOrder ← Future.successful(order.rawOrder.get)
-              amountS = rawOrder.amountS.asBigInt
-              rateAmountS = Rational(amountS) * reduceRate
-              (fillAmountS, fillAmountB, sPrice) ← computeFillAmountStep1(order, reduceRate)
-            } yield OrderFill(
-              rawOrder,
-              sPrice,
-              rateAmountS,
-              fillAmountS,
-              fillAmountB,
-              reduceRate
-            )
-        }).mapTo[Seq[OrderFill]]
+  //todo:合约2.0 需要重新计算
+  private def computeFillAmountStep1(order: Order, reduceRate: Rational) = ???
+  //    for {
+  //    rawOrder ← Future.successful(order.rawOrder.get)
+  //    availableAmountBig ← getAvailableAmount(
+  //      rawOrder.owner,
+  //      rawOrder.tokenS,
+  //      rawOrder.delegateAddress
+  //    )
+  //
+  //    availableAmount = Rational(availableAmountBig)
+  //
+  //    sPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt) * reduceRate
+  //
+  //    (remainedAmountS, remainedAmountB) = order.getRemained()
+  //
+  //    (fillAmountS, fillAmountB) = if (rawOrder.buyNoMoreThanAmountB) {
+  //      val availableAmountB = remainedAmountB
+  //      val availableAmountS = availableAmountB * sPrice
+  //      (availableAmountS, availableAmountB)
+  //    } else {
+  //      val availableAmountS = remainedAmountS min availableAmount
+  //      val availableAmountB = availableAmountS / sPrice
+  //      (availableAmountS, availableAmountB)
+  //    }
+  //  } yield (fillAmountS, fillAmountB, sPrice)
 
-        orderFillsStep2 = computeFillAmountStep2(orderFillsStep1)
+  //todo:合约2.0 需要重新计算
+  private def computeFillAmountStep2(orderFills: Seq[OrderFill]) = ???
+  //  {
+  //    var minVolumeIdx = 0
+  //    var orderFillsRes = Seq[OrderFill](orderFills(minVolumeIdx))
+  //
+  //    for (idx ← (0 until minVolumeIdx).reverse) {
+  //      val fillAmountB = orderFills(idx + 1).fillAmountS
+  //      val fillAmountS = fillAmountB * orderFills(idx).sPrice
+  //      val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
+  //      orderFillsRes = fill1 +: orderFillsRes
+  //    }
+  //
+  //    for (idx ← minVolumeIdx + 1 to orderFills.size) {
+  //      val fillAmountS = orderFills(idx - 1).fillAmountB
+  //      val fillAmountB = fillAmountS / orderFills(idx).sPrice
+  //      val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
+  //      orderFillsRes = orderFillsRes :+ fill1
+  //    }
+  //
+  //    orderFillsRes
+  //  }
 
-        orderFillsSeq ← Future.sequence(orderFillsStep2.map {
-          orderFill ⇒
-            for {
-              (feeSelection, receivedFiat) ← computeFeeOfOrder(orderFill)
-              x = (
-                orderFill.rawOrder.hash,
-                orderFill.copy(
-                  feeSelection = feeSelection,
-                  receivedFiat = receivedFiat
-                )
-              )
-            } yield x
-        }).mapTo[Seq[(String, OrderFill)]]
-
-        orderFillsMap = orderFillsSeq.toMap
-        ringReceivedFiat = orderFillsMap.foldLeft(Rational(0))(_ + _._2.receivedFiat)
-        gasPrice = Rational(1) //todo:fiat
-        gasFiat = Rational(gasUsedOfOrders(orderFillsStep2.size)) * gasPrice
-
-        result = Some(RingCandidate(
-          rawRing = ring,
-          receivedFiat = ringReceivedFiat - gasFiat,
-          orderFills = orderFillsMap
-        ))
-      } yield result
-    }
-  } yield res
-
-  private def computeFillAmountStep1(order: Order, reduceRate: Rational) = for {
-    rawOrder ← Future.successful(order.rawOrder.get)
-    availableAmountBig ← getAvailableAmount(
-      rawOrder.owner,
-      rawOrder.tokenS,
-      rawOrder.delegateAddress
-    )
-
-    availableAmount = Rational(availableAmountBig)
-
-    sPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt) * reduceRate
-
-    (remainedAmountS, remainedAmountB) = order.getRemained()
-
-    (fillAmountS, fillAmountB) = if (rawOrder.buyNoMoreThanAmountB) {
-      val availableAmountB = remainedAmountB
-      val availableAmountS = availableAmountB * sPrice
-      (availableAmountS, availableAmountB)
-    } else {
-      val availableAmountS = remainedAmountS min availableAmount
-      val availableAmountB = availableAmountS / sPrice
-      (availableAmountS, availableAmountB)
-    }
-  } yield (fillAmountS, fillAmountB, sPrice)
-
-  private def computeFillAmountStep2(orderFills: Seq[OrderFill]) = {
-    var minVolumeIdx = 0
-    var orderFillsRes = Seq[OrderFill](orderFills(minVolumeIdx))
-
-    for (idx ← (0 until minVolumeIdx).reverse) {
-      val fillAmountB = orderFills(idx + 1).fillAmountS
-      val fillAmountS = fillAmountB * orderFills(idx).sPrice
-      val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
-      orderFillsRes = fill1 +: orderFillsRes
-    }
-
-    for (idx ← minVolumeIdx + 1 to orderFills.size) {
-      val fillAmountS = orderFills(idx - 1).fillAmountB
-      val fillAmountB = fillAmountS / orderFills(idx).sPrice
-      val fill1 = orderFills(idx).copy(fillAmountS = fillAmountS, fillAmountB = fillAmountB)
-      orderFillsRes = orderFillsRes :+ fill1
-    }
-
-    orderFillsRes
-  }
-
-  private def computeFeeOfOrder(orderFill: OrderFill): Future[(Byte, Rational)] =
-    for {
-      submitterLrcAmount ← getAvailableAmount(
-        submitterAddress,
-        lrcAddress,
-        orderFill.rawOrder.delegateAddress
-      )
-
-      splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
-        Rational(1)
-      } else {
-        Rational(orderFill.rawOrder.marginSplitPercentage, 100)
-      }
-
-      savingFiatReceived = if (orderFill.rawOrder.buyNoMoreThanAmountB) {
-        var savingAmountS = orderFill.fillAmountB * orderFill.sPrice - orderFill.fillAmountS
-        splitPercentage * savingAmountS //todo:transfer to fiat amount
-      } else {
-        var savingAmountB = orderFill.fillAmountB - orderFill.fillAmountB * orderFill.reduceRate
-        splitPercentage * savingAmountB //todo:
-      }
-
-      fillRate = orderFill.fillAmountS / Rational(orderFill.rawOrder.amountS.asBigInt)
-      lrcFee = fillRate * Rational(orderFill.rawOrder.lrcFee.asBigInt)
-      lrcFiatReceived = lrcFee //todo:transfer to fiat amount
-
-      (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 ||
-        lrcFiatReceived * Rational(2) < savingFiatReceived) {
-        (1.toByte, savingFiatReceived)
-      } else {
-        (0.toByte, lrcFiatReceived)
-      }
-    } yield (feeSelection, receivedFiat * walletSplit)
+  //todo:合约2.0 需要重新计算
+  private def computeFeeOfOrder(orderFill: OrderFill): Future[(Byte, Rational)] = ???
+  //    for {
+  //      submitterLrcAmount ← getAvailableAmount(
+  //        submitterAddress,
+  //        lrcAddress,
+  //        orderFill.rawOrder.delegateAddress
+  //      )
+  //
+  //      splitPercentage = if (orderFill.rawOrder.marginSplitPercentage > 100) {
+  //        Rational(1)
+  //      } else {
+  //        Rational(orderFill.rawOrder.marginSplitPercentage, 100)
+  //      }
+  //
+  //      savingFiatReceived = if (orderFill.rawOrder.buyNoMoreThanAmountB) {
+  //        var savingAmountS = orderFill.fillAmountB * orderFill.sPrice - orderFill.fillAmountS
+  //        splitPercentage * savingAmountS //todo:transfer to fiat amount
+  //      } else {
+  //        var savingAmountB = orderFill.fillAmountB - orderFill.fillAmountB * orderFill.reduceRate
+  //        splitPercentage * savingAmountB //todo:
+  //      }
+  //
+  //      fillRate = orderFill.fillAmountS / Rational(orderFill.rawOrder.amountS.asBigInt)
+  //      lrcFee = fillRate * Rational(orderFill.rawOrder.lrcFee.asBigInt)
+  //      lrcFiatReceived = lrcFee //todo:transfer to fiat amount
+  //
+  //      (feeSelection, receivedFiat) = if (lrcFiatReceived.signum == 0 ||
+  //        lrcFiatReceived * Rational(2) < savingFiatReceived) {
+  //        (1.toByte, savingFiatReceived)
+  //      } else {
+  //        (0.toByte, lrcFiatReceived)
+  //      }
+  //    } yield (feeSelection, receivedFiat * walletSplit)
 
 }
