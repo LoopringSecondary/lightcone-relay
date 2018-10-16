@@ -30,30 +30,38 @@ case class BitStream(initbs: Array[Byte]) {
     }
   }
 
-//  public addNumber(x: number, numBytes = 4, forceAppend = true) {
-//    // Check if we need to encode this number as negative
-//    if (x < 0) {
-//      const encoded = abi.rawEncode(["int256"], [x.toString(10)]);
-//      const hex = encoded.toString("hex").slice(-(numBytes * 2));
-//      return this.addHex(hex, forceAppend);
-//    } else {
-//      return this.addBigNumber(new BigNumber(x), numBytes, forceAppend);
-//    }
-//  }
+  //  public addNumber(x: number, numBytes = 4, forceAppend = true) {
+  //    // Check if we need to encode this number as negative
+  //    if (x < 0) {
+  //      const encoded = abi.rawEncode(["int256"], [x.toString(10)]);
+  //      const hex = encoded.toString("hex").slice(-(numBytes * 2));
+  //      return this.addHex(hex, forceAppend);
+  //    } else {
+  //      return this.addBigNumber(new BigNumber(x), numBytes, forceAppend);
+  //    }
+  //  }
 
-  def addAddress(address: String): Array[Byte] = data ++ Numeric.toBytesPadded(Numeric.toBigInt(address), 20)
+  /////////////////////////
+  // functions for pack
+  //
+  /////////////////////////
+  def addAddress(address: String): Unit = data ++ Numeric.toBytesPadded(Numeric.toBigInt(address), 20)
 
-  def addUint256(num: BigInt): Array[Byte] = data ++ Numeric.toBytesPadded(num.bigInteger, 32)
+  def addUint256(num: BigInt): Unit = data ++ Numeric.toBytesPadded(num.bigInteger, 32)
 
   // todo: fuk 负数问题
-  def addInt(num: BigInt): Array[Byte] = data ++ Numeric.toBytesPadded(num.bigInteger, 2)
+  def addInt(num: BigInt): Unit = data ++ Numeric.toBytesPadded(num.bigInteger, 2)
 
-  def addBoolean(b: Boolean): Array[Byte] = data :+ (if (b) 1 else 0).toByte
+  def addBoolean(b: Boolean): Unit = data :+ (if (b) 1 else 0).toByte
 
-  def addRawBytes(otherBytes: Array[Byte]): Array[Byte] = data ++ otherBytes
+  def addRawBytes(otherBytes: Array[Byte]): Unit = data ++ otherBytes
 
-  def addHex(hex: String): Array[Byte] = data ++ Numeric.hexStringToByteArray(hex)
+  def addHex(hex: String): Unit = data ++ Numeric.hexStringToByteArray(hex)
 
+  /////////////////////////
+  // functions for unpack
+  //
+  /////////////////////////
   def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
 
   def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
