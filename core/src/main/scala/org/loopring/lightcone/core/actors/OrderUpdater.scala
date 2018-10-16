@@ -51,9 +51,8 @@ class OrderUpdater()(implicit
       updatedOrders ← Future.sequence {
         m.orders.map { order ⇒
           for {
-            getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq(
-              address = order.rawOrder.get.owner,
-              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress)
+            getBalanceAndAllowanceReq ← Future.successful(GetBalanceAndAllowanceReq( //              address = order.rawOrder.get.owner,
+            //              tokens = Seq(order.rawOrder.get.tokenS, settings.lrcAddress)
             //              delegates = Seq(order.rawOrder.get.delegateAddress)
             ))
             balanceAndAllowance ← (balanceManager ? getBalanceAndAllowanceReq).mapTo[GetBalanceAndAllowanceResp]
