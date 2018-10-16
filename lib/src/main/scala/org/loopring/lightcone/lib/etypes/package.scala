@@ -31,6 +31,19 @@ package object etypes {
     def asBigInt(): BigInt = Numeric.toBigInt(bytes)
 
     def asBigInteger(): BigInteger = Numeric.toBigInt(bytes)
+
+    def addAddress(address: String): Array[Byte] = bytes ++ Numeric.toBytesPadded(Numeric.toBigInt(address), 20)
+
+    def addUint256(num: BigInteger): Array[Byte] = bytes ++ Numeric.toBytesPadded(num, 32)
+
+    def addUint16(num: BigInteger): Array[Byte] = bytes ++ Numeric.toBytesPadded(num, 2)
+
+    def addBoolean(b: Boolean): Array[Byte] = bytes :+ (if (b) 1 else 0).toByte
+
+    def addRawBytes(otherBytes: Array[Byte]): Array[Byte] = bytes ++ otherBytes
+
+    def addHex(hex: String): Array[Byte] = bytes ++ Numeric.hexStringToByteArray(hex)
+
   }
 
   implicit class RichString(hex: String) {

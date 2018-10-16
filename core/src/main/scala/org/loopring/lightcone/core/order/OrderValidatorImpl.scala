@@ -46,8 +46,8 @@ class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
       case o if o.rawOrder.get.hash.length != hashLength ⇒ ORDER_HASH_LENGHT_UNCORRECT
       case o if o.rawOrder.get.tokenS.length != addrLength ⇒ lengthUnCorrectErr("tokenS")
       case o if o.rawOrder.get.tokenB.length != addrLength ⇒ lengthUnCorrectErr("tokenB")
-      case o if o.rawOrder.get.protocol.length != addrLength ⇒ lengthUnCorrectErr("protocol")
-      case o if o.rawOrder.get.delegateAddress.length != addrLength ⇒ lengthUnCorrectErr("delegateAddress")
+      //      case o if o.rawOrder.get.protocol.length != addrLength ⇒ lengthUnCorrectErr("protocol")
+      //      case o if o.rawOrder.get.delegateAddress.length != addrLength ⇒ lengthUnCorrectErr("delegateAddress")
       case o if o.rawOrder.get.owner.length != addrLength ⇒ lengthUnCorrectErr("owner")
       // tokenS and tokenB can't be same
       case o if o.rawOrder.get.tokenS == o.rawOrder.get.tokenB ⇒ TOKEN_S_AND_TOKEN_B_SAME
@@ -55,14 +55,15 @@ class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
       case o if (o.rawOrder.get.validSince - validateConfig.maxValidSinceInterval) > now ⇒ VALID_SINCE_TOO_FAR
       case o if o.rawOrder.get.validUntil < now ⇒ VALID_UNTIL_BEFORE_NOW
       // margin split check
-      case o if o.rawOrder.get.marginSplitPercentage / 100.0 > validateConfig.maxSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE
-      case o if o.rawOrder.get.marginSplitPercentage / 100.0 < validateConfig.minSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE
+      //      case o if o.rawOrder.get.marginSplitPercentage / 100.0 > validateConfig.maxSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE
+      //      case o if o.rawOrder.get.marginSplitPercentage / 100.0 < validateConfig.minSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE
       //TODO(xiaolu) min lrc hold check, need access account actor to get balance
       // case o if isLrcHoldLess =>  LESS_LRC_HOLD_THAN_THRESHOLD
       //TODO(xiaolu) check protocol and delegateAddress. need fukun apply method
       // case o if isProtocolMatched =>  PROTOCOL_AND_DELEGATE_ADDRESS_NOT_MATCH
       // market order must apply auth private key
-      case o if o.orderType == OrderType.MARKET && o.rawOrder.get.authPrivateKey.isEmpty ⇒ MARKET_ORDER_MUST_HAVE_PRIVATE_KEY
+      //todo:
+      //      case o if o.orderType == OrderType.MARKET && o.rawOrder.get.dualPrivateKey.isEmpty ⇒ MARKET_ORDER_MUST_HAVE_PRIVATE_KEY
       //TODO(xiaolu) token s min amount check, need apply token amount convert method
       //      case o if (o.rawOrder.get.amountS).toBigInt < validateConfig.minAmountS[o.rawOrder.get.TokenS] =>
       //TODO(xiaolu) token s and token b if in the supported token list

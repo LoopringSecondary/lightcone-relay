@@ -7,13 +7,16 @@ package org.loopring.lightcone.proto;
 import "order.proto";
 
 message Ring {
-    repeated Order orders = 1;
-    int32 v = 2;
-    bytes r = 3;
-    bytes s = 4;
-    string hash = 5;
-    string feeReceipt = 6;
-    int32 feeSelection = 7;
+    repeated int32 order_idx = 1;
+}
+message Rings {
+    string fee_recipient = 1;
+    string miner = 2;
+    string sig = 3;
+    repeated Ring rings = 4;
+    repeated RawOrder orders = 5;
+    string sign_algorithm = 6;
+    string hash = 7;
 }
 
 message RingToSettle {

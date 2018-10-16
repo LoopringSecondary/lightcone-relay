@@ -19,69 +19,73 @@ package org.loopring.lightcone.core
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.order.{ Order, RawOrder, SoftCancelSign }
-import org.loopring.lightcone.proto.ring.Ring
+import org.loopring.lightcone.proto.ring.{ Ring, Rings }
 import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
 import org.web3j.utils.Numeric
 
 package object richproto {
 
   val ethereumPrefix = "\u0019Ethereum Signed Message:\n"
+
   implicit class RichRawOrder(rawOrder: RawOrder) {
 
     def getSignerAddr(): String = {
       val orderHash = Numeric.hexStringToByteArray(rawOrder.hash)
       val hash = web3Hash.sha3((ethereumPrefix + orderHash.length).getBytes() ++ orderHash)
-      val publicKey = Sign.recoverFromSignature(
-        (rawOrder.v - 27).toByte,
-        new ECDSASignature(rawOrder.r.asBigInteger, rawOrder.s.asBigInteger),
-        hash
-      )
-      Keys.getAddress(publicKey)
+      //      val publicKey =
+      //        Sign.recoverFromSignature(
+      //        (rawOrder.v - 27).toByte,
+      //        new ECDSASignature(rawOrder.r.asBigInteger, rawOrder.s.asBigInteger),
+      //        hash
+      //      )
+      //      Keys.getAddress(publicKey)
+      "0x"
     }
 
     def getHash(): String = {
-      val buyNoMoreThanB = if (rawOrder.buyNoMoreThanAmountB) 1 else 0
-
-      val data = Numeric.hexStringToByteArray(rawOrder.delegateAddress) ++
-        Numeric.hexStringToByteArray(rawOrder.owner) ++
-        Numeric.hexStringToByteArray(rawOrder.tokenS) ++
-        Numeric.hexStringToByteArray(rawOrder.tokenB) ++
-        Numeric.hexStringToByteArray(rawOrder.walletAddress) ++
-        Numeric.hexStringToByteArray(rawOrder.authAddr) ++
-        Numeric.toBytesPadded(rawOrder.amountS.asBigInteger, 32) ++
-        Numeric.toBytesPadded(rawOrder.amountB.asBigInteger, 32) ++
-        Numeric.toBytesPadded(BigInt(rawOrder.validSince).bigInteger, 32) ++
-        Numeric.toBytesPadded(BigInt(rawOrder.validUntil).bigInteger, 32) ++
-        Numeric.toBytesPadded(rawOrder.lrcFee.asBigInteger, 32) ++
-        Array[Byte](buyNoMoreThanB.toByte, rawOrder.marginSplitPercentage.toByte)
+      val data = Array[Byte]()
+        .addUint256(rawOrder.amountS.asBigInteger)
+        .addUint256(rawOrder.amountB.asBigInteger)
+        .addUint256(rawOrder.feeAmount.asBigInteger)
+        .addUint256(BigInt(rawOrder.validSince).bigInteger)
+        .addUint256(BigInt(rawOrder.validUntil).bigInteger)
+        .addAddress(rawOrder.owner)
+        .addAddress(rawOrder.tokenS)
+        .addAddress(rawOrder.tokenB)
+        .addAddress(rawOrder.dualAuthAddress)
+        .addAddress("0x0")
+        .addAddress("0x0")
+        .addAddress(rawOrder.wallet)
+        .addAddress(rawOrder.tokenRecipient)
+        .addAddress(rawOrder.feeToken)
+        .addUint16(BigInt(rawOrder.walletSplitPercentage).bigInteger)
+        .addUint16(BigInt(rawOrder.feePercentage).bigInteger)
+        .addUint16(BigInt(rawOrder.tokenSFeePercentage).bigInteger)
+        .addUint16(BigInt(rawOrder.tokenBFeePercentage).bigInteger)
+        .addBoolean(rawOrder.allOrNone)
 
       Numeric.toHexString(web3Hash.sha3(data))
     }
   }
 
   implicit class RichOrder(order: Order) {
+    //todo:protocol 2.0 逻辑更改，需要重新计算
     def getRemained(): (Rational, Rational) = {
-      if (order.rawOrder.get.buyNoMoreThanAmountB) {
-        val sellPrice = order.sellPrice()
-        val remainedAmountB = Rational(
-          order.rawOrder.get.amountB.asBigInt - (
-            order.dealtAmountS.asBigInt +
-            order.cancelledAmountB.asBigInt +
-            order.splitAmountB.asBigInt
-          )
+      val remainedAmountS = Rational(
+        order.rawOrder.get.amountS.asBigInt - (
+          order.dealtAmountS.asBigInt +
+          order.cancelledAmountS.asBigInt +
+          order.splitAmountS.asBigInt
         )
-        (remainedAmountB * sellPrice, remainedAmountB)
-      } else {
-        val remainedAmountS = Rational(
-          order.rawOrder.get.amountS.asBigInt - (
-            order.dealtAmountS.asBigInt +
-            order.cancelledAmountS.asBigInt +
-            order.splitAmountS.asBigInt
-          )
+      )
+      val remainedAmountB = Rational(
+        order.rawOrder.get.amountB.asBigInt - (
+          order.dealtAmountS.asBigInt +
+          order.cancelledAmountB.asBigInt +
+          order.splitAmountB.asBigInt
         )
-        val buyPrice = order.buyPrice()
-        (remainedAmountS, remainedAmountS * buyPrice)
-      }
+      )
+      (remainedAmountS, remainedAmountB)
     }
 
     def sellPrice(): Rational = {
@@ -94,24 +98,15 @@ package object richproto {
 
   }
 
-  implicit class RichRing(ring: Ring) {
+  implicit class RichRings(rings: Rings) {
+
     def getHash(): String = {
-      val data = ring.getUniqueId() ++
-        Numeric.hexStringToByteArray(ring.feeReceipt) ++
-        Numeric.toBytesPadded(ring.getFeeSelection().bigInteger, 2)
+      val data = rings.orders.foldLeft(Array[Byte]()) {
+        (res, order) ⇒
+          res.addHex(order.hash)
+            .addUint16(BigInt(order.waiveFeePercentage).bigInteger)
+      }
       Numeric.toHexString(web3Hash.sha3(data))
-    }
-
-    def getFeeSelection(): BigInt = {
-      var selection = BigInt(0)
-      selection //todo:实现2.0 应该不需要该函数
-    }
-
-    def getUniqueId(): Array[Byte] = {
-      val uniqueId = ring.orders
-        .map(order ⇒ BigInt(Numeric.toBigInt(order.rawOrder.get.hash)))
-        .reduceLeft(_ ^ _)
-      uniqueId.toByteArray
     }
 
   }
@@ -133,4 +128,5 @@ package object richproto {
       Numeric.toHexString(web3Hash.sha3(data))
     }
   }
+
 }
