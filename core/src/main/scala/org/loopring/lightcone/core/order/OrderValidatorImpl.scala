@@ -17,10 +17,10 @@
 package org.loopring.lightcone.core.order
 
 import com.google.inject.Inject
-import org.loopring.lightcone.proto.order.{Order, OrderType}
+import org.loopring.lightcone.proto.order.{ Order, OrderType }
 import com.typesafe.config.Config
 
-class OrderValidatorImpl @Inject()(config: Config) extends OrderValidator {
+class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
 
   val addrLength = 20
   val hashLength = 32

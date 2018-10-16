@@ -108,20 +108,22 @@ class RingEvaluatorImpl(
         } yield min
     } yield amount
 
-  private def priceReduceRate(ring: Ring): Rational = {
-    val priceMul = ring.orders.map { order ⇒
-      val rawOrder = order.rawOrder.get
-      Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
-    }.reduceLeft(_ * _)
+  private def priceReduceRate(ring: Ring): Rational = ???
+  //  {
+  //    val priceMul = ring.orders.map { order ⇒
+  //      val rawOrder = order.rawOrder.get
+  //      Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+  //    }.reduceLeft(_ * _)
+  //
+  //    val root = priceMul.pow(Rational(1, ring.orders.size))
+  //    val reduceRate = Rational(root)
+  //    Rational(1) / reduceRate
+  //  }
 
-    val root = priceMul.pow(Rational(1, ring.orders.size))
-    val reduceRate = Rational(root)
-    Rational(1) / reduceRate
-  }
-
-  private def checkRing(ring: Ring) = {
-    ring.orders.map(_.rawOrder.isDefined).reduceLeft(_ && _)
-  }
+  private def checkRing(ring: Ring) = ???
+  //  {
+  //    ring.orders.map(_.rawOrder.isDefined).reduceLeft(_ && _)
+  //  }
 
   //todo:合约2.0 需要重新计算
   def generateRingCandidate(ring: Ring) = ???

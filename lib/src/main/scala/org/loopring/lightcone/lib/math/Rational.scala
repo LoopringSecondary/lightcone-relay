@@ -97,7 +97,7 @@ class Rational(numerator: BigInt, denominator: BigInt)
 
   def floatString(precisionOpt: Option[Int] = None): String = {
     val mc = precisionOpt match {
-      case None ⇒ defaultMathContext
+      case None            ⇒ defaultMathContext
       case Some(precision) ⇒ new MathContext(precision, RoundingMode.HALF_EVEN)
     }
     (BigDecimal(this.num, mc) / BigDecimal(this.denom, mc)).toString()
@@ -107,7 +107,7 @@ class Rational(numerator: BigInt, denominator: BigInt)
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: Rational ⇒ this.num * that.denom equals that.num * this.denom
-    case _ ⇒ false
+    case _              ⇒ false
   }
 }
 

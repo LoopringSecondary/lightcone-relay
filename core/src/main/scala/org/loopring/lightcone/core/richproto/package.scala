@@ -19,7 +19,7 @@ package org.loopring.lightcone.core
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational
 import org.loopring.lightcone.proto.order.{ Order, RawOrder, SoftCancelSign }
-import org.loopring.lightcone.proto.ring.Ring
+import org.loopring.lightcone.proto.ring.{ Ring, Rings }
 import org.web3j.crypto.{ Hash ⇒ web3Hash, _ }
 import org.web3j.utils.Numeric
 
@@ -98,13 +98,13 @@ package object richproto {
 
   }
 
-  implicit class RichRing(ring: Ring) {
+  implicit class RichRings(rings: Rings) {
 
     def getHash(): String = {
-      val data = ring.orders.foldLeft(Array[Byte]()) {
+      val data = rings.orders.foldLeft(Array[Byte]()) {
         (res, order) ⇒
-          res.addHex(order.getRawOrder.hash)
-            .addUint16(BigInt(order.getRawOrder.waiveFeePercentage).bigInteger)
+          res.addHex(order.hash)
+            .addUint16(BigInt(order.waiveFeePercentage).bigInteger)
       }
       Numeric.toHexString(web3Hash.sha3(data))
     }

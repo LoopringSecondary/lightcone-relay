@@ -79,54 +79,58 @@ class RingMiner(ethClient: EthClient)(implicit
       initAndStartNextRound(settings.scheduleDelay)
   }
 
-  def handleRepeatedJob() = for {
-    //finderid以及其返回的RingCandidates
-    resps ← Future.sequence(finders.map {
-      case (finderId, finder) ⇒
-        for {
-          resp ← finder ? GetRingCandidates()
-        } yield (finderId, resp)
-    }).mapTo[Seq[(String, RingCandidates)]]
-    //记录ring与finderid的对应关系
-    ringToFinderMap = resps.flatMap(resp ⇒ resp._2.rings.map(ring ⇒ (ring.hash, resp._1))).toMap
-    ringCandidates = RingCandidates(resps.flatMap(_._2.rings))
-    ringsToSettle ← evaluator.getRingCadidatesToSettle(ringCandidates)
-  } yield {
-    decideRingCandidates(ringCandidates.rings, ringsToSettle)
-      .groupBy { decision ⇒
-        ringToFinderMap(decision.ringHash) //按照finderid分开，将对应的decision返回给各自的finder
-      } foreach {
-        case (finderId, settlementDecision) ⇒
-          val finder = Routers.ringFinder(finderId)
-          finder ! NotifyRingSettlementDecisions(settlementDecision)
-      }
-    ringsToSettle.foreach(submitter.signAndSendTx)
-  }
+  //todo:合约2.0 需要重新实现
+  def handleRepeatedJob() = ???
+  //    for {
+  //    //finderid以及其返回的RingCandidates
+  //    resps ← Future.sequence(finders.map {
+  //      case (finderId, finder) ⇒
+  //        for {
+  //          resp ← finder ? GetRingCandidates()
+  //        } yield (finderId, resp)
+  //    }).mapTo[Seq[(String, RingCandidates)]]
+  //    //记录ring与finderid的对应关系
+  //    ringToFinderMap = resps.flatMap(resp ⇒ resp._2.rings.map(ring ⇒ (ring.hash, resp._1))).toMap
+  //    ringCandidates = RingCandidates(resps.flatMap(_._2.rings))
+  //    ringsToSettle ← evaluator.getRingCadidatesToSettle(ringCandidates)
+  //  } yield {
+  //    decideRingCandidates(ringCandidates.rings, ringsToSettle)
+  //      .groupBy { decision ⇒
+  //        ringToFinderMap(decision.ringHash) //按照finderid分开，将对应的decision返回给各自的finder
+  //      } foreach {
+  //        case (finderId, settlementDecision) ⇒
+  //          val finder = Routers.ringFinder(finderId)
+  //          finder ! NotifyRingSettlementDecisions(settlementDecision)
+  //      }
+  //    ringsToSettle.foreach(submitter.signAndSendTx)
+  //  }
 
+  //todo:合约2.0 需要重新实现
   def decideRingCandidates(
     ringCandidates: Seq[Ring],
     settledRings: Seq[RingCandidate]
-  ): Seq[RingSettlementDecision] = {
-    val settledRingHashSet = settledRings.map(_.rawRing.hash).toSet
-
-    ringCandidates.map { candidate ⇒
-      if (settledRingHashSet.contains(candidate.hash))
-        RingSettlementDecision(
-          ringHash = candidate.hash,
-          decision = SettlementDecision.Settled,
-          ordersSettling = candidate.orders.map { o ⇒
-            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
-          }
-        )
-      else
-        RingSettlementDecision(
-          ringHash = candidate.hash,
-          decision = SettlementDecision.UnSettled,
-          ordersSettling = candidate.orders.map { o ⇒
-            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
-          }
-        )
-    }
-  }
+  ): Seq[RingSettlementDecision] = ???
+  //  {
+  //    val settledRingHashSet = settledRings.map(_.rawRing.hash).toSet
+  //
+  //    ringCandidates.map { candidate ⇒
+  //      if (settledRingHashSet.contains(candidate.hash))
+  //        RingSettlementDecision(
+  //          ringHash = candidate.hash,
+  //          decision = SettlementDecision.Settled,
+  //          ordersSettling = candidate.orders.map { o ⇒
+  //            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
+  //          }
+  //        )
+  //      else
+  //        RingSettlementDecision(
+  //          ringHash = candidate.hash,
+  //          decision = SettlementDecision.UnSettled,
+  //          ordersSettling = candidate.orders.map { o ⇒
+  //            OrderSettling(orderHash = o.rawOrder.get.hash, amount = o.dealtAmountS)
+  //          }
+  //        )
+  //    }
+  //  }
 }
 

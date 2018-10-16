@@ -156,15 +156,16 @@ class LoopringAbi(resourceFile: String)
 
     val maker = Order().withRawOrder(raworders(0).withTokenB(raworders(1).tokenS))
     val taker = Order().withRawOrder(raworders(1).withTokenB(raworders(0).tokenS))
+    //
+    //    val ring = Ring().withOrders(Seq(maker, taker))
+    //      .withFeeReceipt(feeReceipt)
+    //      .withFeeSelection(feeSelection.intValue())
+    //
+    //    // todo: delete after debug and test
+    //    println(ring.toProtoString)
 
-    val ring = Ring().withOrders(Seq(maker, taker))
-      .withFeeReceipt(feeReceipt)
-      .withFeeSelection(feeSelection.intValue())
-
-    // todo: delete after debug and test
-    println(ring.toProtoString)
-
-    SubmitRing().withRing(ring).withTxHeader(header)
+    SubmitRing()
+    //      .withRing(ring).withTxHeader(header)
   }
 
   // todo: safeBig处理负数还是有点问题
