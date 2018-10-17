@@ -113,6 +113,68 @@ case class RingsGenerator(ringsInfo: Rings) {
     }
   }
 
+  private createOrderTable(order: OrderInfo, param: RingsSubmitParam) {
+
+    if (order.orderInterceptor) {
+      this.insertOffset(param, param.data.addAddress(order.orderInterceptor, 20, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    if (order.walletAddr) {
+      this.insertOffset(param, param.data.addAddress(order.walletAddr, 20, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    if (order.validUntil) {
+      this.insertOffset(param, param.data.addNumber(order.validUntil, 4, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    if (order.sig) {
+      this.insertOffset(param, param.data.addHex(this.createBytes(order.sig), false));
+      this.addPadding(param);
+    } else {
+      this.insertDefault(param);
+    }
+
+    if (order.dualAuthSig) {
+      this.insertOffset(param, param.data.addHex(this.createBytes(order.dualAuthSig), false));
+      this.addPadding(param);
+    } else {
+      this.insertDefault(param);
+    }
+
+    param.tables.addNumber(order.allOrNone ? 1 : 0, 2);
+
+    if (order.feeToken && order.feeToken !== this.context.lrcAddress) {
+      this.insertOffset(param, param.data.addAddress(order.feeToken, 20, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    if (order.feeAmount) {
+      this.insertOffset(param, param.data.addNumber(order.feeAmount, 32, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    param.tables.addNumber(order.feePercentage ? order.feePercentage : 0, 2);
+    param.tables.addNumber(order.waiveFeePercentage ? order.waiveFeePercentage : 0, 2);
+    param.tables.addNumber(order.tokenSFeePercentage ? order.tokenSFeePercentage : 0, 2);
+    param.tables.addNumber(order.tokenBFeePercentage ? order.tokenBFeePercentage : 0, 2);
+
+    if (order.tokenRecipient && order.tokenRecipient !== order.owner) {
+      this.insertOffset(param, param.data.addAddress(order.tokenRecipient, 20, false));
+    } else {
+      this.insertDefault(param);
+    }
+
+    param.tables.addNumber(order.walletSplitPercentage ? order.walletSplitPercentage : 0, 2);
+  }
+
   private def createOrderTable(order: RawOrder): Unit = {
     addPadding()
     insertOffset(ORDER_VERSION)
@@ -123,7 +185,6 @@ case class RingsGenerator(ringsInfo: Rings) {
     insertOffset(paramDataStream.addNumber(order.amountB.asBigInt, 32, false))
     insertOffset(paramDataStream.addNumber(order.validSince, 4, false))
 
-    // todo: 是否有参与到ring.data的生成
     orderSpendableIdxMap.get(order.hash) match {
       case Some(x: OrderSpendableIdx) ⇒ paramTableStream.addNumber(x.tokenSpendableSIdx, 2)
       case _ ⇒ throw new Exception("can't find order " + order.hash + "tokenSpendableS.index")
