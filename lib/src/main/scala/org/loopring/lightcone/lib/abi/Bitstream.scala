@@ -57,6 +57,9 @@ case class Bitstream(str: String) {
   private def insert(x: Array[Byte], forceAppend: Boolean): Int = {
     var offset = this.length
 
+    hexdata = Numeric.toHexString(this.data)
+    var temp = Numeric.toHexString(x)
+
     if (!forceAppend) {
       // Check if the data we're inserting is already available in the bitstream.
       // If so, return the offset to the location.
@@ -79,7 +82,6 @@ case class Bitstream(str: String) {
 
     this.data ++= x
 
-    hexdata = Numeric.toHexString(this.data)
     offset
   }
 

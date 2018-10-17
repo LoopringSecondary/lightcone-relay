@@ -22,12 +22,14 @@ import org.loopring.lightcone.proto.ring._
 import org.loopring.lightcone.lib.etypes._
 
 // warning: 代码顺序不能调整！！！！！！
-case class RingsGenerator(x: Rings) {
+case class RingsGenerator(
+    lrcAddress: String,
+    x: Rings
+) {
 
   var ringsInfo = x
   val ORDER_VERSION = 0
   val SERIALIZATION_VERSION = 0
-  val lrcAddress = ""
 
   var datastream = Bitstream("")
   var tablestream = Bitstream("")
@@ -178,7 +180,7 @@ case class RingsGenerator(x: Rings) {
       insertDefault()
     }
 
-    if (order.feeAmount.nonEmpty) {
+    if (order.feeAmount.asBigInt.compare(BigInt(0)) > 0) {
       insertOffset(datastream.addNumber(order.feeAmount.asBigInt, 32, false))
     } else {
       insertDefault()
