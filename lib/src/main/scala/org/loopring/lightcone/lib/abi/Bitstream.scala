@@ -18,10 +18,9 @@ package org.loopring.lightcone.lib.abi
 
 import org.web3j.utils.Numeric
 
-case class Bitstream(str: String) {
+case class Bitstream() {
 
-  var data: String = str
-  var hexdata = ""
+  var data: String = ""
 
   def getData: String = {
     if (this.data.length.equals(0)) {

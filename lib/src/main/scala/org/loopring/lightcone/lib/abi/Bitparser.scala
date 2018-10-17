@@ -25,32 +25,32 @@ case class Bitparser(data: String) {
   //
   /////////////////////////
 
-    def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
+  def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
 
-    def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
+  def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
 
-    def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
+  def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
 
-    def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
+  def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
 
-    def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
+  def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
 
-    def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
+  def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
 
-    def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
+  def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
 
-    private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
+  private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
 
-    private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
-      val start = offset * 2
-      val end = start + length * 2
-      if (this.data.length < end) {
-        throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
-      }
-      this.data.slice(start, end)
-
-      //todo
-      Array()
+  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
+    val start = offset * 2
+    val end = start + length * 2
+    if (this.data.length < end) {
+      throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
     }
+    this.data.slice(start, end)
+
+    //todo
+    Array()
+  }
 
 }
