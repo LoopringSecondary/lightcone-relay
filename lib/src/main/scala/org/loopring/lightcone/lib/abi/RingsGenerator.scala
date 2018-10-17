@@ -172,7 +172,7 @@ case class RingsGenerator(
       insertDefault()
     }
 
-    tablestream.addNumber(if (order.allOrNone) 1 else 0, 2);
+    tablestream.addNumber(if (order.allOrNone) 1 else 0, 2)
 
     if (order.feeToken.nonEmpty && !safeEquals(order.feeToken, lrcAddress)) {
       insertOffset(datastream.addAddress(order.feeToken, 20, false))

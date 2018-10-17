@@ -20,14 +20,14 @@ import org.web3j.utils.Numeric
 
 case class Bitstream(str: String) {
 
-  var data = Array.emptyByteArray
+  var data = str
   var hexdata = ""
 
   def getData: String = {
     if (this.data.length.equals(0)) {
       "0x0"
     } else {
-      Numeric.toHexString(data)
+      "0x" + this.data
     }
   }
 
@@ -36,43 +36,41 @@ case class Bitstream(str: String) {
   //
   /////////////////////////
   def addAddress(address: String, numBytes: Int = 20, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(Numeric.toBigInt(address), numBytes), forceAppend)
+    insert(Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(address), numBytes * 2), forceAppend)
 
   // todo: fuk 负数问题
   def addNumber(num: BigInt, numBytes: Int = 4, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(num.bigInteger, numBytes), forceAppend)
+    addBigNumber(num, numBytes, forceAppend)
+  //insert(Numeric.toHexStringWithPrefixZeroPadded(num.bigInteger, numBytes), forceAppend)
 
   def addBigNumber(num: BigInt, numBytes: Int = 32, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(num.bigInteger, numBytes), forceAppend)
+    insert(Numeric.toHexStringNoPrefixZeroPadded(num.bigInteger, numBytes * 2), forceAppend)
 
   def addBoolean(b: Boolean, forceAppend: Boolean = true) =
-    insert(Array((if (b) 1 else 0).toByte), forceAppend)
+    insert(Numeric.toHexStringNoPrefix((if (b) BigInt(1) else BigInt(0)).bigInteger), forceAppend)
 
-  def addHex(hex: String, forceAppend: Boolean = true) =
-    insert(Numeric.hexStringToByteArray(hex), forceAppend)
+  def addHex(str: String, forceAppend: Boolean = true) =
+    insert(Numeric.cleanHexPrefix(str), forceAppend)
 
   def addRawBytes(str: String, forceAppend: Boolean = true) =
-    insert(Numeric.hexStringToByteArray(str), forceAppend)
+    insert(Numeric.cleanHexPrefix(str), forceAppend)
 
-  private def insert(x: Array[Byte], forceAppend: Boolean): Int = {
-    var offset = this.length
+  private def insert(x: String, forceAppend: Boolean): Int = {
+    var offset = this.length()
 
-    hexdata = Numeric.toHexString(this.data)
-    var temp = Numeric.toHexString(x)
+    val sub = x.toString
+    var exist = false
 
     if (!forceAppend) {
       // Check if the data we're inserting is already available in the bitstream.
       // If so, return the offset to the location.
       var start = 0
-      var end = false
-
-      while ((start != -1) && !end) {
-        start = this.data.indexOf(x, start)
+      while ((start != -1) && !exist) {
+        start = this.data.indexOf(sub, start)
         if (start != -1) {
           if ((start % 2) == 0) {
-            // logDebug("++ Reused " + x + " at location " + start / 2);
             offset = start / 2
-            end = true
+            exist = true // return
           } else {
             start += 1
           }
@@ -80,44 +78,53 @@ case class Bitstream(str: String) {
       }
     }
 
-    this.data ++= x
+    if (!exist) {
+      this.data ++= x
+    }
 
     offset
+  }
+
+  def length(): Int = this.data.length / 2
+
+  private def padString(src: String, targetLength: Int): String = {
+    var x = src
+    if (x.length > targetLength) {
+      throw new Error("0x" + x + " is too big to fit in the requested length (" + targetLength + ")")
+    }
+    while (x.length < targetLength) {
+      x = "0" + x
+    }
+    x
   }
 
   /////////////////////////
   // functions for unpack
   //
   /////////////////////////
-  def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
-
-  def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
-
-  def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
-
-  def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
-
-  def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
-
-  def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
-
-  def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
-
-  /////////////////////////
-  // functions for properties
+  //  def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
   //
-  /////////////////////////
-  def length(): Int = this.data.length
+  //  def extractUint16(offset: Int): Int = extractNumber(offset, 2).intValue()
+  //
+  //  def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
+  //
+  //  def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
+  //
+  //  def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
+  //
+  //  def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
+  //
+  //  def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
 
-  private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
-
-  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
-    val start = offset * 2
-    val end = start + length * 2
-    if (this.data.length < end) {
-      throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
-    }
-    this.data.slice(start, end)
-  }
+  //  private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
+  //
+  //  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
+  //    val start = offset * 2
+  //    val end = start + length * 2
+  //    if (this.data.length < end) {
+  //      throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
+  //    }
+  //    this.data.slice(start, end)
+  //  }
 
 }
