@@ -56,18 +56,10 @@ case class RingsGenerator(x: Rings) {
       data = Bitstream(""),
       tables = Bitstream("")
     )
-    //
-    //    // Offset 0 is the default so just add dummy bytes at the front so we load zeros
-    //    param.data.addNumber(0, 32);
-    //
-    //    this.createMiningTable(ringsInfo, param);
-    //    param.ringSpecs = ringsInfo.rings;
-    //    ringsInfo.orders.map(createOrderTable(_, param))
-    //
-    //    // logDebug("transactionOrigin: " + ringsInfo.transactionOrigin);
-    //    // logDebug("feeRecipient: " + ringsInfo.feeRecipient);
-    //    // logDebug("miner: " + ringsInfo.miner);
-    //    ringsInfo.orders.forEach((o) => logDebug(o));
+
+    param.data.addNumber(0, 32)
+    this.createMiningTable(ringsInfo, param)
+    ringsInfo.orders.map(createOrderTable(_, param))
     param
   }
 
