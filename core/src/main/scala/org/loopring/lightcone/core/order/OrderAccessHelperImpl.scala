@@ -44,7 +44,7 @@ class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderA
       return Future(OrderSaveResult.SUBMIT_FAILED)
     }
 
-    val getOrderRst = getOrderByHash(order.rawOrder.get.hash)
+    val getOrderRst = getOrderByHash(order.getRawOrder.getEssential.hash)
     val optOrder = Await.result(getOrderRst, 1 seconds)
     if (optOrder.isDefined) {
       return Future(OrderSaveResult.ORDER_EXIST)
@@ -162,7 +162,7 @@ class OrderAccessHelperImpl @Inject() (val module: OrderDatabase) extends OrderA
 
   private def buildChangeLog(order: Order): OrderChangeLog = {
     OrderChangeLog(
-      orderHash = order.rawOrder.get.hash,
+      orderHash = order.getRawOrder.getEssential.hash,
       // no need for now
       // preChangeId = 0L,
       dealtAmountS = order.dealtAmountS,
