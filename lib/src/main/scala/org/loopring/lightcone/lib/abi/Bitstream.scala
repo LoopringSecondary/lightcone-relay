@@ -20,13 +20,13 @@ import org.web3j.utils.Numeric
 
 case class Bitstream(str: String) {
 
-  var data = str
+  var data = Array.emptyByteArray
 
   def getData: String = {
     if (this.data.length.equals(0)) {
       "0x0"
     } else {
-      "0x" ++ this.data
+      Numeric.toHexString(data)
     }
   }
 
@@ -35,26 +35,27 @@ case class Bitstream(str: String) {
   //
   /////////////////////////
   def addAddress(address: String, numBytes: Int = 20, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(Numeric.toBigInt(address), numBytes).toString, forceAppend)
+    insert(Numeric.toBytesPadded(Numeric.toBigInt(address), numBytes), forceAppend)
 
   // todo: fuk 负数问题
   def addNumber(num: BigInt, numBytes: Int = 4, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(num.bigInteger, numBytes).toString, forceAppend)
+    insert(Numeric.toBytesPadded(num.bigInteger, numBytes), forceAppend)
 
   def addBigNumber(num: BigInt, numBytes: Int = 32, forceAppend: Boolean = true) =
-    insert(Numeric.toBytesPadded(num.bigInteger, numBytes).toString, forceAppend)
+    insert(Numeric.toBytesPadded(num.bigInteger, numBytes), forceAppend)
 
   def addBoolean(b: Boolean, forceAppend: Boolean = true) =
-    insert((if (b) 1 else 0).toString, forceAppend)
+    insert(Array((if (b) 1 else 0).toByte), forceAppend)
 
   def addHex(hex: String, forceAppend: Boolean = true) =
-    insert(Numeric.hexStringToByteArray(hex).toString, forceAppend)
+    insert(Numeric.hexStringToByteArray(hex), forceAppend)
 
   def addRawBytes(str: String, forceAppend: Boolean = true) =
-    insert(str, forceAppend)
+    insert(Numeric.hexStringToByteArray(str), forceAppend)
 
-  private def insert(x: String, forceAppend: Boolean): Int = {
+  private def insert(x: Array[Byte], forceAppend: Boolean): Int = {
     var offset = this.length
+
     if (!forceAppend) {
       // Check if the data we're inserting is already available in the bitstream.
       // If so, return the offset to the location.
@@ -75,7 +76,9 @@ case class Bitstream(str: String) {
       }
     }
 
-    this.data += x
+    this.data ++= x
+
+    val temp = Numeric.toHexString(this.data)
     offset
   }
 
@@ -91,21 +94,21 @@ case class Bitstream(str: String) {
 
   def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
 
-  def extractAddress(offset: Int): String = "0x" + this.extractBytesX(offset, 20)
+  def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
 
-  def extractBytes1(offset: Int): String = this.extractBytesX(offset, 1)
+  def extractBytes1(offset: Int): Array[Byte] = this.extractBytesX(offset, 1)
 
-  def extractBytes32(offset: Int): String = this.extractBytesX(offset, 32)
+  def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
 
   /////////////////////////
   // functions for properties
   //
   /////////////////////////
-  def length: Int = this.data.length / 2
+  def length(): Int = this.data.size / 2
 
   private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
 
-  private def extractBytesX(offset: Int, length: Int): String = {
+  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
     val start = offset * 2
     val end = start + length * 2
     if (this.data.length < end) {
