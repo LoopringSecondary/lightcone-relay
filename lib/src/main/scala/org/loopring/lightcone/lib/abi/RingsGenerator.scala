@@ -36,11 +36,11 @@ case class RingsGenerator(ringsInfo: Rings) {
     val numSpendables = setupSpendables(rings)
 
     paramDataStream.addNumber(0, 32)
-    this.createMiningTable(ringsInfo)
+    createMiningTable(ringsInfo)
     ringsInfo.orders.map(createOrderTable)
 
     val stream = Bitstream("")
-    stream.addNumber(this.SERIALIZATION_VERSION, 2)
+    stream.addNumber(SERIALIZATION_VERSION, 2)
     stream.addNumber(rings.orders.length, 2)
     stream.addNumber(rings.rings.length, 2)
     stream.addNumber(numSpendables, 2)
@@ -94,34 +94,34 @@ case class RingsGenerator(ringsInfo: Rings) {
     val transactionOrigin = miner
 
     if (!safeEquals(feeRecipient, transactionOrigin)) {
-      this.insertOffset(paramDataStream.addAddress(ringsInfo.feeRecipient, 20, false))
+      insertOffset(paramDataStream.addAddress(ringsInfo.feeRecipient, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (!safeEquals(miner, feeRecipient)) {
-      this.insertOffset(paramDataStream.addAddress(ringsInfo.miner, 20, false))
+      insertOffset(paramDataStream.addAddress(ringsInfo.miner, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (ringsInfo.sig.nonEmpty && !safeEquals(miner, transactionOrigin)) {
-      this.insertOffset(paramDataStream.addHex(this.createBytes(ringsInfo.sig), false))
-      this.addPadding()
+      insertOffset(paramDataStream.addHex(createBytes(ringsInfo.sig), false))
+      addPadding()
     } else {
-      this.insertDefault()
+      insertDefault()
     }
   }
 
-  private def createOrderTable(order: RawOrder) {
-    this.addPadding()
-    this.insertOffset(this.ORDER_VERSION)
-    this.insertOffset(paramDataStream.addAddress(order.owner, 20, false))
-    this.insertOffset(paramDataStream.addAddress(order.tokenS, 20, false))
-    this.insertOffset(paramDataStream.addAddress(order.tokenB, 20, false))
-    this.insertOffset(paramDataStream.addNumber(order.amountS.asBigInt, 32, false))
-    this.insertOffset(paramDataStream.addNumber(order.amountB.asBigInt, 32, false))
-    this.insertOffset(paramDataStream.addNumber(order.validSince, 4, false))
+  private def createOrderTable(order: RawOrder): Unit = {
+    addPadding()
+    insertOffset(ORDER_VERSION)
+    insertOffset(paramDataStream.addAddress(order.owner, 20, false))
+    insertOffset(paramDataStream.addAddress(order.tokenS, 20, false))
+    insertOffset(paramDataStream.addAddress(order.tokenB, 20, false))
+    insertOffset(paramDataStream.addNumber(order.amountS.asBigInt, 32, false))
+    insertOffset(paramDataStream.addNumber(order.amountB.asBigInt, 32, false))
+    insertOffset(paramDataStream.addNumber(order.validSince, 4, false))
 
     // todo: 是否有参与到ring.data的生成
     orderSpendableIdxMap.get(order.hash) match {
@@ -134,55 +134,55 @@ case class RingsGenerator(ringsInfo: Rings) {
     }
 
     if (order.dualAuthAddress.nonEmpty) {
-      this.insertOffset(paramDataStream.addAddress(order.dualAuthAddress, 20, false))
+      insertOffset(paramDataStream.addAddress(order.dualAuthAddress, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     // order.broker 默认占位
-    this.insertDefault()
+    insertDefault()
 
     // order.interceptor默认占位
-    this.insertDefault()
+    insertDefault()
 
     if (order.wallet.nonEmpty) {
-      this.insertOffset(paramDataStream.addAddress(order.wallet, 20, false))
+      insertOffset(paramDataStream.addAddress(order.wallet, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (order.validUntil > 0) {
-      this.insertOffset(paramDataStream.addNumber(order.validUntil, 4, false))
+      insertOffset(paramDataStream.addNumber(order.validUntil, 4, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (order.sig.nonEmpty) {
-      this.insertOffset(paramDataStream.addHex(this.createBytes(order.sig), false))
-      this.addPadding()
+      insertOffset(paramDataStream.addHex(createBytes(order.sig), false))
+      addPadding()
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (order.dualAuthSig.nonEmpty) {
-      this.insertOffset(paramDataStream.addHex(this.createBytes(order.dualAuthSig), false))
-      this.addPadding()
+      insertOffset(paramDataStream.addHex(createBytes(order.dualAuthSig), false))
+      addPadding()
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     paramTableStream.addNumber(if (order.allOrNone) 1 else 0, 2);
 
-    if (order.feeToken.nonEmpty && !safeEquals(order.feeToken, this.lrcAddress)) {
-      this.insertOffset(paramDataStream.addAddress(order.feeToken, 20, false))
+    if (order.feeToken.nonEmpty && !safeEquals(order.feeToken, lrcAddress)) {
+      insertOffset(paramDataStream.addAddress(order.feeToken, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     if (order.feeAmount.nonEmpty) {
-      this.insertOffset(paramDataStream.addNumber(order.feeAmount.asBigInt, 32, false))
+      insertOffset(paramDataStream.addNumber(order.feeAmount.asBigInt, 32, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     paramTableStream.addNumber(if (order.feePercentage > 0) order.feePercentage else 0, 2)
@@ -191,9 +191,9 @@ case class RingsGenerator(ringsInfo: Rings) {
     paramTableStream.addNumber(if (order.tokenBFeePercentage > 0) order.tokenBFeePercentage else 0, 2)
 
     if (order.tokenRecipient.nonEmpty && !safeEquals(order.tokenRecipient, order.owner)) {
-      this.insertOffset(paramDataStream.addAddress(order.tokenRecipient, 20, false))
+      insertOffset(paramDataStream.addAddress(order.tokenRecipient, 20, false))
     } else {
-      this.insertDefault()
+      insertDefault()
     }
 
     paramTableStream.addNumber(if (order.walletSplitPercentage > 0) order.walletSplitPercentage else 0, 2)
