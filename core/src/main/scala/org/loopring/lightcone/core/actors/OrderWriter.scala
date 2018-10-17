@@ -60,7 +60,7 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
               seq.head match {
                 case OrderSaveResult.SUBMIT_SUCC ⇒
                   Routers.orderManager ! OrdersSaved(Seq(generatedOrder))
-                  sender ! SubmitOrderResp(generatedOrder.rawOrder.get.hash)
+                  sender ! SubmitOrderResp(generatedOrder.getRawOrder.getEssential.hash)
                 case OrderSaveResult.SUBMIT_FAILED ⇒
                   sender ! OrderErrorConst.SAVE_ORDER_FAILED
                 case OrderSaveResult.ORDER_EXIST ⇒
@@ -92,8 +92,8 @@ class OrderWriter(helper: OrderWriteHelper)(implicit
               if (rst.orders.isEmpty) {
                 sender ! OrderErrorConst.NO_ORDER_WILL_BE_SOFT_CANCELLED
               } else {
-                sender ! OrdersSoftCancelled(rst.orders.map(_.rawOrder.get.hash))
-                Routers.orderManager ! OrdersSoftCancelled(rst.orders.map(_.rawOrder.get.hash))
+                sender ! OrdersSoftCancelled(rst.orders.map(_.getRawOrder.getEssential.hash))
+                Routers.orderManager ! OrdersSoftCancelled(rst.orders.map(_.getRawOrder.getEssential.hash))
                 // notify socktio ! OrdersSoftCancelled(os.map(_.rawOrder.get.hash))
               }
             case Success(_) ⇒ sender ! OrderErrorConst.SOFT_CANCEL_FAILED

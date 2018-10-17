@@ -35,14 +35,14 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
 
   def validSince = column[Long]("valid_since")
 
-  //  def tokenSpendableS = column[String]("token_spendable_s", O.SqlType("VARCHAR(64)"))
-  //  def tokenSpendableFee = column[String]("token_spendable_fee", O.SqlType("VARCHAR(64)"))
+    def tokenSpendableS = column[String]("token_spendable_s", O.SqlType("VARCHAR(64)"))
+    def tokenSpendableFee = column[String]("token_spendable_fee", O.SqlType("VARCHAR(64)"))
   def dualAuthAddress = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
 
-  //  def broker = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
-  //  def brokerSpendableS = column[String]("broker_spendable_s", O.SqlType("VARCHAR(64)"))
-  //  def brokerSpendableFee = column[String]("broker_spendable_fee", O.SqlType("VARCHAR(64)"))
-  //  def orderInterceptor = column[String]("order_interceptor", O.SqlType("VARCHAR(64)"))
+    def broker = column[String]("dual_auth_address", O.SqlType("VARCHAR(64)"))
+    def brokerSpendableS = column[String]("broker_spendable_s", O.SqlType("VARCHAR(64)"))
+    def brokerSpendableFee = column[String]("broker_spendable_fee", O.SqlType("VARCHAR(64)"))
+    def orderInterceptor = column[String]("order_interceptor", O.SqlType("VARCHAR(64)"))
   def wallet = column[String]("wallet", O.SqlType("VARCHAR(64)"))
 
   def validUntil = column[Long]("valid_until")
@@ -69,7 +69,7 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
 
   def walletSplitPercentage = column[Int]("wallet_split_percentage")
 
-  //  def dualPrivateKey = column[String]("dual_private_key", O.SqlType("VARCHAR(128)"))
+    def dualPrivateKey = column[String]("dual_private_key", O.SqlType("VARCHAR(128)"))
   def orderHash = column[String]("order_hash", O.SqlType("VARCHAR(128)"))
 
   def powNonce = column[Long]("pow_nonce")
@@ -122,39 +122,46 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
     updatedAt
   ) <> (extendTupled, unwrapOption)
 
-  def rawOrderProjection = (
-    version,
+  def rawOrderEssentialProjection = (
     owner,
     tokenS,
     tokenB,
     amountS,
     amountB,
     validSince,
-    //    tokenSpendableS,
-    //    tokenSpendableFee,
     dualAuthAddress,
-    //    broker,
-    //    brokerSpendableS,
-    //    brokerSpendableFee,
-    //    orderInterceptor,
+        broker,
+        orderInterceptor,
     wallet,
     validUntil,
-    sig,
-    dualAuthSig,
     allOrNone,
     feeToken,
     feeAmount,
     feePercentage,
-    waiveFeePercentage,
     tokenSFeePercentage,
     tokenBFeePercentage,
     tokenRecipient,
     walletSplitPercentage,
-    //    dualPrivateKey,
     orderHash,
   ) <> (
-    (RawOrder.apply _).tupled,
-    RawOrder.unapply
+    (RawOrderEssential.apply _).tupled,
+    RawOrderEssential.unapply
+  )
+
+  def rawOrderProjection = (
+    rawOrderEssentialProjection,
+    version,
+    tokenSpendableS,
+    tokenSpendableFee,
+    brokerSpendableS,
+    brokerSpendableFee,
+    sig,
+    dualAuthSig,
+    waiveFeePercentage,
+    dualPrivateKey
+  ) <> (
+    rawOrderExtendTupled,
+    rawOrderUnwrapOption
   )
 
   private def extendTupled = (i: Tuple18[Long, RawOrder, Long, String, String, String, String, String, String, String, Int, Double, Long, String, String, String, Long, Long]) ⇒
@@ -200,6 +207,37 @@ class Orders(tag: Tag) extends BaseTable[Order](tag, "ORDERS") {
       unapplyOrder._16.name,
       unapplyOrder._17,
       unapplyOrder._18
+    ))
+
+  }
+
+  private def rawOrderExtendTupled = (i: Tuple10[RawOrderEssential,  String, String, String, String, String, String, String, Int, String]) ⇒
+    RawOrder.apply(
+      Some(i._1),
+      i._2,
+      i._3,
+      i._4,
+      i._5,
+      i._6,
+      i._7,
+      i._8,
+      i._9,
+      i._10,
+    )
+
+  private def rawOrderUnwrapOption(rawOrder: RawOrder) = {
+    val unapplyRawOrder = RawOrder.unapply(rawOrder).get
+    Some((
+      unapplyRawOrder._1.get,
+      unapplyRawOrder._2,
+      unapplyRawOrder._3,
+      unapplyRawOrder._4,
+      unapplyRawOrder._5,
+      unapplyRawOrder._6,
+      unapplyRawOrder._7,
+      unapplyRawOrder._8,
+      unapplyRawOrder._9,
+      unapplyRawOrder._10,
     ))
 
   }
