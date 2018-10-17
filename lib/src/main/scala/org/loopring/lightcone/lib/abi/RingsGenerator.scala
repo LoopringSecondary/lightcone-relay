@@ -21,93 +21,96 @@ import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring._
 import org.loopring.lightcone.lib.etypes._
 
-case class RingsGenerator(ringsInfo: Rings) {
+case class RingsGenerator(x: Rings) {
 
+  var ringsInfo = x
   val ORDER_VERSION = 0
   val SERIALIZATION_VERSION = 0
   val lrcAddress = ""
-  // key is order.owner
-  var orderSpendableIdxMap = HashMap.empty[String, OrderSpendableIdx]
 
-  val paramDataStream = Bitstream("")
-  val paramTableStream = Bitstream("")
+  val datastream = Bitstream("")
+  val tablestream = Bitstream("")
 
-  def toSubmitableParam(rings: Rings): String = {
-    val numSpendables = setupSpendables(rings)
+  def toSubmitableParam(): String = {
+    val numSpendables = setupSpendables()
 
-    paramDataStream.addNumber(0, 32)
-    createMiningTable(ringsInfo)
+    datastream.addNumber(0, 32)
+    createMiningTable()
     ringsInfo.orders.map(createOrderTable)
 
     val stream = Bitstream("")
     stream.addNumber(SERIALIZATION_VERSION, 2)
-    stream.addNumber(rings.orders.length, 2)
-    stream.addNumber(rings.rings.length, 2)
+    stream.addNumber(ringsInfo.orders.length, 2)
+    stream.addNumber(ringsInfo.rings.length, 2)
     stream.addNumber(numSpendables, 2)
-    stream.addHex(paramTableStream.getData)
+    stream.addHex(tablestream.getData)
 
-    rings.rings.map(ring ⇒ {
+    ringsInfo.rings.map(ring ⇒ {
       stream.addNumber(ring.orderIdx.length, 1)
       ring.orderIdx.map(o ⇒ stream.addNumber(o, 1))
       stream.addNumber(0, 8 - ring.orderIdx.length)
     })
 
     stream.addNumber(0, 32)
-    stream.addHex(paramDataStream.getData)
+    stream.addHex(datastream.getData)
 
     stream.getData
   }
 
-  private def setupSpendables(rings: Rings): Int = {
+  private def setupSpendables(): Int = {
     var numSpendables = 0
-    var ownerTokens = HashMap.empty[String, HashMap[String, Int]]
+    var ownerTokens = HashMap.empty[String, Int]
 
-    rings.orders.map(rawOrder ⇒ {
+    val orders = ringsInfo.orders.map(rawOrder ⇒ {
       val order = rawOrder.getEssential
       val tokenFee = if (order.feeToken.nonEmpty) order.feeToken else lrcAddress
-      var ownermap = ownerTokens.getOrElse(order.owner, HashMap.empty[String, Int])
 
-      if (!ownermap.contains(order.tokenS)) {
-        numSpendables += 1
-        ownermap += order.tokenS -> numSpendables
-        ownerTokens += order.owner -> ownermap
-        var idx = orderSpendableIdxMap.getOrElse(order.hash, OrderSpendableIdx(order.hash, 0, 0))
-        orderSpendableIdxMap += order.hash -> idx.copy(tokenSpendableSIdx = numSpendables)
+      val tokenSKey = (order.owner + "-" + order.tokenS).toLowerCase
+      val tokenSpendableS = ownerTokens.get(tokenSKey) match {
+        case Some(x: Int) ⇒ x
+        case _ ⇒
+          numSpendables += 1
+          numSpendables
       }
+      var retOrder = rawOrder.copy(tokenSpendableS = tokenSpendableS.toHexString)
 
-      if (!ownermap.contains(tokenFee)) {
-        numSpendables += 1
-        ownermap += tokenFee -> numSpendables
-        ownerTokens += order.owner -> ownermap
-        var idx = orderSpendableIdxMap.getOrElse(order.hash, OrderSpendableIdx(order.hash, 0, 0))
-        orderSpendableIdxMap += order.hash -> idx.copy(tokenSpendableFeeIdx = numSpendables)
+      val tokenFeeKey = (order.owner + "-" + tokenFee).toLowerCase
+      val tokenSpendableFee = ownerTokens.get(tokenFeeKey) match {
+        case Some(x: Int) ⇒ x
+        case _ ⇒
+          numSpendables += 1
+          numSpendables
       }
+      retOrder = retOrder.copy(tokenSpendableFee = tokenSpendableFee.toHexString)
+
+      retOrder
     })
 
+    ringsInfo = ringsInfo.copy(orders = orders)
     numSpendables
   }
 
   // 注意:
-  // 1. 如果ringsinfo没有填写feeReceipt，那么feeReceipt为tx.sender
-  private def createMiningTable(ringsInfo: Rings): Unit = {
+  // 1. 对于relay来说miner就是transactionOrigin
+  private def createMiningTable(): Unit = {
     val feeRecipient = if (!ringsInfo.feeRecipient.isEmpty) ringsInfo.feeRecipient else ringsInfo.miner
     val miner = ringsInfo.miner
     val transactionOrigin = miner
 
     if (!safeEquals(feeRecipient, transactionOrigin)) {
-      insertOffset(paramDataStream.addAddress(ringsInfo.feeRecipient, 20, false))
+      insertOffset(datastream.addAddress(ringsInfo.feeRecipient, 20, false))
     } else {
       insertDefault()
     }
 
     if (!safeEquals(miner, feeRecipient)) {
-      insertOffset(paramDataStream.addAddress(ringsInfo.miner, 20, false))
+      insertOffset(datastream.addAddress(ringsInfo.miner, 20, false))
     } else {
       insertDefault()
     }
 
     if (ringsInfo.sig.nonEmpty && !safeEquals(miner, transactionOrigin)) {
-      insertOffset(paramDataStream.addHex(createBytes(ringsInfo.sig), false))
+      insertOffset(datastream.addHex(createBytes(ringsInfo.sig), false))
       addPadding()
     } else {
       insertDefault()
@@ -119,24 +122,17 @@ case class RingsGenerator(ringsInfo: Rings) {
 
     addPadding()
     insertOffset(ORDER_VERSION)
-    insertOffset(paramDataStream.addAddress(order.owner, 20, false))
-    insertOffset(paramDataStream.addAddress(order.tokenS, 20, false))
-    insertOffset(paramDataStream.addAddress(order.tokenB, 20, false))
-    insertOffset(paramDataStream.addNumber(order.amountS.asBigInt, 32, false))
-    insertOffset(paramDataStream.addNumber(order.amountB.asBigInt, 32, false))
-    insertOffset(paramDataStream.addNumber(order.validSince, 4, false))
-
-    orderSpendableIdxMap.get(order.hash) match {
-      case Some(x: OrderSpendableIdx) ⇒ paramTableStream.addNumber(x.tokenSpendableSIdx, 2)
-      case _ ⇒ throw new Exception("can't find order " + order.hash + "tokenSpendableS.index")
-    }
-    orderSpendableIdxMap.get(order.hash) match {
-      case Some(x: OrderSpendableIdx) ⇒ paramTableStream.addNumber(x.tokenSpendableFeeIdx, 2)
-      case _ ⇒ throw new Exception("can't find order " + order.hash + "tokenSpendableFee.index")
-    }
+    insertOffset(datastream.addAddress(order.owner, 20, false))
+    insertOffset(datastream.addAddress(order.tokenS, 20, false))
+    insertOffset(datastream.addAddress(order.tokenB, 20, false))
+    insertOffset(datastream.addNumber(order.amountS.asBigInt, 32, false))
+    insertOffset(datastream.addNumber(order.amountB.asBigInt, 32, false))
+    insertOffset(datastream.addNumber(order.validSince, 4, false))
+    tablestream.addNumber(rawOrder.tokenSpendableS.asBigInt.intValue(), 2)
+    tablestream.addNumber(rawOrder.tokenSpendableFee.asBigInt.intValue(), 2)
 
     if (order.dualAuthAddress.nonEmpty) {
-      insertOffset(paramDataStream.addAddress(order.dualAuthAddress, 20, false))
+      insertOffset(datastream.addAddress(order.dualAuthAddress, 20, false))
     } else {
       insertDefault()
     }
@@ -148,57 +144,57 @@ case class RingsGenerator(ringsInfo: Rings) {
     insertDefault()
 
     if (order.wallet.nonEmpty) {
-      insertOffset(paramDataStream.addAddress(order.wallet, 20, false))
+      insertOffset(datastream.addAddress(order.wallet, 20, false))
     } else {
       insertDefault()
     }
 
     if (order.validUntil > 0) {
-      insertOffset(paramDataStream.addNumber(order.validUntil, 4, false))
+      insertOffset(datastream.addNumber(order.validUntil, 4, false))
     } else {
       insertDefault()
     }
 
     if (rawOrder.sig.nonEmpty) {
-      insertOffset(paramDataStream.addHex(createBytes(rawOrder.sig), false))
+      insertOffset(datastream.addHex(createBytes(rawOrder.sig), false))
       addPadding()
     } else {
       insertDefault()
     }
 
     if (rawOrder.dualAuthSig.nonEmpty) {
-      insertOffset(paramDataStream.addHex(createBytes(rawOrder.dualAuthSig), false))
+      insertOffset(datastream.addHex(createBytes(rawOrder.dualAuthSig), false))
       addPadding()
     } else {
       insertDefault()
     }
 
-    paramTableStream.addNumber(if (order.allOrNone) 1 else 0, 2);
+    tablestream.addNumber(if (order.allOrNone) 1 else 0, 2);
 
     if (order.feeToken.nonEmpty && !safeEquals(order.feeToken, lrcAddress)) {
-      insertOffset(paramDataStream.addAddress(order.feeToken, 20, false))
+      insertOffset(datastream.addAddress(order.feeToken, 20, false))
     } else {
       insertDefault()
     }
 
     if (order.feeAmount.nonEmpty) {
-      insertOffset(paramDataStream.addNumber(order.feeAmount.asBigInt, 32, false))
+      insertOffset(datastream.addNumber(order.feeAmount.asBigInt, 32, false))
     } else {
       insertDefault()
     }
 
-    paramTableStream.addNumber(if (order.feePercentage > 0) order.feePercentage else 0, 2)
-    paramTableStream.addNumber(if (rawOrder.waiveFeePercentage > 0) rawOrder.waiveFeePercentage else 0, 2)
-    paramTableStream.addNumber(if (order.tokenSFeePercentage > 0) order.tokenSFeePercentage else 0, 2)
-    paramTableStream.addNumber(if (order.tokenBFeePercentage > 0) order.tokenBFeePercentage else 0, 2)
+    tablestream.addNumber(if (order.feePercentage > 0) order.feePercentage else 0, 2)
+    tablestream.addNumber(if (rawOrder.waiveFeePercentage > 0) rawOrder.waiveFeePercentage else 0, 2)
+    tablestream.addNumber(if (order.tokenSFeePercentage > 0) order.tokenSFeePercentage else 0, 2)
+    tablestream.addNumber(if (order.tokenBFeePercentage > 0) order.tokenBFeePercentage else 0, 2)
 
     if (order.tokenRecipient.nonEmpty && !safeEquals(order.tokenRecipient, order.owner)) {
-      insertOffset(paramDataStream.addAddress(order.tokenRecipient, 20, false))
+      insertOffset(datastream.addAddress(order.tokenRecipient, 20, false))
     } else {
       insertDefault()
     }
 
-    paramTableStream.addNumber(if (order.walletSplitPercentage > 0) order.walletSplitPercentage else 0, 2)
+    tablestream.addNumber(if (order.walletSplitPercentage > 0) order.walletSplitPercentage else 0, 2)
   }
 
   private def createBytes(data: String): String = {
@@ -210,16 +206,16 @@ case class RingsGenerator(ringsInfo: Rings) {
 
   private def insertOffset(offset: Int): Unit = {
     assert(offset % 4 == 0)
-    paramTableStream.addNumber(offset / 4, 2)
+    tablestream.addNumber(offset / 4, 2)
   }
 
   private def insertDefault(): Unit = {
-    paramTableStream.addNumber(0, 2)
+    tablestream.addNumber(0, 2)
   }
 
   private def addPadding(): Unit = {
-    if (paramDataStream.length % 4 != 0) {
-      paramDataStream.addNumber(0, 4 - (paramDataStream.length % 4))
+    if (datastream.length % 4 != 0) {
+      datastream.addNumber(0, 4 - (datastream.length % 4))
     }
   }
 

@@ -28,17 +28,6 @@ package object abi {
     s1.toLowerCase.equals(s2.toLowerCase)
   }
 
-  case class RingsSubmitParam(
-      data: Bitstream,
-      tables: Bitstream
-  )
-
-  case class OrderSpendableIdx(
-      orderHash: String,
-      tokenSpendableFeeIdx: Int,
-      tokenSpendableSIdx: Int
-  )
-
   implicit class RichBlockNumber(src: BigInt) {
 
     def afterByzantiumFork(): Boolean = {
