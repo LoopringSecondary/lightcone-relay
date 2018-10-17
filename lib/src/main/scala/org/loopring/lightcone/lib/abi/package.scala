@@ -29,7 +29,6 @@ package object abi {
   }
 
   case class RingsSubmitParam(
-      ringSpecs: Array[Array[Int]],
       data: Bitstream,
       tables: Bitstream
   )
