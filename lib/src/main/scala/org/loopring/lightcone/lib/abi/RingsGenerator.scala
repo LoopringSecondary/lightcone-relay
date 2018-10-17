@@ -46,9 +46,9 @@ case class RingsGenerator(ringsInfo: Rings) {
     stream.addNumber(numSpendables, 2)
     stream.addHex(paramTableStream.getData)
 
-    rings.rings.map(ring => {
+    rings.rings.map(ring ⇒ {
       stream.addNumber(ring.orderIdx.length, 1)
-      ring.orderIdx.map(o => stream.addNumber(o, 1))
+      ring.orderIdx.map(o ⇒ stream.addNumber(o, 1))
       stream.addNumber(0, 8 - ring.orderIdx.length)
     })
 
@@ -62,7 +62,8 @@ case class RingsGenerator(ringsInfo: Rings) {
     var numSpendables = 0
     var ownerTokens = HashMap.empty[String, HashMap[String, Int]]
 
-    rings.orders.map(order ⇒ {
+    rings.orders.map(rawOrder ⇒ {
+      val order = rawOrder.getEssential
       val tokenFee = if (order.feeToken.nonEmpty) order.feeToken else lrcAddress
       var ownermap = ownerTokens.getOrElse(order.owner, HashMap.empty[String, Int])
 
@@ -113,69 +114,9 @@ case class RingsGenerator(ringsInfo: Rings) {
     }
   }
 
-  private createOrderTable(order: OrderInfo, param: RingsSubmitParam) {
+  private def createOrderTable(rawOrder: RawOrder): Unit = {
+    val order = rawOrder.getEssential
 
-    if (order.orderInterceptor) {
-      this.insertOffset(param, param.data.addAddress(order.orderInterceptor, 20, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    if (order.walletAddr) {
-      this.insertOffset(param, param.data.addAddress(order.walletAddr, 20, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    if (order.validUntil) {
-      this.insertOffset(param, param.data.addNumber(order.validUntil, 4, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    if (order.sig) {
-      this.insertOffset(param, param.data.addHex(this.createBytes(order.sig), false));
-      this.addPadding(param);
-    } else {
-      this.insertDefault(param);
-    }
-
-    if (order.dualAuthSig) {
-      this.insertOffset(param, param.data.addHex(this.createBytes(order.dualAuthSig), false));
-      this.addPadding(param);
-    } else {
-      this.insertDefault(param);
-    }
-
-    param.tables.addNumber(order.allOrNone ? 1 : 0, 2);
-
-    if (order.feeToken && order.feeToken !== this.context.lrcAddress) {
-      this.insertOffset(param, param.data.addAddress(order.feeToken, 20, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    if (order.feeAmount) {
-      this.insertOffset(param, param.data.addNumber(order.feeAmount, 32, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    param.tables.addNumber(order.feePercentage ? order.feePercentage : 0, 2);
-    param.tables.addNumber(order.waiveFeePercentage ? order.waiveFeePercentage : 0, 2);
-    param.tables.addNumber(order.tokenSFeePercentage ? order.tokenSFeePercentage : 0, 2);
-    param.tables.addNumber(order.tokenBFeePercentage ? order.tokenBFeePercentage : 0, 2);
-
-    if (order.tokenRecipient && order.tokenRecipient !== order.owner) {
-      this.insertOffset(param, param.data.addAddress(order.tokenRecipient, 20, false));
-    } else {
-      this.insertDefault(param);
-    }
-
-    param.tables.addNumber(order.walletSplitPercentage ? order.walletSplitPercentage : 0, 2);
-  }
-
-  private def createOrderTable(order: RawOrder): Unit = {
     addPadding()
     insertOffset(ORDER_VERSION)
     insertOffset(paramDataStream.addAddress(order.owner, 20, false))
@@ -218,15 +159,15 @@ case class RingsGenerator(ringsInfo: Rings) {
       insertDefault()
     }
 
-    if (order.sig.nonEmpty) {
-      insertOffset(paramDataStream.addHex(createBytes(order.sig), false))
+    if (rawOrder.sig.nonEmpty) {
+      insertOffset(paramDataStream.addHex(createBytes(rawOrder.sig), false))
       addPadding()
     } else {
       insertDefault()
     }
 
-    if (order.dualAuthSig.nonEmpty) {
-      insertOffset(paramDataStream.addHex(createBytes(order.dualAuthSig), false))
+    if (rawOrder.dualAuthSig.nonEmpty) {
+      insertOffset(paramDataStream.addHex(createBytes(rawOrder.dualAuthSig), false))
       addPadding()
     } else {
       insertDefault()
@@ -247,7 +188,7 @@ case class RingsGenerator(ringsInfo: Rings) {
     }
 
     paramTableStream.addNumber(if (order.feePercentage > 0) order.feePercentage else 0, 2)
-    paramTableStream.addNumber(if (order.waiveFeePercentage > 0) order.waiveFeePercentage else 0, 2)
+    paramTableStream.addNumber(if (rawOrder.waiveFeePercentage > 0) rawOrder.waiveFeePercentage else 0, 2)
     paramTableStream.addNumber(if (order.tokenSFeePercentage > 0) order.tokenSFeePercentage else 0, 2)
     paramTableStream.addNumber(if (order.tokenBFeePercentage > 0) order.tokenBFeePercentage else 0, 2)
 
