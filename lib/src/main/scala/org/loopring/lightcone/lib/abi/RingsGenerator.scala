@@ -63,26 +63,25 @@ case class RingsGenerator(x: Rings) {
     var ownerTokens = HashMap.empty[String, Int]
 
     val orders = ringsInfo.orders.map(rawOrder ⇒ {
+      var retOrder = rawOrder
       val order = rawOrder.getEssential
       val tokenFee = if (order.feeToken.nonEmpty) order.feeToken else lrcAddress
 
-      val tokenSKey = (order.owner + "-" + order.tokenS).toLowerCase
-      val tokenSpendableS = ownerTokens.get(tokenSKey) match {
-        case Some(x: Int) ⇒ x
+      ownerTokens.get((order.owner + "-" + order.tokenS).toLowerCase) match {
+        case Some(x: Int) ⇒
+          retOrder = rawOrder.copy(tokenSpendableS = BigInt(x).toHex)
         case _ ⇒
+          retOrder = rawOrder.copy(tokenSpendableS = BigInt(numSpendables).toHex)
           numSpendables += 1
-          numSpendables
       }
-      var retOrder = rawOrder.copy(tokenSpendableS = BigInt(tokenSpendableS).toHex)
 
-      val tokenFeeKey = (order.owner + "-" + tokenFee).toLowerCase
-      val tokenSpendableFee = ownerTokens.get(tokenFeeKey) match {
-        case Some(x: Int) ⇒ x
+      ownerTokens.get((order.owner + "-" + tokenFee).toLowerCase) match {
+        case Some(x: Int) ⇒
+          retOrder = retOrder.copy(tokenSpendableFee = BigInt(x).toHex)
         case _ ⇒
+          retOrder = retOrder.copy(tokenSpendableFee = BigInt(numSpendables).toHex)
           numSpendables += 1
-          numSpendables
       }
-      retOrder = retOrder.copy(tokenSpendableFee = BigInt(tokenSpendableFee).toHex)
 
       retOrder
     })

@@ -21,6 +21,7 @@ import org.web3j.utils.Numeric
 case class Bitstream(str: String) {
 
   var data = Array.emptyByteArray
+  var hexdata = ""
 
   def getData: String = {
     if (this.data.length.equals(0)) {
@@ -78,7 +79,7 @@ case class Bitstream(str: String) {
 
     this.data ++= x
 
-    val temp = Numeric.toHexString(this.data)
+    hexdata = Numeric.toHexString(this.data)
     offset
   }
 
@@ -104,7 +105,7 @@ case class Bitstream(str: String) {
   // functions for properties
   //
   /////////////////////////
-  def length(): Int = this.data.size / 2
+  def length(): Int = this.data.length
 
   private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
 
