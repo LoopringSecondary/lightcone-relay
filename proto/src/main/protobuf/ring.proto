@@ -17,6 +17,7 @@ message Rings {
     repeated RawOrder orders = 5;
     string sign_algorithm = 6;
     string hash = 7;
+    string transaction_origin = 8; // 平时可以忽略
 }
 
 message RingToSettle {

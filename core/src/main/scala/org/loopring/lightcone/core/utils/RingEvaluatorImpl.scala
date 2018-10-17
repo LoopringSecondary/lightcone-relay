@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import akka.pattern._
 import akka.util.Timeout
-import org.loopring.lightcone.core.richproto._
+import org.loopring.lightcone.lib.richproto._
 import org.loopring.lightcone.core.routing.Routers
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.math.Rational

@@ -21,6 +21,7 @@ import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring._
 import org.loopring.lightcone.lib.etypes._
 
+// warning: 代码顺序不能调整！！！！！！
 case class RingsGenerator(x: Rings) {
 
   var ringsInfo = x
@@ -28,8 +29,8 @@ case class RingsGenerator(x: Rings) {
   val SERIALIZATION_VERSION = 0
   val lrcAddress = ""
 
-  val datastream = Bitstream("")
-  val tablestream = Bitstream("")
+  var datastream = Bitstream("")
+  var tablestream = Bitstream("")
 
   def toSubmitableParam(): String = {
     val numSpendables = setupSpendables()
@@ -72,7 +73,7 @@ case class RingsGenerator(x: Rings) {
           numSpendables += 1
           numSpendables
       }
-      var retOrder = rawOrder.copy(tokenSpendableS = tokenSpendableS.toHexString)
+      var retOrder = rawOrder.copy(tokenSpendableS = BigInt(tokenSpendableS).toHex)
 
       val tokenFeeKey = (order.owner + "-" + tokenFee).toLowerCase
       val tokenSpendableFee = ownerTokens.get(tokenFeeKey) match {
@@ -81,7 +82,7 @@ case class RingsGenerator(x: Rings) {
           numSpendables += 1
           numSpendables
       }
-      retOrder = retOrder.copy(tokenSpendableFee = tokenSpendableFee.toHexString)
+      retOrder = retOrder.copy(tokenSpendableFee = BigInt(tokenSpendableFee).toHex)
 
       retOrder
     })
@@ -93,9 +94,10 @@ case class RingsGenerator(x: Rings) {
   // 注意:
   // 1. 对于relay来说miner就是transactionOrigin
   private def createMiningTable(): Unit = {
-    val feeRecipient = if (!ringsInfo.feeRecipient.isEmpty) ringsInfo.feeRecipient else ringsInfo.miner
-    val miner = ringsInfo.miner
-    val transactionOrigin = miner
+    require(ringsInfo.miner.nonEmpty)
+
+    val transactionOrigin = if (ringsInfo.transactionOrigin.nonEmpty) ringsInfo.transactionOrigin else ringsInfo.miner
+    val feeRecipient = if (ringsInfo.feeRecipient.nonEmpty) ringsInfo.feeRecipient else transactionOrigin
 
     if (!safeEquals(feeRecipient, transactionOrigin)) {
       insertOffset(datastream.addAddress(ringsInfo.feeRecipient, 20, false))
@@ -103,13 +105,13 @@ case class RingsGenerator(x: Rings) {
       insertDefault()
     }
 
-    if (!safeEquals(miner, feeRecipient)) {
+    if (!safeEquals(ringsInfo.miner, feeRecipient)) {
       insertOffset(datastream.addAddress(ringsInfo.miner, 20, false))
     } else {
       insertDefault()
     }
 
-    if (ringsInfo.sig.nonEmpty && !safeEquals(miner, transactionOrigin)) {
+    if (ringsInfo.sig.nonEmpty && !safeEquals(ringsInfo.miner, transactionOrigin)) {
       insertOffset(datastream.addHex(createBytes(ringsInfo.sig), false))
       addPadding()
     } else {
