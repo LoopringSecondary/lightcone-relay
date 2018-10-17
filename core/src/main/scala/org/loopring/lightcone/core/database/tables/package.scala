@@ -22,4 +22,5 @@ package object tables {
   val ordersQ = TableQuery[Orders]
   val orderChangeLogsQ = TableQuery[OrderChangeLogs]
   val blocksQ = TableQuery[Blocks]
+  val ringsQ = TableQuery[Rings]
 }

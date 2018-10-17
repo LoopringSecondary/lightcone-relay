@@ -55,9 +55,7 @@ package object richproto {
         .addAddress(essential.tokenS)
         .addAddress(essential.tokenB)
         .addAddress(essential.dualAuthAddress)
-        //todo:broker
         .addAddress(essential.broker)
-        //todo:orderInterceptor
         .addAddress(essential.orderInterceptor)
         .addAddress(essential.wallet)
         .addAddress(essential.tokenRecipient)

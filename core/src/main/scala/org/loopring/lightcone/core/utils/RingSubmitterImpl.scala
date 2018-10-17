@@ -18,20 +18,27 @@ package org.loopring.lightcone.core.utils
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.util.Timeout
 import org.loopring.lightcone.core.accessor.EthClient
+import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.eth_jsonrpc._
+import org.loopring.lightcone.proto.ring.Rings
 import org.web3j.crypto._
 import org.web3j.tx.ChainId
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class RingSubmitterImpl(
     ethClient: EthClient,
     contract: String = "",
     chainId: Byte = 0.toByte,
+    module: OrderDatabase,
     keystorePwd: String = "",
     keystoreFile: String = ""
+)(
+    implicit
+    ec: ExecutionContext, timeout: Timeout
 ) extends RingSubmitter {
   val credentials: Credentials = WalletUtils.loadCredentials(keystorePwd, keystoreFile)
 
@@ -39,12 +46,12 @@ class RingSubmitterImpl(
 
   override def getSubmitterAddress(): String = credentials.getAddress
 
-  override def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes] = {
+  override def signAndSendTx(r: Rings): Future[SendRawTransactionRes] = {
     val inputData = "" //todo:
     val rawTransaction = RawTransaction.createTransaction(
       BigInt(currentNonce.getAndIncrement()).bigInteger,
-      ring.gasPrice.bigInteger,
-      ring.gasLimit.bigInteger,
+      r.gasPrice.asBigInteger,
+      r.gasLimit.asBigInteger,
       contract,
       BigInt(0).bigInteger,
       inputData
@@ -60,4 +67,10 @@ class RingSubmitterImpl(
       TransactionEncoder.signMessage(rawTransaction, credentials)
   }
 
+  //重新提交未打块的环路
+  def resubmitUnblockedRings(untilTime: Long) = for {
+    rings ← module.rings.getUnblockedRings(untilTime)
+  } yield {
+    rings map this.signAndSendTx
+  }
 }
