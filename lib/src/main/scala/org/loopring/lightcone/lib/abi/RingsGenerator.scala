@@ -24,15 +24,16 @@ import org.loopring.lightcone.lib.etypes._
 // warning: 代码顺序不能调整！！！！！！
 case class RingsGenerator(
     lrcAddress: String,
-    x: Rings
+    ringsInfo: Rings
 ) {
 
-  var ringsInfo = x
   val ORDER_VERSION = 0
   val SERIALIZATION_VERSION = 0
 
   var datastream = Bitstream("")
   var tablestream = Bitstream("")
+  var orderSpendableSMap = HashMap.empty[String, Int]
+  var orderSpendableFeeMap = HashMap.empty[String, Int]
 
   def toSubmitableParam(): String = {
     val numSpendables = setupSpendables()
@@ -64,31 +65,33 @@ case class RingsGenerator(
     var numSpendables = 0
     var ownerTokens = HashMap.empty[String, Int]
 
-    val orders = ringsInfo.orders.map(rawOrder ⇒ {
+    ringsInfo.orders.map(rawOrder ⇒ {
       var retOrder = rawOrder
       val order = rawOrder.getEssential
+      require(order.hash.nonEmpty)
+
       val tokenFee = if (order.feeToken.nonEmpty) order.feeToken else lrcAddress
 
-      ownerTokens.get((order.owner + "-" + order.tokenS).toLowerCase) match {
+      val tokensKey = (order.owner + "-" + order.tokenS).toLowerCase
+      ownerTokens.get(tokensKey) match {
         case Some(x: Int) ⇒
-          retOrder = rawOrder.copy(tokenSpendableS = BigInt(x).toHex)
+          orderSpendableSMap += order.hash -> x
         case _ ⇒
-          retOrder = rawOrder.copy(tokenSpendableS = BigInt(numSpendables).toHex)
+          ownerTokens += tokensKey -> numSpendables
+          orderSpendableSMap += order.hash -> numSpendables
           numSpendables += 1
       }
 
       ownerTokens.get((order.owner + "-" + tokenFee).toLowerCase) match {
         case Some(x: Int) ⇒
-          retOrder = retOrder.copy(tokenSpendableFee = BigInt(x).toHex)
+          orderSpendableFeeMap += order.hash -> x
         case _ ⇒
-          retOrder = retOrder.copy(tokenSpendableFee = BigInt(numSpendables).toHex)
+          ownerTokens += tokensKey -> numSpendables
+          orderSpendableFeeMap += order.hash -> numSpendables
           numSpendables += 1
       }
-
-      retOrder
     })
 
-    ringsInfo = ringsInfo.copy(orders = orders)
     numSpendables
   }
 
@@ -131,8 +134,15 @@ case class RingsGenerator(
     insertOffset(datastream.addNumber(order.amountS.asBigInt, 32, false))
     insertOffset(datastream.addNumber(order.amountB.asBigInt, 32, false))
     insertOffset(datastream.addNumber(order.validSince, 4, false))
-    tablestream.addNumber(rawOrder.tokenSpendableS.asBigInt.intValue(), 2)
-    tablestream.addNumber(rawOrder.tokenSpendableFee.asBigInt.intValue(), 2)
+
+    orderSpendableSMap.get(order.hash) match {
+      case Some(x: Int) ⇒ tablestream.addNumber(x.intValue(), 2)
+      case _            ⇒ throw new Exception("ringGenerator get " + order.hash + "orderSpendableS failed")
+    }
+    orderSpendableFeeMap.get(order.hash) match {
+      case Some(x: Int) ⇒ tablestream.addNumber(x.intValue(), 2)
+      case _            ⇒ throw new Exception("ringGenerator get " + order.hash + "orderSpendableFee failed")
+    }
 
     if (order.dualAuthAddress.nonEmpty) {
       insertOffset(datastream.addAddress(order.dualAuthAddress, 20, false))

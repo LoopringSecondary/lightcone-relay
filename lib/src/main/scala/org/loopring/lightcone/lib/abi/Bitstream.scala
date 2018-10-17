@@ -20,7 +20,7 @@ import org.web3j.utils.Numeric
 
 case class Bitstream(str: String) {
 
-  var data = str
+  var data: String = str
   var hexdata = ""
 
   def getData: String = {
@@ -35,24 +35,23 @@ case class Bitstream(str: String) {
   // functions for pack
   //
   /////////////////////////
-  def addAddress(address: String, numBytes: Int = 20, forceAppend: Boolean = true) =
+  def addAddress(address: String, numBytes: Int = 20, forceAppend: Boolean = true): Int =
     insert(Numeric.toHexStringNoPrefixZeroPadded(Numeric.toBigInt(address), numBytes * 2), forceAppend)
 
   // todo: fuk 负数问题
-  def addNumber(num: BigInt, numBytes: Int = 4, forceAppend: Boolean = true) =
+  def addNumber(num: BigInt, numBytes: Int = 4, forceAppend: Boolean = true): Int =
     addBigNumber(num, numBytes, forceAppend)
-  //insert(Numeric.toHexStringWithPrefixZeroPadded(num.bigInteger, numBytes), forceAppend)
 
-  def addBigNumber(num: BigInt, numBytes: Int = 32, forceAppend: Boolean = true) =
+  def addBigNumber(num: BigInt, numBytes: Int = 32, forceAppend: Boolean = true): Int =
     insert(Numeric.toHexStringNoPrefixZeroPadded(num.bigInteger, numBytes * 2), forceAppend)
 
-  def addBoolean(b: Boolean, forceAppend: Boolean = true) =
+  def addBoolean(b: Boolean, forceAppend: Boolean = true): Int =
     insert(Numeric.toHexStringNoPrefix((if (b) BigInt(1) else BigInt(0)).bigInteger), forceAppend)
 
-  def addHex(str: String, forceAppend: Boolean = true) =
+  def addHex(str: String, forceAppend: Boolean = true): Int =
     insert(Numeric.cleanHexPrefix(str), forceAppend)
 
-  def addRawBytes(str: String, forceAppend: Boolean = true) =
+  def addRawBytes(str: String, forceAppend: Boolean = true): Int =
     insert(Numeric.cleanHexPrefix(str), forceAppend)
 
   private def insert(x: String, forceAppend: Boolean): Int = {
