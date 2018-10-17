@@ -16,13 +16,88 @@
 
 package org.loopring.lightcone.lib.abi
 
+import scala.collection.mutable.HashMap
 import org.loopring.lightcone.proto.order.RawOrder
 import org.loopring.lightcone.proto.ring._
 import org.loopring.lightcone.lib.etypes._
 
-case class RingsGenerator(lrcAddress: String) {
+case class RingsGenerator(x: Rings) {
 
   val ORDER_VERSION = 0
+  val SERIALIZATION_VERSION = 0
+  val lrcAddress = ""
+  var ringsInfo = x
+  // key is order.owner
+  var orderSpendableIdxMap = HashMap.empty[String, OrderSpendableIdx]
+
+  def toSubmitableParam(rings: Rings): String = {
+    val numSpendables = setupSpendables(rings)
+    val param = this.ringsToParam()
+    val stream = Bitstream("")
+    stream.addNumber(this.SERIALIZATION_VERSION, 2)
+    stream.addNumber(rings.orders.length, 2)
+    stream.addNumber(param.ringSpecs.length, 2)
+    stream.addNumber(numSpendables, 2)
+    stream.addHex(param.tables.getData)
+    param.ringSpecs.map(ring ⇒ {
+      stream.addNumber(ring.length, 1)
+      ring.map(o ⇒ stream.addNumber(o, 1))
+      stream.addNumber(0, 8 - ring.length)
+    })
+    stream.addNumber(0, 32)
+    stream.addHex(param.data.getData)
+
+    stream.getData
+  }
+
+  private def ringsToParam(): RingsSubmitParam = {
+    var param = RingsSubmitParam(
+      ringSpecs = Array(),
+      data = Bitstream(""),
+      tables = Bitstream("")
+    )
+    //
+    //    // Offset 0 is the default so just add dummy bytes at the front so we load zeros
+    //    param.data.addNumber(0, 32);
+    //
+    //    this.createMiningTable(ringsInfo, param);
+    //    param.ringSpecs = ringsInfo.rings;
+    //    ringsInfo.orders.map(createOrderTable(_, param))
+    //
+    //    // logDebug("transactionOrigin: " + ringsInfo.transactionOrigin);
+    //    // logDebug("feeRecipient: " + ringsInfo.feeRecipient);
+    //    // logDebug("miner: " + ringsInfo.miner);
+    //    ringsInfo.orders.forEach((o) => logDebug(o));
+    param
+  }
+
+  private def setupSpendables(rings: Rings): Int = {
+    var numSpendables = 0
+    var ownerTokens = HashMap.empty[String, HashMap[String, Int]]
+
+    rings.orders.map(order ⇒ {
+      val tokenFee = if (order.feeToken.nonEmpty) order.feeToken else lrcAddress
+      var ownermap = ownerTokens.getOrElse(order.owner, HashMap.empty[String, Int])
+
+      if (!ownermap.contains(order.tokenS)) {
+        numSpendables += 1
+        ownermap += order.tokenS -> numSpendables
+        ownerTokens += order.owner -> ownermap
+        var idx = orderSpendableIdxMap.getOrElse(order.hash, OrderSpendableIdx(order.hash, 0, 0))
+        orderSpendableIdxMap += order.hash -> idx.copy(tokenSpendableSIdx = numSpendables)
+      }
+
+      if (!ownermap.contains(tokenFee)) {
+        numSpendables += 1
+        ownermap += tokenFee -> numSpendables
+        ownerTokens += order.owner -> ownermap
+        var idx = orderSpendableIdxMap.getOrElse(order.hash, OrderSpendableIdx(order.hash, 0, 0))
+        orderSpendableIdxMap += order.hash -> idx.copy(tokenSpendableFeeIdx = numSpendables)
+      }
+    })
+
+    numSpendables
+  }
 
   // 注意:
   // 1. 如果ringsinfo没有填写feeReceipt，那么feeReceipt为tx.sender
@@ -62,8 +137,14 @@ case class RingsGenerator(lrcAddress: String) {
     this.insertOffset(param, param.data.addNumber(order.validSince, 4, false))
 
     // todo: 是否有参与到ring.data的生成
-//    param.tables.addNumber(order.tokenSpendableS.index, 2)
-//    param.tables.addNumber(order.tokenSpendableFee.index, 2)
+    orderSpendableIdxMap.get(order.hash) match {
+      case Some(x: OrderSpendableIdx) ⇒ param.tables.addNumber(x.tokenSpendableSIdx, 2)
+      case _ ⇒ throw new Exception("can't find order " + order.hash + "tokenSpendableS.index")
+    }
+    orderSpendableIdxMap.get(order.hash) match {
+      case Some(x: OrderSpendableIdx) ⇒ param.tables.addNumber(x.tokenSpendableFeeIdx, 2)
+      case _ ⇒ throw new Exception("can't find order " + order.hash + "tokenSpendableFee.index")
+    }
 
     if (order.dualAuthAddress.nonEmpty) {
       this.insertOffset(param, param.data.addAddress(order.dualAuthAddress, 20, false))
@@ -103,7 +184,7 @@ case class RingsGenerator(lrcAddress: String) {
       this.insertDefault(param)
     }
 
-    param.tables.addNumber(if(order.allOrNone) 1 else 0, 2);
+    param.tables.addNumber(if (order.allOrNone) 1 else 0, 2);
 
     if (order.feeToken.nonEmpty && !safeEquals(order.feeToken, this.lrcAddress)) {
       this.insertOffset(param, param.data.addAddress(order.feeToken, 20, false))
@@ -128,7 +209,7 @@ case class RingsGenerator(lrcAddress: String) {
       this.insertDefault(param)
     }
 
-    param.tables.addNumber(if(order.walletSplitPercentage > 0) order.walletSplitPercentage else 0, 2);
+    param.tables.addNumber(if (order.walletSplitPercentage > 0) order.walletSplitPercentage else 0, 2)
   }
 
   private def createBytes(data: String): String = {
@@ -145,19 +226,23 @@ case class RingsGenerator(lrcAddress: String) {
 
   private def insertDefault(param: RingsSubmitParam): Unit = {
     param.tables.addNumber(0, 2)
+    param.copy(tables = param.tables)
   }
 
-  private def addPadding(param: RingsSubmitParam): Unit = {
-    if (param.data.length % 4 != 0) {
+  private def addPadding(param: RingsSubmitParam): RingsSubmitParam = {
+    val bitstream = if (param.data.length % 4 != 0) {
       param.data.addNumber(0, 4 - (param.data.length % 4))
+    } else {
+      param.data
     }
+    param
   }
 
   private def xor(s1: String, s2: String, numBytes: Int): String = {
-//    val x1 = new BN(s1.slice(2), 16);
-//    val x2 = new BN(s2.slice(2), 16);
-//    val result = x1.xor(x2);
-//    return "0x" + result.toString(16, numBytes * 2);
+    //    val x1 = new BN(s1.slice(2), 16);
+    //    val x2 = new BN(s2.slice(2), 16);
+    //    val result = x1.xor(x2);
+    //    return "0x" + result.toString(16, numBytes * 2);
     ""
   }
 }
