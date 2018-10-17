@@ -299,11 +299,11 @@ class CoreModule(config: Config)
 
   @Provides
   @Named("ring_miner")
-  def getRingMinerProps(ethClient: EthClient)(implicit
+  def getRingMinerProps(ethClient: EthClient, module: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout
   ) = {
-    Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
+    Props(new RingMiner(ethClient, module)) // .withDispatcher("ring-dispatcher")
   }
 
 }

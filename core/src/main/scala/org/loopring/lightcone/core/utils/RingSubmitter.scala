@@ -17,10 +17,11 @@
 package org.loopring.lightcone.core.utils
 
 import org.loopring.lightcone.proto.eth_jsonrpc.SendRawTransactionRes
+import org.loopring.lightcone.proto.ring.Rings
 
 import scala.concurrent.Future
 
 trait RingSubmitter {
-  def signAndSendTx(ring: RingCandidate): Future[SendRawTransactionRes]
+  def signAndSendTx(rings: Rings): Future[SendRawTransactionRes]
   def getSubmitterAddress(): String
 }

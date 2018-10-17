@@ -21,6 +21,7 @@ import akka.pattern._
 import akka.util.Timeout
 import org.loopring.lightcone.core.accessor.EthClient
 import org.loopring.lightcone.core.actors.base._
+import org.loopring.lightcone.core.database.OrderDatabase
 import org.loopring.lightcone.core.routing._
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.math.Rational
@@ -39,7 +40,7 @@ object RingMiner
     base.CommonSettings(Some(s.address), s.roles, 1)
 }
 
-class RingMiner(ethClient: EthClient)(implicit
+class RingMiner(ethClient: EthClient, module: OrderDatabase)(implicit
     ec: ExecutionContext,
     timeout: Timeout
 )
@@ -60,6 +61,7 @@ class RingMiner(ethClient: EthClient)(implicit
             ethClient = ethClient,
             contract = submitterSettings.contract,
             chainId = submitterSettings.chainId.toByte,
+            module,
             keystorePwd = submitterSettings.keystorePwd,
             keystoreFile = submitterSettings.keystoreFile
           )

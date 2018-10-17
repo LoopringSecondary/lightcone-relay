@@ -37,4 +37,5 @@ trait OrderDatabase {
   val orders: OrdersDal
   val orderChangeLogs: OrderChangeLogsDal
   val blocks: BlocksDal
+  val rings: RingsDal
 }

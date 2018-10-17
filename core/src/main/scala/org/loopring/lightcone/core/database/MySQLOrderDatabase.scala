@@ -34,12 +34,14 @@ class MySQLOrderDatabase @Inject() (
   val orders = new OrdersDalImpl(this)
   val orderChangeLogs = new OrderChangeLogsDalImpl(this)
   val blocks = new BlocksDalImpl(this)
+  val rings = new RingsDalImpl(this)
 
   def generateDDL(): Unit = {
     Seq(
       orders.createTable(),
       orderChangeLogs.createTable(),
-      blocks.createTable()
+      blocks.createTable(),
+      rings.createTable()
     )
   }
 
@@ -47,6 +49,7 @@ class MySQLOrderDatabase @Inject() (
     orders.displayTableSchema()
     orderChangeLogs.displayTableSchema()
     blocks.displayTableSchema()
+    rings.displayTableSchema()
   }
 
 }
