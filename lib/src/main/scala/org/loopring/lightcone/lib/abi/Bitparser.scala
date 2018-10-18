@@ -31,7 +31,7 @@ case class Bitparser(data: String) {
 
   def extractUint32(offset: Int): Int = extractNumber(offset, 4).intValue()
 
-  def extractUint256(offset: Int): BigInt = extractNumber(offset, 32)
+  def extractUint(offset: Int): BigInt = extractNumber(offset, 32)
 
   def extractAddress(offset: Int): String = Numeric.toHexString(this.extractBytesX(offset, 20))
 
@@ -39,9 +39,9 @@ case class Bitparser(data: String) {
 
   def extractBytes32(offset: Int): Array[Byte] = this.extractBytesX(offset, 32)
 
-  private def extractNumber(offset: Int, length: Int) = Numeric.toBigInt(this.extractBytesX(offset, length))
+  def extractNumber(offset: Int, length: Int): BigInt = BigInt(Numeric.toBigInt(this.extractBytesX(offset, length)))
 
-  private def extractBytesX(offset: Int, length: Int): Array[Byte] = {
+  def extractBytesX(offset: Int, length: Int): Array[Byte] = {
     val start = offset * 2
     val end = start + length * 2
     if (this.data.length < end) {
