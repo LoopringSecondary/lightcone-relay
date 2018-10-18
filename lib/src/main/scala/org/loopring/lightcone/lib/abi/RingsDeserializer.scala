@@ -16,67 +16,45 @@
 
 package org.loopring.lightcone.lib.abi
 
-import org.loopring.lightcone.proto.order.{ RawOrder, RawOrderEssential }
+import org.loopring.lightcone.proto.order._
+import org.loopring.lightcone.proto.ring._
 import org.web3j.utils.Numeric
 import scala.collection.mutable
 
-case class RingsDeserializer() {
+case class RingsDeserializer(encoded: String) {
 
-  //  private context: Context;
-  //
-  //  private data: Bitstream;
   //  private spendableList?: Spendable[];
-  //
-  //  private dataOffset: number = 0;
-  //  private tableOffset: number = 0;
-  //
-  //  constructor(context: Context) {
-  //    this.context = context;
-  //  }
-  //
-  //  public deserialize(data: string): [Mining, OrderInfo[], number[][]] {
-  //
-  //    this.data = new Bitstream(data);
-  //
-  //    // Header
-  //    const version = this.data.extractUint16(0);
-  //    const numOrders = this.data.extractUint16(2);
-  //    const numRings = this.data.extractUint16(4);
-  //    const numSpendables = this.data.extractUint16(6);
-  //
-  //    // Validation
-  //    assert.equal(version, 0, "Unsupported serialization format");
-  //    assert(numSpendables > 0, "Invalid number of spendables");
-  //
-  //    // Calculate data pointers
-  //    const miningDataPtr = 8;
-  //    const orderDataPtr = miningDataPtr + 3 * 2;
-  //    const ringDataPtr = orderDataPtr + (25 * numOrders) * 2;
-  //    const dataBlobPtr = ringDataPtr + (numRings * 9) + 32;
-  //
-  //    this.spendableList = [];
-  //    for (let i = 0; i < numSpendables; i++) {
-  //      const spendable = {
-  //        initialized: false,
-  //        amount: new BigNumber(0),
-  //        reserved: new BigNumber(0),
-  //      };
-  //      this.spendableList.push(spendable);
-  //    }
-  //
-  //    this.dataOffset = dataBlobPtr;
-  //
-  //    // Setup the rings
-  //    const mining = this.setupMiningData(miningDataPtr);
-  //    const orders = this.setupOrders(orderDataPtr, numOrders);
-  //    const rings = this.assembleRings(numRings, ringDataPtr, orders);
-  //
-  //    // Testing
-  //    this.validateSpendables(orders);
-  //
-  //    return [mining, orders, rings];
-  //  }
-  //
+
+  val lrcAddress: String = ""
+  val data: Bitparser = Bitparser("")
+  var dataOffset: Int = 0
+  var tableOffset: Int = 0
+
+  def deserialize(): Rings = {
+    val version = this.data.extractUint16(0)
+    val numOrders = this.data.extractUint16(2)
+    val numRings = this.data.extractUint16(4)
+    val numSpendables = this.data.extractUint16(6)
+
+    assert(version.equals(0), "Unsupported serialization format")
+    assert(numSpendables > 0, "Invalid number of spendables")
+
+    var miningDataPtr = 8
+    var orderDataPtr = miningDataPtr + 3 * 2
+    var ringDataPtr = orderDataPtr + (25 * numOrders) * 2
+    var dataBlobPtr = ringDataPtr + (numRings * 9) + 32
+
+    // todo: spendable list
+
+    this.dataOffset = dataBlobPtr
+
+    // todo val mining
+    val orders = this.setupOrders(orderDataPtr, numOrders)
+    val rings = this.assembleRings(numRings, ringDataPtr, orders)
+
+    Rings().withOrders(orders).withRings(rings)
+  }
+
   //  private setupMiningData(tablesPtr: number) {
   //    this.tableOffset = tablesPtr;
   //    const mining = new Mining(
@@ -87,45 +65,33 @@ case class RingsDeserializer() {
   //    );
   //    return mining;
   //  }
-  //
-  //  private setupOrders(tablesPtr: number, numOrders: number) {
-  //    this.tableOffset = tablesPtr;
-  //    const orders: OrderInfo[] = [];
-  //    for (let i = 0; i < numOrders; i++) {
-  //      orders.push(this.assembleOrder());
-  //    }
-  //    return orders;
-  //  }
-  //
-  //
-  //  private assembleRings(numRings: number, offset: number, orders: OrderInfo[]) {
-  //    const rings: number[][] = [];
-  //    for (let i = 0; i < numRings; i++) {
-  //      const ringSize = this.data.extractUint8(offset);
-  //      const ring = this.assembleRing(ringSize, offset + 1, orders);
-  //      rings.push(ring);
-  //      offset += 1 + 8;
-  //    }
-  //    return rings;
-  //  }
-  //
-  //  private assembleRing(ringSize: number, offset: number, orders: OrderInfo[]) {
-  //    const ring: number[] = [];
-  //    for (let i = 0; i < ringSize; i++) {
-  //      const orderIndex = this.data.extractUint8(offset);
-  //      offset += 1;
-  //      ring.push(orderIndex);
-  //    }
-  //
-  //    return ring;
-  //  }
-  //
-  //
 
-  val lrcAddress: String = ""
-  val data: Bitparser = Bitparser("")
-  var dataOffset: Int = 0
-  var tableOffset: Int = 0
+  private def setupOrders(tablesPtr: Int, numOrders: Int): Seq[RawOrder] = {
+    this.tableOffset = tablesPtr
+    (1 to numOrders).map(_ ⇒ this.assembleOrder())
+  }
+
+  private def assembleRings(numRings: Int, originOffset: Int, orders: Seq[RawOrder]): Seq[Ring] = {
+    var offset = originOffset
+
+    (1 to numRings).map(_ ⇒ {
+      val ringsize = this.data.extractUint8(offset)
+      val ring = this.assembleRing(ringsize, offset + 1, orders)
+      offset += 1 + 8
+      ring
+    })
+  }
+
+  private def assembleRing(ringsize: Int, originOffset: Int, orders: Seq[RawOrder]): Ring = {
+    var offset = originOffset
+    val seq = (1 to ringsize).map(_ ⇒ {
+      val orderidx = this.data.extractUint8(offset)
+      offset += 1
+      orderidx
+    })
+
+    Ring(seq)
+  }
 
   private def assembleOrder(): RawOrder = {
     val version = this.nextUint16.toString
