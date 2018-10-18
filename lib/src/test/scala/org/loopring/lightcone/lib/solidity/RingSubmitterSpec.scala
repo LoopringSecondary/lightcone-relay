@@ -45,10 +45,8 @@ class RingSubmitterSpec extends FlatSpec with Matchers {
       .withRings(Seq(Ring(orderIdx = Seq(0, 1))))
 
     val ringhash = ringswithouthash.getHash()
-    info("ringhash: " + ringhash)
     val rings = ringswithouthash.copy(hash = ringhash)
     val result = RingsGenerator(lrcAddress, rings).toSubmitableParam()
-    info(result)
 
     result should be(originInput)
   }
@@ -65,13 +63,18 @@ class RingSubmitterSpec extends FlatSpec with Matchers {
       "0xcf1213628d4266455a935a64ce6cd3d68fbbc468936cad29dab38eeced987487"
     )
     val ringhash = "0x6cacf9c57af230d0d1d75364196dc144f049b23138200586a7e8d7e467e9355c"
-    val rings = RingsDeserializer(lrcAddress, originInput).deserialize()
+    val result = RingsDeserializer(lrcAddress, originInput).deserialize()
 
-    rings.orders.map(x ⇒ {
-      val orderhash = x.getHash()
-      hashseq should contain(orderhash)
+    val orders = result.orders.map(x ⇒ {
+      val essential = x.getEssential
+      x.copy(essential = Option(essential.copy(hash = x.getHash())))
     })
 
+    orders.map(x ⇒ {
+      hashseq should contain(x.getEssential.hash)
+    })
+
+    val rings = result.copy(orders = orders)
     rings.getHash() should be(ringhash)
   }
 
