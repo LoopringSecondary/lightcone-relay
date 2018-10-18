@@ -26,6 +26,8 @@ case class RingsDeserializer(lrcAddress: String, encoded: String) {
   var tableOffset: Int = 0
   var spendableList = Seq.empty[String]
 
+  val undefined = "0x0"
+
   def deserialize(): Rings = {
     val version = this.dataparser.extractUint16(0)
     val numOrders = this.dataparser.extractUint16(2)
@@ -41,7 +43,7 @@ case class RingsDeserializer(lrcAddress: String, encoded: String) {
     val dataBlobPtr = ringDataPtr + (numRings * 9) + 32
 
     (1 to numSpendables).map(_ ⇒ {
-      spendableList +:= "0x0"
+      spendableList +:= undefined
     })
 
     dataOffset = dataBlobPtr
@@ -129,12 +131,12 @@ case class RingsDeserializer(lrcAddress: String, encoded: String) {
       .withOrderInterceptor(orderInterceptor)
       .withWallet(walletAddr)
       .withAllOrNone(allOrNone)
-      .withFeeToken(if (feeToken.nonEmpty) feeToken else lrcAddress)
+      .withFeeToken(if (feeToken.equals(undefined)) lrcAddress else feeToken)
       .withFeeAmount(feeAmount)
       .withFeePercentage(feePercentage)
       .withTokenSFeePercentage(tokenSFeePercentage)
       .withTokenBFeePercentage(tokenBFeePercentage)
-      .withTokenRecipient(if (tokenRecipient.nonEmpty) tokenRecipient else owner)
+      .withTokenRecipient(if (tokenRecipient.equals(undefined)) owner else tokenRecipient)
       .withWalletSplitPercentage(walletSplitPercentage)
 
     RawOrder()
@@ -152,7 +154,7 @@ case class RingsDeserializer(lrcAddress: String, encoded: String) {
     if (offset != 0) {
       dataparser.extractAddress(dataOffset + offset)
     } else {
-      "0x0"
+      undefined
     }
   }
 
