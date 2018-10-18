@@ -18,12 +18,9 @@ package org.loopring.lightcone.lib.abi
 
 import org.web3j.utils.Numeric
 
-case class Bitparser(data: String) {
+case class BitParser(x: String) {
 
-  /////////////////////////
-  // functions for unpack
-  //
-  /////////////////////////
+  val data = Numeric.cleanHexPrefix(x)
 
   def extractUint8(offset: Int): Int = extractNumber(offset, 1).intValue()
 
@@ -44,13 +41,15 @@ case class Bitparser(data: String) {
   def extractBytesX(offset: Int, length: Int): Array[Byte] = {
     val start = offset * 2
     val end = start + length * 2
-    if (this.data.length < end) {
-      throw new Exception("substring index out of range:[\" + start + \", \" + end + \"]")
+    if (data.length < end) {
+      throw new Exception("substring index out of range:[" + start + "," + end + "]")
     }
-    this.data.slice(start, end)
+    val str = data.slice(start, end)
+    Numeric.hexStringToByteArray(str)
+  }
 
-    //todo
-    Array()
+  def length(): Int = {
+    this.data.length / 2
   }
 
 }

@@ -18,7 +18,7 @@ package org.loopring.lightcone.lib.abi
 
 import org.web3j.utils.Numeric
 
-case class Bitstream() {
+case class BitStream() {
 
   var data: String = ""
 

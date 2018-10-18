@@ -20,39 +20,38 @@ import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring._
 import org.web3j.utils.Numeric
 
-case class RingsDeserializer(encoded: String) {
-
-  val lrcAddress: String = ""
-  val data: Bitparser = Bitparser("")
+case class RingsDeserializer(lrcAddress: String, encoded: String) {
+  val dataparser: BitParser = BitParser(encoded)
   var dataOffset: Int = 0
   var tableOffset: Int = 0
   var spendableList = Seq.empty[String]
 
   def deserialize(): Rings = {
-    val version = this.data.extractUint16(0)
-    val numOrders = this.data.extractUint16(2)
-    val numRings = this.data.extractUint16(4)
-    val numSpendables = this.data.extractUint16(6)
+    val version = this.dataparser.extractUint16(0)
+    val numOrders = this.dataparser.extractUint16(2)
+    val numRings = this.dataparser.extractUint16(4)
+    val numSpendables = this.dataparser.extractUint16(6)
 
     assert(version.equals(0), "Unsupported serialization format")
     assert(numSpendables > 0, "Invalid number of spendables")
 
-    var miningDataPtr = 8
-    var orderDataPtr = miningDataPtr + 3 * 2
-    var ringDataPtr = orderDataPtr + (25 * numOrders) * 2
-    var dataBlobPtr = ringDataPtr + (numRings * 9) + 32
+    val miningDataPtr = 8
+    val orderDataPtr = miningDataPtr + 3 * 2
+    val ringDataPtr = orderDataPtr + (25 * numOrders) * 2
+    val dataBlobPtr = ringDataPtr + (numRings * 9) + 32
 
-    (1 to numSpendables).map(_ => {
-      this.spendableList +:= Numeric.toHexStringNoPrefix(BigInt(0).toByteArray)
+    (1 to numSpendables).map(_ ⇒ {
+      spendableList +:= "0x0"
     })
-    this.dataOffset = dataBlobPtr
 
-    this.tableOffset = miningDataPtr
-    val feeRecipient = this.nextAddress
-    val miner = this.nextAddress
-    val sig = this.nextBytes
-    val orders = this.setupOrders(orderDataPtr, numOrders)
-    val rings = this.assembleRings(numRings, ringDataPtr, orders)
+    dataOffset = dataBlobPtr
+    tableOffset = miningDataPtr
+
+    val feeRecipient = nextAddress
+    val miner = nextAddress
+    val sig = nextBytes
+    val orders = setupOrders(orderDataPtr, numOrders)
+    val rings = assembleRings(numRings, ringDataPtr, orders)
 
     Rings(
       miner = miner,
@@ -64,16 +63,16 @@ case class RingsDeserializer(encoded: String) {
   }
 
   private def setupOrders(tablesPtr: Int, numOrders: Int): Seq[RawOrder] = {
-    this.tableOffset = tablesPtr
-    (1 to numOrders).map(_ ⇒ this.assembleOrder())
+    tableOffset = tablesPtr
+    (1 to numOrders).map(_ ⇒ assembleOrder())
   }
 
   private def assembleRings(numRings: Int, originOffset: Int, orders: Seq[RawOrder]): Seq[Ring] = {
     var offset = originOffset
 
     (1 to numRings).map(_ ⇒ {
-      val ringsize = this.data.extractUint8(offset)
-      val ring = this.assembleRing(ringsize, offset + 1, orders)
+      val ringsize = dataparser.extractUint8(offset)
+      val ring = assembleRing(ringsize, offset + 1, orders)
       offset += 1 + 8
       ring
     })
@@ -82,7 +81,7 @@ case class RingsDeserializer(encoded: String) {
   private def assembleRing(ringsize: Int, originOffset: Int, orders: Seq[RawOrder]): Ring = {
     var offset = originOffset
     val seq = (1 to ringsize).map(_ ⇒ {
-      val orderidx = this.data.extractUint8(offset)
+      val orderidx = dataparser.extractUint8(offset)
       offset += 1
       orderidx
     })
@@ -91,31 +90,31 @@ case class RingsDeserializer(encoded: String) {
   }
 
   private def assembleOrder(): RawOrder = {
-    val version = this.nextUint16.toString
-    val owner = this.nextAddress
-    val tokenS = this.nextAddress
-    val tokenB = this.nextAddress
-    val amountS = Numeric.toHexString(this.nextUint.toByteArray)
-    val amountB = Numeric.toHexString(this.nextUint.toByteArray)
-    val validSince = this.nextUint32
-    val tokenSpendableS = this.spendableList.apply(this.nextUint16)
-    val tokenSpendableFee = this.spendableList.apply(this.nextUint16)
-    val dualAuthAddr = this.nextAddress
-    val broker = this.nextAddress
-    val orderInterceptor = this.nextAddress
-    val walletAddr = this.nextAddress
-    val validUntil = this.nextUint32
-    val sig = this.nextBytes
-    val dualAuthSig = this.nextBytes
-    val allOrNone = this.nextUint16 > 0
-    val feeToken = this.nextAddress
-    val feeAmount = Numeric.toHexString(this.nextUint.toByteArray)
-    val feePercentage = this.nextUint16
-    val waiveFeePercentage = this.toInt16(this.nextUint16)
-    val tokenSFeePercentage = this.nextUint16
-    val tokenBFeePercentage = this.nextUint16
-    val tokenRecipient = this.nextAddress
-    val walletSplitPercentage = this.nextUint16
+    val version = nextUint16.toString
+    val owner = nextAddress
+    val tokenS = nextAddress
+    val tokenB = nextAddress
+    val amountS = Numeric.toHexString(nextUint.toByteArray)
+    val amountB = Numeric.toHexString(nextUint.toByteArray)
+    val validSince = nextUint32
+    val tokenSpendableS = spendableList.apply(nextUint16)
+    val tokenSpendableFee = spendableList.apply(nextUint16)
+    val dualAuthAddr = nextAddress
+    val broker = nextAddress
+    val orderInterceptor = nextAddress
+    val walletAddr = nextAddress
+    val validUntil = nextUint32
+    val sig = nextBytes
+    val dualAuthSig = nextBytes
+    val allOrNone = nextUint16 > 0
+    val feeToken = nextAddress
+    val feeAmount = Numeric.toHexString(nextUint.toByteArray)
+    val feePercentage = nextUint16
+    val waiveFeePercentage = toInt16(nextUint16)
+    val tokenSFeePercentage = nextUint16
+    val tokenBFeePercentage = nextUint16
+    val tokenRecipient = nextAddress
+    val walletSplitPercentage = nextUint16
 
     val essentail = RawOrderEssential()
       .withOwner(owner)
@@ -151,29 +150,29 @@ case class RingsDeserializer(encoded: String) {
   private def nextAddress: String = {
     val offset = tupple4GetNextOffset
     if (offset != 0) {
-      this.data.extractAddress(this.dataOffset + offset)
+      dataparser.extractAddress(dataOffset + offset)
     } else {
-      ""
+      "0x0"
     }
   }
 
   private def nextUint: BigInt = {
     val offset = tupple4GetNextOffset
     if (offset != 0) {
-      this.data.extractUint(this.dataOffset + offset)
+      dataparser.extractUint(dataOffset + offset)
     } else {
       BigInt(0)
     }
   }
 
   private def nextUint16: Int = {
-    this.getNextOffset
+    getNextOffset
   }
 
   private def nextUint32: Int = {
     val offset = tupple4GetNextOffset
     if (offset != 0) {
-      this.data.extractUint32(this.dataOffset + offset)
+      dataparser.extractUint32(dataOffset + offset)
     } else {
       0
     }
@@ -182,8 +181,8 @@ case class RingsDeserializer(encoded: String) {
   private def nextBytes: String = {
     val offset = tupple4GetNextOffset
     if (offset != 0) {
-      val len = this.data.extractUint(this.dataOffset + offset).intValue()
-      Numeric.toHexString(this.data.extractBytesX(this.dataOffset + offset + 32, len))
+      val len = dataparser.extractUint(dataOffset + offset).intValue()
+      Numeric.toHexString(dataparser.extractBytesX(dataOffset + offset + 32, len))
     } else {
       ""
     }
@@ -194,12 +193,12 @@ case class RingsDeserializer(encoded: String) {
   }
 
   private def tupple4GetNextOffset: Int = {
-    this.getNextOffset * 4
+    getNextOffset * 4
   }
 
   private def getNextOffset: Int = {
-    val offset = this.data.extractUint16(this.tableOffset)
-    this.tableOffset += 2
-    this.tableOffset
+    val offset = dataparser.extractUint16(tableOffset)
+    tableOffset += 2
+    offset
   }
 }

@@ -30,8 +30,8 @@ case class RingsGenerator(
   val ORDER_VERSION = 0
   val SERIALIZATION_VERSION = 0
 
-  var datastream = Bitstream()
-  var tablestream = Bitstream()
+  var datastream = BitStream()
+  var tablestream = BitStream()
   var orderSpendableSMap = HashMap.empty[String, Int]
   var orderSpendableFeeMap = HashMap.empty[String, Int]
 
@@ -42,7 +42,7 @@ case class RingsGenerator(
     createMiningTable()
     ringsInfo.orders.map(createOrderTable)
 
-    val stream = Bitstream()
+    val stream = BitStream()
     stream.addNumber(SERIALIZATION_VERSION, 2)
     stream.addNumber(ringsInfo.orders.length, 2)
     stream.addNumber(ringsInfo.rings.length, 2)
@@ -211,7 +211,7 @@ case class RingsGenerator(
   }
 
   private def createBytes(data: String): String = {
-    val bitstream = Bitstream()
+    val bitstream = BitStream()
     bitstream.addNumber((data.length - 2) / 2, 32)
     bitstream.addRawBytes(data)
     bitstream.getData
