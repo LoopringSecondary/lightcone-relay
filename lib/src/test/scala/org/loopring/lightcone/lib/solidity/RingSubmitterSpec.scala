@@ -54,10 +54,6 @@ class RingSubmitterSpec extends FlatSpec with Matchers {
   "deserializerRing" should "" in {
     info("execute cmd [sbt lib/'testOnly *RingSubmitterSpec -- -z deserializerRing'] to test single spec of deserializerRing")
 
-    // info(originInput.length.toString)// 1872
-    // info(originInput.indexOf("0511ebd550bc240c7d167d9ecbf82eb5156dd787").toString) // 376
-    // info(originInput.indexOf("21e997a7132e79f7721d05cdab78a60df7884d1f").toString) // table:96~100, data:736
-
     val hashseq = Seq(
       "0xc62a755f6530d68e34341e2a399afa65fb13921ca3119695a6710598e191906b",
       "0xcf1213628d4266455a935a64ce6cd3d68fbbc468936cad29dab38eeced987487"
