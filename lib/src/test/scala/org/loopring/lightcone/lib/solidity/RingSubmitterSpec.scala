@@ -20,6 +20,7 @@ import org.loopring.lightcone.lib.abi.{ RingsDeserializer, RingsGenerator }
 import org.scalatest.{ FlatSpec, Matchers }
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.lib.richproto._
+import org.loopring.lightcone.lib.time.LocalSystemTimeProvider
 import org.loopring.lightcone.proto.order._
 import org.loopring.lightcone.proto.ring._
 
@@ -46,7 +47,13 @@ class RingSubmitterSpec extends FlatSpec with Matchers {
 
     val ringhash = ringswithouthash.getHash()
     val rings = ringswithouthash.copy(hash = ringhash)
+
+    val timeProvider = new LocalSystemTimeProvider
+    val start = timeProvider.getTimeMillis
     val result = RingsGenerator(lrcAddress, rings).toSubmitableParam()
+    val end = timeProvider.getTimeMillis
+
+    info("generate ring.data spent " + (end - start).toString + "(msec)")
 
     result should be(originInput)
   }
