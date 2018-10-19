@@ -276,7 +276,6 @@ message RawOrder {
     string dual_private_key = 10;
 }
 
-
 message SoftCancelSign {
     int64 timestamp = 1;
     int32 v = 2;

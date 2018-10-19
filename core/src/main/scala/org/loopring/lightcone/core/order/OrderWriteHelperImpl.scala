@@ -17,7 +17,7 @@
 package org.loopring.lightcone.core.order
 import com.google.inject.Inject
 import org.loopring.lightcone.proto.order.{ MarketSide, Order, OrderType, SoftCancelSign }
-import org.loopring.lightcone.core.richproto._
+import org.loopring.lightcone.lib.richproto._
 
 class OrderWriteHelperImpl @Inject() (validator: OrderValidator) extends OrderWriteHelper {
 

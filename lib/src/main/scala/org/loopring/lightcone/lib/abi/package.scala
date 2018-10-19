@@ -24,6 +24,10 @@ import org.loopring.lightcone.proto.eth_jsonrpc._
 
 package object abi {
 
+  def safeEquals(s1: String, s2: String): Boolean = {
+    s1.toLowerCase.equals(s2.toLowerCase)
+  }
+
   implicit class RichBlockNumber(src: BigInt) {
 
     def afterByzantiumFork(): Boolean = {

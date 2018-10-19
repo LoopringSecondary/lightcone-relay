@@ -34,7 +34,7 @@ abstract class ContractAbi(resourceFile: String) {
 
   def abi: Abi = Abi.fromJson(getAbiResource(resourceFile))
 
-  def sigFuncMap: Map[String, Abi.Function] = {
+  val sigFuncMap: Map[String, Abi.Function] = {
     supportedFunctions.map(x ⇒ {
       val f = abi.findFunction(predicate(x))
       Hex.toHexString(f.encodeSignature()) -> f
