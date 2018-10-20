@@ -19,6 +19,7 @@ package org.loopring.lightcone.core.socketio
 import akka.actor.{ ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props }
 import com.corundumstudio.socketio.Configuration
 import com.google.inject.Injector
+import com.typesafe.config.Config
 
 object SocketIOSystemExtension extends ExtensionId[SocketIOSystemExtensionImpl] with ExtensionIdProvider {
 
@@ -35,18 +36,24 @@ object SocketIOSystemExtension extends ExtensionId[SocketIOSystemExtensionImpl] 
 class SocketIOSystemExtensionImpl(router: ActorRef) extends Extension {
 
   def init(injector: Injector): SocketIOServer = {
+    import net.codingwell.scalaguice.InjectorExtensions._
 
-    val server = new com.corundumstudio.socketio.SocketIOServer(config)
+    val cfg = injector.instance[Config]
+
+    val port = cfg.getInt("socketio.port")
+    val pool = cfg.getInt("socketio.pool")
+
+    val server = new com.corundumstudio.socketio.SocketIOServer(config(port))
     server.addConnectListener(new ConnectionListener)
     server.addDisconnectListener(new DisconnectionListener)
 
-    new SocketIOServer(injector, server, router)
+    new SocketIOServer(injector, server, router, pool)
   }
 
-  private lazy val config: Configuration = {
+  private lazy val config = (port: Int) ⇒ {
     val _config = new Configuration
     _config.setHostname("0.0.0.0")
-    _config.setPort(9092)
+    _config.setPort(port)
     _config.setMaxFramePayloadLength(1024 * 1024)
     _config.setMaxHttpContentLength(1024 * 1024)
     _config.getSocketConfig.setReuseAddress(true)

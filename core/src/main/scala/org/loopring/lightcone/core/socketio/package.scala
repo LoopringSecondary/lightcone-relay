@@ -49,18 +49,18 @@ package object socketio {
 
   // 消息方法
   case class ProviderEventMethod(event: event, method: MethodSymbol,
-      paramClazz: Option[Class[_]], futureType: Type)
+    paramClazz: Option[Class[_]], futureType: Type)
 
   case class BroadcastMessage(server: SocketIOServer, provider: ProviderEventClass[_], method: ProviderEventMethod)
 
   // 客户端订阅的消息
   case class SubscriberEvent(client: SocketIOClient, event: String, json: String)
 
-  case class StartBroadcast(server: SocketIOServer)
+  case class StartBroadcast(server: SocketIOServer, pool: Int)
 
   final case class SocketIOException(
-      message: String = "",
-      cause: Throwable = None.orNull
+    message: String = "",
+    cause: Throwable = None.orNull
   )
     extends Exception(message, cause)
 

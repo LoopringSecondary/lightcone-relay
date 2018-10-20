@@ -25,14 +25,16 @@ class SocketIOServerRouter extends Actor with Timers with ActorLogging {
 
   implicit val ex = context.system.dispatcher
 
-  lazy val router = context.actorOf(RoundRobinPool(10).props(Props[SocketIOServerActor]), "socketio_actor")
-
   override def receive: Receive = {
-    case s: StartBroadcast ⇒
+    case StartBroadcast(server, pool) ⇒
 
       log.info("start check broadcast message")
 
       import SocketIOServerLocal._
+
+      val router = context.actorOf(
+        RoundRobinPool(pool).props(Props[SocketIOServerActor]),
+        "socketio_actor")
 
       for {
 
@@ -45,7 +47,7 @@ class SocketIOServerRouter extends Actor with Timers with ActorLogging {
         m ← provider.methods
 
       } yield {
-        val broadcast = BroadcastMessage(s.server, provider, m)
+        val broadcast = BroadcastMessage(server, provider, m)
         context.system.scheduler.schedule(2 seconds, m.event.interval seconds, router, broadcast)
       }
   }
