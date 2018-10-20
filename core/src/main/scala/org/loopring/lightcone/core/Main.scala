@@ -24,10 +24,9 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
-
 import com.google.inject._
-
 import com.google.inject._
+import org.loopring.lightcone.core.socketio.SocketIOSystemExtension
 
 object Main {
 
@@ -113,6 +112,15 @@ object Main {
         import ActorUtil._
         val injector = Guice.createInjector(new CoreModule(config))
         injector.getActor("node_manager")
+
+
+        // socketio server
+        val system = injector.getInstance(classOf[ActorSystem])
+        val server = SocketIOSystemExtension(system).init(injector)
+        // register event
+        // server.register[T]
+        server.start
+
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +
