@@ -17,7 +17,8 @@ lazy val lib = (project in file("lib"))
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
-    libraryDependencies ++= ethereumDependency)
+    libraryDependencies ++= ethereumDependency,
+    libraryDependencies ++= socketIODenepdencies)
 
 lazy val ethconn = (project in file("ethconn"))
   .enablePlugins(AutomateHeaderPlugin)
