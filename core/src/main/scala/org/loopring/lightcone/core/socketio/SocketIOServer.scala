@@ -63,7 +63,7 @@ private[socketio] object SocketIOServerLocal {
         e.event.event == name && e.event.broadcast == broadcast
       } match {
         case Some(m) ⇒ Seq(m)
-        case _ ⇒ Seq.empty
+        case _       ⇒ Seq.empty
       }
       e.copy(methods = ms)
     }.filter(_.methods.nonEmpty) // .headOption
@@ -72,10 +72,10 @@ private[socketio] object SocketIOServerLocal {
 }
 
 class SocketIOServer(
-  injector: Injector,
-  server: com.corundumstudio.socketio.SocketIOServer,
-  router: ActorRef,
-  pool: Int
+    injector: Injector,
+    server: com.corundumstudio.socketio.SocketIOServer,
+    router: ActorRef,
+    pool: Int
 ) {
 
   lazy val logger = LoggerFactory.getLogger(getClass)
@@ -98,10 +98,10 @@ class SocketIOServer(
   }
 
   /** 1 客户端直接请求数据
-    * 2 客户端请求广播数据(这种情况先不考虑)
-    * 3 客户端订阅广播数据
-    * 4 主动广播消息到客户端(暂时不支持这种情况)
-    */
+   *  2 客户端请求广播数据(这种情况先不考虑)
+   *  3 客户端订阅广播数据
+   *  4 主动广播消息到客户端(暂时不支持这种情况)
+   */
   def start: Unit = {
 
     router ! StartBroadcast(this, pool)

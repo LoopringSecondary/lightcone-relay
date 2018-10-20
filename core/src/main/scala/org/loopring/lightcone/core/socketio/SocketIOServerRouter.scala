@@ -34,7 +34,8 @@ class SocketIOServerRouter extends Actor with Timers with ActorLogging {
 
       val router = context.actorOf(
         RoundRobinPool(pool).props(Props[SocketIOServerActor]),
-        "socketio_actor")
+        "socketio_actor"
+      )
 
       for {
 
