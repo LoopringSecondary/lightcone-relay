@@ -16,23 +16,15 @@
 
 package org.loopring.lightcone.core
 
-import com.corundumstudio.socketio.SocketIOClient
+import scala.reflect.runtime.universe._
 
 package object socketio {
 
-  //  type ProtoBuf[T] = scalapb.GeneratedMessage with scalapb.Message[T]
-  //
-  //  implicit def string2ProtoBuf[T <: ProtoBuf[T]](json: String)(
-  //    implicit
-  //    c: scalapb.GeneratedMessageCompanion[T]
-  //  ): T =
-  //    JsonFormat.fromJsonString[T](json)
-  //
-  //  implicit def protoBuf2JavaMap[T <: ProtoBuf[T]](t: T): java.util.Map[String, Any] = {
-  //    val mapper = new ObjectMapper()
-  //    mapper.readValue(JsonFormat.toJsonString(t), classOf[java.util.Map[String, Any]])
-  //  }
+  type IOServer = com.corundumstudio.socketio.SocketIOServer
 
+  type IOClient = com.corundumstudio.socketio.SocketIOClient
+
+  // broadcat => 0: 不广播, 1: 广播订阅者, 2: 主动给广播所有(这种情况event无效)
   case class event(event: String, broadcast: Int, interval: Long, replyTo: String) extends scala.annotation.StaticAnnotation {
 
     def this(event: String) =
@@ -42,26 +34,21 @@ package object socketio {
       this(event = "", broadcast = broadcast, interval = interval, replyTo = replyTo)
   }
 
-  import scala.reflect.runtime.universe._
-
-  // 消息class
   case class ProviderEventClass[T](instance: T, clazz: Class[_ <: T], methods: Seq[ProviderEventMethod])
 
-  // 消息方法
   case class ProviderEventMethod(event: event, method: MethodSymbol,
-      paramClazz: Option[Class[_]], futureType: Type)
+    paramClazz: Option[Class[_]], futureType: Type)
+
+  // 客户端订阅的消息
+  case class SubscriberEvent(client: IOClient, event: String, json: String)
 
   case class BroadcastMessage(server: SocketIOServer, provider: ProviderEventClass[_], method: ProviderEventMethod)
 
-  // 客户端订阅的消息
-  case class SubscriberEvent(client: SocketIOClient, event: String, json: String)
-
-  case class StartBroadcast(server: SocketIOServer, pool: Int)
+  case class StartBroadcast(server: SocketIOServer, providers: Seq[ProviderEventClass[_]], pool: Int)
 
   final case class SocketIOException(
-      message: String = "",
-      cause: Throwable = None.orNull
-  )
+    message: String = "",
+    cause: Throwable = None.orNull)
     extends Exception(message, cause)
 
 }

@@ -16,24 +16,23 @@
 
 package org.loopring.lightcone.core.socketio
 
-import com.corundumstudio.socketio.SocketIOClient
 import org.slf4j.LoggerFactory
 
 class ConnectionListener extends com.corundumstudio.socketio.listener.ConnectListener {
 
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  override def onConnect(client: SocketIOClient): Unit = {
-    logger.info(s"SocketIO: client ${client.getRemoteAddress} connected")
+  override def onConnect(client: IOClient): Unit = {
+    logger.info(s"SocketIO: remote ${client.getRemoteAddress.toString} has connected")
   }
-
 }
 
 class DisconnectionListener extends com.corundumstudio.socketio.listener.DisconnectListener {
 
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  override def onDisconnect(client: SocketIOClient): Unit = {
-    logger.info(s"SocketIO: client ${client.getRemoteAddress} disconnected")
+  override def onDisconnect(client: IOClient): Unit = {
+    logger.info(s"SocketIO: remote ${client.getRemoteAddress.toString} has disconnected")
   }
 }
+

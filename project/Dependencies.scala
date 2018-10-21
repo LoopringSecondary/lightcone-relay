@@ -49,6 +49,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 
   lazy val socketIODenepdencies = Seq(
+    "org.reflections" % "reflections" % "0.9.11",
     "com.corundumstudio.socketio" % "netty-socketio" % "1.7.16",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7"
   )
