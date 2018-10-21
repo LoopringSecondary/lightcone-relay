@@ -107,15 +107,19 @@ class SocketIOSystemExtensionImpl(router: ActorRef) extends Extension {
     require(
       (symbol.paramLists.size == 1) ||
         (symbol.paramLists.size == 0 && e.get.broadcast == 2),
-      s"method [${symbol.fullName}] parameter list not match ")
+      s"method [${symbol.fullName}] parameter list not match "
+    )
 
     require(
       !(e.get.broadcast == 2 && pTpe.nonEmpty),
-      s"method [${symbol.fullName}]  must have one parameter, broadcast=2 has no parameter ")
+      s"method [${symbol.fullName}]  must have one parameter, broadcast=2 has no parameter "
+    )
 
     val rTpe = returnType(symbol)
-    require(rTpe.nonEmpty && !(rTpe.get =:= typeOf[Unit]),
-      s" method [${symbol.fullName}] must have no Unit type")
+    require(
+      rTpe.nonEmpty && !(rTpe.get =:= typeOf[Unit]),
+      s" method [${symbol.fullName}] must have no Unit type"
+    )
 
     ProviderEventMethod(e.get, symbol, pTpe, rTpe.get)
   }

@@ -21,28 +21,26 @@ import akka.actor.{ Actor, ActorLogging }
 class SocketIOServerActor extends Actor with ActorLogging {
 
   override def receive: Receive = {
-    case b: BroadcastMessage ⇒
+    case BroadcastMessage(server, provider, method) ⇒
 
       log.info(s"${context.self.path} broadcast message")
 
-      import SocketIOServerLocal._
-
-      val event = b.method.event
-
-      val provider = b.provider
+      val event = method.event
 
       event.broadcast match {
-        case 1 ⇒ // getSubscriber(m.event.event) // 发送给订阅者
-          getSubscriber(event.event).foreach { c ⇒
-            val resp = EventReflection.invokeMethod(provider.instance, b.method, Some(c.json))
+        case 1 ⇒
+
+          SocketIOClient.getClients(_ == event.event).foreach { c ⇒
+            val resp = server.invokeMethod(provider.instance, method, Some(c.json))
             c.client.sendEvent(event.replyTo, resp)
           }
+
         case 2 ⇒
+
           // 主动广播给所有的client(这里不能有请求值)
-          val resp = EventReflection.invokeMethod(provider.instance, b.method, None)
-          b.server.broadMessage(event.replyTo, resp)
-        case _ ⇒ // throw new Exception("broadcast not supported")
+          val resp = server.invokeMethod(provider.instance, method, None)
+          server.broadMessage(event.replyTo, resp)
+        case _ ⇒ // ignore throw new SocketIOException("broadcast not supported")
       }
   }
-
 }

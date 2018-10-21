@@ -34,18 +34,20 @@ private[socketio] object SocketIOServer {
     settings: SocketIOSettings,
     providers: Seq[ProviderEventClass[_]],
     server: com.corundumstudio.socketio.SocketIOServer,
-    router: ActorRef): SocketIOServer = {
+    router: ActorRef
+  ): SocketIOServer = {
     new SocketIOServer(injector, settings, providers, server, router)
   }
 
 }
 
 private[socketio] class SocketIOServer(
-  injector: Injector,
-  settings: SocketIOSettings,
-  providers: Seq[ProviderEventClass[_]],
-  server: IOServer,
-  router: ActorRef) {
+    injector: Injector,
+    settings: SocketIOSettings,
+    providers: Seq[ProviderEventClass[_]],
+    server: IOServer,
+    router: ActorRef
+) {
 
   private lazy val mapper = {
     val mapper = new ObjectMapper()
@@ -110,19 +112,19 @@ private[socketio] class SocketIOServer(
     // 这里获取 future
     val futureResp = params match {
       case Some(p) ⇒ mm(p)
-      case _ ⇒ mm()
+      case _       ⇒ mm()
     }
 
     // 这里等待返回值
     val respAny = futureResp match {
       case f: Future[_] ⇒ Await.result(f, Duration.Inf)
-      case x ⇒ x
+      case x            ⇒ x
     }
 
     // 这里没有考虑proto message
     respAny match {
       case r: String ⇒ r
-      case r ⇒ mapper.convertValue(r, classOf[java.util.Map[String, Any]])
+      case r         ⇒ mapper.convertValue(r, classOf[java.util.Map[String, Any]])
     }
 
   }

@@ -37,7 +37,7 @@ package object socketio {
   case class ProviderEventClass[T](instance: T, clazz: Class[_ <: T], methods: Seq[ProviderEventMethod])
 
   case class ProviderEventMethod(event: event, method: MethodSymbol,
-    paramClazz: Option[Class[_]], futureType: Type)
+      paramClazz: Option[Class[_]], futureType: Type)
 
   // 客户端订阅的消息
   case class SubscriberEvent(client: IOClient, event: String, json: String)
@@ -47,8 +47,9 @@ package object socketio {
   case class StartBroadcast(server: SocketIOServer, providers: Seq[ProviderEventClass[_]], pool: Int)
 
   final case class SocketIOException(
-    message: String = "",
-    cause: Throwable = None.orNull)
+      message: String = "",
+      cause: Throwable = None.orNull
+  )
     extends Exception(message, cause)
 
 }

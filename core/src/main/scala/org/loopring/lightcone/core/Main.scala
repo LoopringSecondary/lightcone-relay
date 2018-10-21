@@ -31,11 +31,11 @@ import org.loopring.lightcone.core.socketio.{ SocketIOSettings, SocketIOSystemEx
 object Main {
 
   case class CmdOptions(
-    port: Int = 0,
-    managerPort: Int = 8081,
-    seeds: Seq[String] = Seq.empty[String],
-    roles: Seq[String] = Seq.empty[String],
-    configFile: String = ""
+      port: Int = 0,
+      managerPort: Int = 8081,
+      seeds: Seq[String] = Seq.empty[String],
+      roles: Seq[String] = Seq.empty[String],
+      configFile: String = ""
   )
 
   def main(args: Array[String]): Unit = {
@@ -120,7 +120,6 @@ object Main {
         val settings = SocketIOSettings() //.register[EventTest]
         val server = SocketIOSystemExtension(system).init(injector, settings)
         server.start
-
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +
