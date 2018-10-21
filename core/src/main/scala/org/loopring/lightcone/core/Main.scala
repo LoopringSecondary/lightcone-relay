@@ -26,16 +26,16 @@ import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
 import com.google.inject._
 import com.google.inject._
-import org.loopring.lightcone.core.socketio.SocketIOSystemExtension
+import org.loopring.lightcone.core.socketio.{ SocketIOSettings, SocketIOSystemExtension }
 
 object Main {
 
   case class CmdOptions(
-      port: Int = 0,
-      managerPort: Int = 8081,
-      seeds: Seq[String] = Seq.empty[String],
-      roles: Seq[String] = Seq.empty[String],
-      configFile: String = ""
+    port: Int = 0,
+    managerPort: Int = 8081,
+    seeds: Seq[String] = Seq.empty[String],
+    roles: Seq[String] = Seq.empty[String],
+    configFile: String = ""
   )
 
   def main(args: Array[String]): Unit = {
@@ -113,12 +113,12 @@ object Main {
         val injector = Guice.createInjector(new CoreModule(config))
         injector.getActor("node_manager")
 
+        val system = injector.getInstance(classOf[ActorSystem])
 
         // socketio server
-        val system = injector.getInstance(classOf[ActorSystem])
-        val server = SocketIOSystemExtension(system).init(injector)
-        // register event
-        // server.register[T]
+        // register [trait or interface]
+        val settings = SocketIOSettings() //.register[EventTest]
+        val server = SocketIOSystemExtension(system).init(injector, settings)
         server.start
 
 
