@@ -24,16 +24,19 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
-
+import org.loopring.lightcone.core.gateway.jsonrpc.JsonRpcServer
 import com.google.inject._
-
 import com.google.inject._
+import io.github.shogowada.scala.jsonrpc.server.JSONRPCServer
+import org.ethereum.net.rlpx.discover.NodeManager
+import org.loopring.lightcone.proto.order.OrderStatus
 
 object Main {
 
   case class CmdOptions(
       port: Int = 0,
       managerPort: Int = 8081,
+      rpcPort: Int = 8083,
       seeds: Seq[String] = Seq.empty[String],
       roles: Seq[String] = Seq.empty[String],
       configFile: String = ""
@@ -101,6 +104,7 @@ object Main {
           .parseString(
             s"""
             node-manager.http.port=${options.managerPort}
+            jsonrpc.http.port=${options.rpcPort}
             akka.remote.netty.tcp.port=${options.port}
             akka.remote.netty.tcp.hostname=$hostname
             akka.cluster.roles=$roles
@@ -113,11 +117,13 @@ object Main {
         import ActorUtil._
         val injector = Guice.createInjector(new CoreModule(config))
         injector.getActor("node_manager")
+        injector.getInstance(classOf[JsonRpcServer])
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +
           "with port: " + options.port + "\n" +
           "with manager-port: " + options.managerPort + "\n" +
+          "with rpc-port: " + options.rpcPort + "\n" +
           "with hostname: " + hostname + "\n" +
           "with seeds: " + seedNodes + "\n" +
           "with roles: " + roles + "\n" +

@@ -17,6 +17,7 @@
 package org.loopring.lightcone.core.cache
 
 import com.google.inject._
+import com.google.inject.name.Named
 import org.loopring.lightcone.core.cache.redishash.{ RedisHashGetSerializer, RedisHashSetSerializer }
 import org.loopring.lightcone.lib.etypes._
 import org.loopring.lightcone.proto.balance._
@@ -179,7 +180,7 @@ final class BalanceRedisCache @Inject() (
     val redis: RedisCluster
 )(
     implicit
-    val ec: ExecutionContext
+    @Named("system-dispatcher") val ec: ExecutionContext
 )
   extends BalanceCache {
   import BalanceRedisCache._

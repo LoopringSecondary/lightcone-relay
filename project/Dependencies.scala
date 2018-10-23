@@ -31,7 +31,9 @@ object Dependencies {
     "mysql" % "mysql-connector-java" % "5.1.22",
     "com.typesafe.slick" %% "slick" % slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
-    "io.spray" %% "spray-json" % "1.3.4")
+    "io.github.shogowada" %% "scala-json-rpc" % "0.9.3",
+    "io.github.shogowada" %% "scala-json-rpc-upickle-json-serializer" % "0.9.3",
+  "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(
     "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")

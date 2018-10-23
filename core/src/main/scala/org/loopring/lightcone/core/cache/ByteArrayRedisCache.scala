@@ -21,14 +21,16 @@ import akka.actor.ActorSystem
 import com.typesafe.config.Config
 import redis._
 import com.google.inject._
+
 import scala.concurrent._
 import akka.util.ByteString
+import com.google.inject.name.Named
 
 final class ByteArrayRedisCache @Inject() (
     redis: RedisCluster
 )(
     implicit
-    val ex: ExecutionContext
+    @Named("system-dispatcher") val ex: ExecutionContext
 )
   extends ByteArrayCache {
 

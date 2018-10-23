@@ -36,6 +36,7 @@ import org.loopring.lightcone.core.cache._
 import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.core.order._
 import org.loopring.lightcone.core.block._
+import org.loopring.lightcone.core.gateway.jsonrpc.{ JsonRpcServer, JsonRpcServerImpl }
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache._
@@ -100,6 +101,8 @@ class CoreModule(config: Config)
     bind[TokenList].toInstance(TokenList(list = Seq()))
     bind[BlockAccessHelper].to[BlockAccessHelperImpl].in[Singleton]
     bind[TransactionHelper].to[TransactionHelperImpl].in[Singleton]
+
+    bind[JsonRpcServer].to[JsonRpcServerImpl].in[Singleton]
   }
 
   @Provides
@@ -116,18 +119,9 @@ class CoreModule(config: Config)
   }
 
   @Provides
-  @Named("balance_cacher")
-  def getBalanceCacherProps(cache: BalanceCache)(implicit
-    ec: ExecutionContext,
-    timeout: Timeout
-  ) = {
-    Props(new BalanceCacher(cache)) // .withDispatcher("ring-dispatcher")
-  }
-
-  @Provides
   @Named("balance_manager")
   def getBalanceManagerProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new BalanceManager()) // .withDispatcher("ring-dispatcher")
@@ -136,7 +130,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("balance_reader")
   def getBalanceReaderProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new BalanceReader()) // .withDispatcher("ring-dispatcher")
@@ -145,7 +139,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("block_event_extractor")
   def getBlockchainEventExtractorProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout,
     blockAccessHelper: BlockAccessHelper,
     transactionHelper: TransactionHelper
@@ -156,7 +150,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("cache_obsoleter")
   def getCacheObsoleterProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new CacheObsoleter()) // .withDispatcher("ring-dispatcher")
@@ -165,7 +159,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("cluster_manager")
   def getClusterManagerProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new ClusterManager()) // .withDispatcher("ring-dispatcher")
@@ -174,7 +168,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("ethereum_accessor")
   def getEthereumAccessorProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new EthereumAccessor()) // .withDispatcher("ring-dispatcher")
@@ -183,7 +177,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_accessor")
   def getOrderAccessorProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderAccessor()) // .withDispatcher("ring-dispatcher")
@@ -192,7 +186,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_book_manager")
   def getOrderBookManagerProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderBookManager()) // .withDispatcher("ring-dispatcher")
@@ -201,7 +195,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_book_reader")
   def getOrderBookReaderProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderBookReader()) // .withDispatcher("ring-dispatcher")
@@ -210,7 +204,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_cacher")
   def getOrderCacherProps(cache: OrderCache)(implicit
-    context: ExecutionContext,
+    @Named("system-dispatcher") context: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderCacher(cache)) // .withDispatcher("ring-dispatcher")
@@ -219,7 +213,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_change_log_writer")
   def getOrderChangeLogWriterProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderChangeLogWriter()) // .withDispatcher("ring-dispatcher")
@@ -228,7 +222,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_db_accessor")
   def getOrderDBAccessorProps(helper: OrderAccessHelper)(implicit
-    ec: ExecutionContext,
+    @Named("db-execution-context") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderDBAccessor(helper)) // .withDispatcher("ring-dispatcher")
@@ -237,7 +231,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_manager")
   def getOrderManagerProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderManager()) // .withDispatcher("ring-dispatcher")
@@ -246,7 +240,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_read_coordinator")
   def getOrderReadCoordinatorProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderReadCoordinator()) // .withDispatcher("ring-dispatcher")
@@ -255,7 +249,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_reader")
   def getOrderReaderProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderReader()) // .withDispatcher("ring-dispatcher")
@@ -264,7 +258,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_update_coordinator")
   def getOrderUpdateCoordinatorProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderUpdateCoordinator()) // .withDispatcher("ring-dispatcher")
@@ -273,7 +267,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_updater")
   def getOrderUpdaterProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderUpdater()) // .withDispatcher("ring-dispatcher")
@@ -282,7 +276,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("order_writer")
   def getOrderWriterProps(helper: OrderWriteHelper)(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new OrderWriter(helper)) // .withDispatcher("ring-dispatcher")
@@ -291,7 +285,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("ring_finder")
   def getRingFinderProps()(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new RingFinder()) // .withDispatcher("ring-dispatcher")
@@ -300,7 +294,7 @@ class CoreModule(config: Config)
   @Provides
   @Named("ring_miner")
   def getRingMinerProps(ethClient: EthClient)(implicit
-    ec: ExecutionContext,
+    @Named("system-dispatcher") ec: ExecutionContext,
     timeout: Timeout
   ) = {
     Props(new RingMiner(ethClient)) // .withDispatcher("ring-dispatcher")
