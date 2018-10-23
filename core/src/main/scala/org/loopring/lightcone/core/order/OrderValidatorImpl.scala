@@ -43,17 +43,17 @@ class OrderValidatorImpl @Inject() (config: Config) extends OrderValidator {
     order match {
       case o if o == null || o.rawOrder.isEmpty ⇒ ORDER_IS_EMPTY
       // length check
-      case o if o.rawOrder.get.hash.length != hashLength ⇒ ORDER_HASH_LENGHT_UNCORRECT
-      case o if o.rawOrder.get.tokenS.length != addrLength ⇒ lengthUnCorrectErr("tokenS")
-      case o if o.rawOrder.get.tokenB.length != addrLength ⇒ lengthUnCorrectErr("tokenB")
+      case o if o.getRawOrder.getEssential.hash.length != hashLength ⇒ ORDER_HASH_LENGHT_UNCORRECT
+      case o if o.getRawOrder.getEssential.tokenS.length != addrLength ⇒ lengthUnCorrectErr("tokenS")
+      case o if o.getRawOrder.getEssential.tokenB.length != addrLength ⇒ lengthUnCorrectErr("tokenB")
       //      case o if o.rawOrder.get.protocol.length != addrLength ⇒ lengthUnCorrectErr("protocol")
       //      case o if o.rawOrder.get.delegateAddress.length != addrLength ⇒ lengthUnCorrectErr("delegateAddress")
-      case o if o.rawOrder.get.owner.length != addrLength ⇒ lengthUnCorrectErr("owner")
+      case o if o.getRawOrder.getEssential.owner.length != addrLength ⇒ lengthUnCorrectErr("owner")
       // tokenS and tokenB can't be same
-      case o if o.rawOrder.get.tokenS == o.rawOrder.get.tokenB ⇒ TOKEN_S_AND_TOKEN_B_SAME
+      case o if o.getRawOrder.getEssential.tokenS == o.getRawOrder.getEssential.tokenB ⇒ TOKEN_S_AND_TOKEN_B_SAME
       // valid since and until check
-      case o if (o.rawOrder.get.validSince - validateConfig.maxValidSinceInterval) > now ⇒ VALID_SINCE_TOO_FAR
-      case o if o.rawOrder.get.validUntil < now ⇒ VALID_UNTIL_BEFORE_NOW
+      case o if (o.getRawOrder.getEssential.validSince - validateConfig.maxValidSinceInterval) > now ⇒ VALID_SINCE_TOO_FAR
+      case o if o.getRawOrder.getEssential.validUntil < now ⇒ VALID_UNTIL_BEFORE_NOW
       // margin split check
       //      case o if o.rawOrder.get.marginSplitPercentage / 100.0 > validateConfig.maxSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE
       //      case o if o.rawOrder.get.marginSplitPercentage / 100.0 < validateConfig.minSplitPercentage ⇒ MARGIN_SPLIT_OUT_OF_RANGE

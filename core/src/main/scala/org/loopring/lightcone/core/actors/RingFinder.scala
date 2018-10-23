@@ -90,7 +90,7 @@ class RingFinder()(implicit
         updateCoordinator ! MarkOrdersBeingMatched(
           ordersBeingMatched =
             (orders.sellTokenAOrders ++ orders.sellTokenBOrders)
-              .map(o ⇒ OrderBeingMatched(o.rawOrder.get.hash))
+              .map(o ⇒ OrderBeingMatched(o.getRawOrder.getEssential.hash))
         )
       case e: AskTimeoutException ⇒
     }

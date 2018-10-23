@@ -45,42 +45,44 @@ class OrderBook(marketConfig: MarketConfig) {
   var orders = mutable.HashMap[String, OrderWithStatus]()
 
   def updateOrAddOrder(orderWithStatus: OrderWithStatus) = {
-    val rawOrder = orderWithStatus.order.rawOrder.get
-    orders.synchronized(orders.put(rawOrder.hash.toLowerCase, orderWithStatus))
-    val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+    val rawOrder = orderWithStatus.order.getRawOrder
+    val essential = rawOrder.getEssential
+    orders.synchronized(orders.put(essential.hash.toLowerCase, orderWithStatus))
+    val sellPrice = Rational(essential.amountS.asBigInt, essential.amountB.asBigInt)
     orderOfPriceMap.synchronized {
       //      val orderWithStatus = OrderWithStatus(order.order.get, order.postponed)
       var tokenOrders = orderOfPriceMap.getOrElseUpdate(sellPrice, TokenOrders())
       tokenOrders =
-        if (rawOrder.tokenS == marketConfig.tokenA) {
+        if (essential.tokenS == marketConfig.tokenA) {
           val tokenAOrders = tokenOrders
             .tokenAOrders
-            .filter(_ != rawOrder.hash)
-          tokenOrders.copy(tokenAOrders = tokenAOrders + rawOrder.hash.toLowerCase)
+            .filter(_ != essential.hash)
+          tokenOrders.copy(tokenAOrders = tokenAOrders + essential.hash.toLowerCase)
         } else {
           val tokenBOrders = tokenOrders
             .tokenBOrders
-            .filter(_ != rawOrder.hash)
-          tokenOrders.copy(tokenBOrders = tokenBOrders + rawOrder.hash.toLowerCase)
+            .filter(_ != essential.hash)
+          tokenOrders.copy(tokenBOrders = tokenBOrders + essential.hash.toLowerCase)
         }
       orderOfPriceMap.put(sellPrice, tokenOrders)
     }
   }
 
   def delOrder(rawOrder: RawOrder) = {
-    orders.synchronized(orders.remove(rawOrder.hash.toLowerCase))
-    val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+    val essential = rawOrder.getEssential
+    orders.synchronized(orders.remove(essential.hash.toLowerCase))
+    val sellPrice = Rational(essential.amountS.asBigInt, essential.amountB.asBigInt)
     orderOfPriceMap.synchronized {
       var tokenOrders = orderOfPriceMap.getOrElseUpdate(sellPrice, TokenOrders())
       tokenOrders =
-        if (rawOrder.tokenS == marketConfig.tokenA) {
+        if (essential.tokenS == marketConfig.tokenA) {
           tokenOrders.copy(tokenAOrders = tokenOrders
             .tokenAOrders
-            .filter(_ != rawOrder.hash))
+            .filter(_ != essential.hash))
         } else {
           tokenOrders.copy(tokenBOrders = tokenOrders
             .tokenBOrders
-            .filter(_ != rawOrder.hash))
+            .filter(_ != essential.hash))
         }
       orderOfPriceMap.put(sellPrice, tokenOrders)
     }
@@ -123,7 +125,7 @@ class OrderBookManagerHelperImpl(
     updatedOrder.updated match {
       case Updated.Order(order) ⇒
         val rawOrder = order.rawOrder.get
-        val sellPrice = Rational(rawOrder.amountS.asBigInt, rawOrder.amountB.asBigInt)
+        val sellPrice = Rational(rawOrder.getEssential.amountS.asBigInt, rawOrder.getEssential.amountB.asBigInt)
         //根据o.status的状态，执行不同的操作，新增、更新、删除、暂停等
         order.status match {
           case Some(OrderStatus(ORDER_STATUS_FULL, _, _)) ⇒ //完全成交，需要从orderbook中删除
@@ -208,8 +210,8 @@ class OrderBookManagerHelperImpl(
     orderbook = new OrderBook(marketConfig)
     res.order foreach { o ⇒
       val sellPrice = Rational(
-        o.rawOrder.get.amountS.asBigInt,
-        o.rawOrder.get.amountB.asBigInt
+        o.getRawOrder.getEssential.amountS.asBigInt,
+        o.getRawOrder.getEssential.amountB.asBigInt
       )
       //todo:确认order需要如何转换成updatedOrder
       val updatedOrder = UpdatedOrder()
@@ -225,14 +227,14 @@ class OrderBookManagerHelperImpl(
             .tokenAOrders
             .filter { hash ⇒
               val rawOrder = orderbook.getOrder(hash).rawOrder.get
-              rawOrder.owner.equalsIgnoreCase(purge.address)
+              rawOrder.getEssential.owner.equalsIgnoreCase(purge.address)
             }
 
           val tokenBOrders = tokenOrders
             .tokenBOrders
             .filter { hash ⇒
               val rawOrder = orderbook.getOrder(hash).rawOrder.get
-              rawOrder.owner.equalsIgnoreCase(purge.address)
+              rawOrder.getEssential.owner.equalsIgnoreCase(purge.address)
             }
 
           tokenAOrders ++ tokenBOrders
@@ -249,7 +251,7 @@ class OrderBookManagerHelperImpl(
             .filter { hash ⇒
               val rawOrder = orderbook.getOrder(hash).rawOrder.get
               purge.addresses.exists { addr ⇒
-                addr.equalsIgnoreCase(rawOrder.owner)
+                addr.equalsIgnoreCase(rawOrder.getEssential.owner)
               }
             }
 
@@ -257,7 +259,7 @@ class OrderBookManagerHelperImpl(
             .filter { hash ⇒
               val rawOrder = orderbook.getOrder(hash).rawOrder.get
               purge.addresses.exists { addr ⇒
-                addr.equalsIgnoreCase(rawOrder.owner)
+                addr.equalsIgnoreCase(rawOrder.getEssential.owner)
               }
             }
           tokenAOrders ++ tokenBOrders

@@ -25,7 +25,8 @@ class OrderWriteHelperImpl @Inject() (validator: OrderValidator) extends OrderWr
 
   override def generateHash(order: Order): String = ???
   override def fillInOrder(order: Order): Order = {
-    val filledRawOrder = order.rawOrder.get.copy(hash = generateHash(order))
+    val essential = order.getRawOrder.getEssential.copy(hash = generateHash(order))
+    val filledRawOrder = order.getRawOrder.copy(essential = Some(essential))
     order.copy(rawOrder = Some(filledRawOrder), market = getMarket(order), side = getSide(order).name, price = getPrice(order))
   }
 
