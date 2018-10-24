@@ -19,9 +19,8 @@ package org.loopring.lightcone.core.socketio
 import akka.actor.ActorRef
 import com.corundumstudio.socketio.AckRequest
 import com.corundumstudio.socketio.listener.DataListener
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.inject.Injector
+import org.json4s.jackson.JsonMethods
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
@@ -49,11 +48,7 @@ private[socketio] class SocketIOServer(
     router: ActorRef
 ) {
 
-  private lazy val mapper = {
-    val mapper = new ObjectMapper()
-    mapper.registerModule(DefaultScalaModule)
-    mapper
-  }
+  private lazy val mapper = JsonMethods.mapper
 
   def getProviders(fallback: Int ⇒ Boolean): Seq[ProviderEventClass[_]] = {
     providers.map { p ⇒
