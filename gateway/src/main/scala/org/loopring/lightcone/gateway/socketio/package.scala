@@ -24,7 +24,7 @@ package object socketio {
 
   type IOClient = com.corundumstudio.socketio.SocketIOClient
 
-  // broadcat => 0: 不广播, 1: 广播订阅者, 2: 主动给广播所有(这种情况event无效)
+  // broadcat => 0: 不广播直接回复请求者, 1: 广播订阅者, 2: 主动给广播所有(这种情况event无效)
   case class event(event: String, broadcast: Int, interval: Long, replyTo: String) extends scala.annotation.StaticAnnotation {
 
     def this(event: String) =
