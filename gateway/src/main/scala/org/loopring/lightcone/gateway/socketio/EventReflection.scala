@@ -24,7 +24,7 @@ import scala.reflect.runtime.universe._
 
 object EventReflection {
 
-  private lazy val defPackage = "org.loopring.lightcone"
+  private lazy val defPackage = "org.loopring.lightcone.gateway"
 
   private lazy val m = runtimeMirror(getClass.getClassLoader)
 
@@ -73,9 +73,7 @@ object EventReflection {
   def membersWithNamed[A: TypeTag](cls: Class[_]): Seq[MethodSymbol] = {
     println(members(cls))
     members(cls).map {
-      case m: MethodSymbol ⇒
-        println("====>>>" + memberNamed[A](m))
-        (m, memberNamed[A](m))
+      case m: MethodSymbol ⇒ (m, memberNamed[A](m))
     }.filter(_._2.nonEmpty).map(_._1)
   }
 
