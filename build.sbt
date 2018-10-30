@@ -17,8 +17,7 @@ lazy val lib = (project in file("lib"))
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
-    libraryDependencies ++= ethereumDependency,
-    libraryDependencies ++= socketIODenepdencies)
+    libraryDependencies ++= ethereumDependency)
 
 lazy val ethconn = (project in file("ethconn"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -37,7 +36,8 @@ lazy val gateway = (project in file("gateway"))
   .settings(
       basicSettings,
       libraryDependencies ++= commonDependency,
-      libraryDependencies ++= akkaDenepdencies)
+      libraryDependencies ++= akkaDenepdencies,
+      libraryDependencies ++= socketIODenepdencies)
 
 lazy val core = (project in file("core"))
   .enablePlugins(AutomateHeaderPlugin)

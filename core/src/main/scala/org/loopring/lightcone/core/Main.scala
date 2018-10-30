@@ -22,7 +22,7 @@ import java.net.InetAddress
 import akka.actor._
 import org.loopring.lightcone.gateway.jsonrpc.JsonRpcServer
 import com.google.inject._
-import org.loopring.lightcone.core.socketio.{ SocketIOSettings, SocketIOSystemExtension }
+import org.loopring.lightcone.gateway.socketio.{ SocketIOSettings, SocketIOSystemExtension }
 
 object Main {
 

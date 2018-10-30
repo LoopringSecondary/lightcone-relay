@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.socketio
+package org.loopring.lightcone.gateway.socketio
 
 import akka.actor.ActorRef
 import com.corundumstudio.socketio.AckRequest
