@@ -51,4 +51,9 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
+
+  lazy val socketIODenepdencies = Seq(
+    "org.reflections" % "reflections" % "0.9.11",
+    "com.corundumstudio.socketio" % "netty-socketio" % "1.7.16"
+  )
 }
