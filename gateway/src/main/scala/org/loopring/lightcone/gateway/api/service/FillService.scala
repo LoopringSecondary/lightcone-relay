@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.model
+package org.loopring.lightcone.gateway.api.service
 
-case class BalanceReq(delegateAddress: String, owner: String)
-case class PriceQuoteReq(currency: String)
+import scala.concurrent.Future
 
-case class OrderSubmitReq()
-case class OrderQueryReq()
-
+trait FillService {
+  def getOrders(orderHash: String): Future[String]
+}

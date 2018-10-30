@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.api.service
 
-import org.loopring.lightcone.core.gateway.api.model.{ BalanceReq, BalanceResp }
+import scala.concurrent.Future
 
-import scala.concurrent.{ ExecutionContext, Future }
-
-class BalanceServiceImpl(implicit val ec: ExecutionContext) extends BalanceService {
-  override def getBalance(req: BalanceReq): Future[BalanceResp] = {
-    println("xxxxxxxxxxxxxxxxxxx")
-    println(BalanceResp("123", "456", Seq.empty))
-    Future(BalanceResp("123", "456", Seq.empty))
-  }
+trait QRSupportService {
+  def getOrders(orderHash: String): Future[String]
 }

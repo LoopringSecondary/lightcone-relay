@@ -31,6 +31,13 @@ lazy val ethconn = (project in file("ethconn"))
       scalapb.gen(
         flatPackage = false) -> (sourceManaged in Compile).value))
 
+lazy val gateway = (project in file("gateway"))
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(
+      basicSettings,
+      libraryDependencies ++= commonDependency,
+      libraryDependencies ++= akkaDenepdencies)
+
 lazy val core = (project in file("core"))
   .enablePlugins(AutomateHeaderPlugin)
   .enablePlugins(DockerPlugin)
@@ -38,6 +45,7 @@ lazy val core = (project in file("core"))
   .dependsOn(proto)
   .dependsOn(lib)
   .dependsOn(ethconn)
+  .dependsOn(gateway)
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,

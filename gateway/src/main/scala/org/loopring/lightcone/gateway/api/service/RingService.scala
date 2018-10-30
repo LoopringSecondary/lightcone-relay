@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.api.service
 
 import scala.concurrent.Future
 
-trait TxService {
+trait RingService {
   def getOrders(orderHash: String): Future[String]
 }

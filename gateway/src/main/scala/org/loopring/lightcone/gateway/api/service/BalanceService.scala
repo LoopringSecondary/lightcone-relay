@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.api.service
+
+import com.googlecode.jsonrpc4j.{ JsonRpcError, JsonRpcErrors }
+import org.loopring.lightcone.gateway.api.model.{ BalanceReq, BalanceResp }
+import org.loopring.lightcone.gateway.api.exception.BalanceException
 
 import scala.concurrent.Future
 
-trait QRSupportService {
-  def getOrders(orderHash: String): Future[String]
+trait BalanceService {
+  @JsonRpcErrors(Array(
+    new JsonRpcError(exception = classOf[BalanceException], code = -100, message = "User already exists", data = "The Data")
+  ))
+  def getBalance(req: BalanceReq): Future[BalanceResp]
 }

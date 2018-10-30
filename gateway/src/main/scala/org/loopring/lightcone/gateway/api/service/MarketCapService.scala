@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.model
+package org.loopring.lightcone.gateway.api.service
 
-case class TokenBalance(symbol: String, balance: String, allowance: String)
-case class BalanceResp(delegateAddress: String, owner: String, tokens: Seq[TokenBalance])
+import scala.concurrent.Future
 
-case class OrdersResp()
-case class OrderDetailResp()
-
+trait MarketCapService {
+  def getPriceQuote(orderHash: String): Future[String]
+}

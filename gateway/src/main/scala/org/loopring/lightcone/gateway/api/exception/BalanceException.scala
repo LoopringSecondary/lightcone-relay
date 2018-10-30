@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.api.exception
 
-import scala.concurrent.Future
-
-class OrderServiceImpl extends OrderService {
-  override def getOrders(orderHash: String): Future[String] = ???
-}
+class BalanceException(val msg: String) extends Throwable(msg: String) {}

@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.serializers
 
-import scala.concurrent.Future
+trait JSONSerializer {
+  def serialize[T](value: T): Option[String] = {
+    throw new UnsupportedOperationException("This default implementation is here only to allow macros to be defined on child classes.")
+  }
 
-trait ConfigService {
-  def getOrders(orderHash: String): Future[String]
+  def deserialize[T](json: String): Option[T] = {
+    throw new UnsupportedOperationException("This default implementation is here only to allow macros to be defined on child classes.")
+  }
 }

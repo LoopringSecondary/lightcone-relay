@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.jsonrpc
+package org.loopring.lightcone.gateway.jsonrpc
 
 import akka.cluster.Cluster
 import akka.http.scaladsl.Http

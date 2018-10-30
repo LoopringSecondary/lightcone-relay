@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.core.gateway.api.service
+package org.loopring.lightcone.gateway.api.model
 
-import scala.concurrent.Future
+import scala.beans.BeanProperty
 
-trait EthSupportService {
-  def getOrders(orderHash: String): Future[String]
+class BalanceReq(@BeanProperty var owner: String = "", @BeanProperty var delegateAddress: String = "") extends {
+  def this() {
+    this("", "")
+  }
 }
+
+case class TokenBalance(symbol: String, balance: String, allowance: String)
+case class BalanceResp(delegateAddress: String, owner: String, tokens: Seq[TokenBalance])

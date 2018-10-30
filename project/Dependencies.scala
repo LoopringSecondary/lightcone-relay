@@ -32,7 +32,9 @@ object Dependencies {
     "com.typesafe.slick" %% "slick" % slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "io.github.shogowada" %% "scala-json-rpc" % "0.9.3",
-    "io.github.shogowada" %% "scala-json-rpc-upickle-json-serializer" % "0.9.3",
+    "io.github.shogowada" %% "scala-json-rpc-circe-json-serializer" % "0.9.3",
+    "com.github.briandilley.jsonrpc4j" % "jsonrpc4j" % "1.5.3",
+    "javax.servlet" % "javax.servlet-api" % "4.0.1",
   "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(

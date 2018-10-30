@@ -24,7 +24,7 @@ import akka.actor._
 import akka.cluster._
 import akka.stream.ActorMaterializer
 import org.loopring.lightcone.core._
-import org.loopring.lightcone.core.gateway.jsonrpc.JsonRpcServer
+import org.loopring.lightcone.gateway.jsonrpc.JsonRpcServer
 import com.google.inject._
 import com.google.inject._
 import io.github.shogowada.scala.jsonrpc.server.JSONRPCServer
