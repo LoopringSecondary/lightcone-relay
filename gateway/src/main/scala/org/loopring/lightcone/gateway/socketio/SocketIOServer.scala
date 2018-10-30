@@ -19,8 +19,10 @@ package org.loopring.lightcone.gateway.socketio
 import akka.actor.ActorRef
 import com.corundumstudio.socketio.AckRequest
 import com.corundumstudio.socketio.listener.DataListener
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.inject.Injector
-import org.json4s.jackson.JsonMethods
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
@@ -48,7 +50,13 @@ private[socketio] class SocketIOServer(
     router: ActorRef
 ) {
 
-  private lazy val mapper = JsonMethods.mapper
+  lazy val logger = LoggerFactory.getLogger(getClass)
+
+  private lazy val mapper = {
+    val _mapper = new ObjectMapper()
+    _mapper.registerModule(DefaultScalaModule)
+    _mapper
+  }
 
   def getProviders(fallback: Int ⇒ Boolean): Seq[ProviderEventClass[_]] = {
     providers.map { p ⇒
@@ -67,12 +75,16 @@ private[socketio] class SocketIOServer(
 
         val json = mapper.writeValueAsString(data.get("params"))
 
+        logger.info(s"request msg: ${data}")
+
         SocketIOClient.add(client, event, json)
 
         getProviders(_ == 0).foreach(replyMessage(ackSender, _, json))
 
       }
     })
+
+    getProviders(_ ⇒ true).foreach(x ⇒ logger.info(s"${x.clazz} has bean registered"))
 
     server.start
   }
@@ -84,6 +96,8 @@ private[socketio] class SocketIOServer(
     val instance = clazz.instance
 
     val resp = invokeMethod(instance, methodEvent, Some(json))
+
+    logger.info(s"ack message: ${resp}")
 
     ackSender.sendAckData(resp)
 
@@ -119,7 +133,7 @@ private[socketio] class SocketIOServer(
     // 这里没有考虑proto message
     respAny match {
       case r: String ⇒ r
-      case r         ⇒ mapper.convertValue(r, classOf[java.util.Map[String, Any]])
+      case r ⇒ mapper.convertValue(r, classOf[java.util.Map[String, Any]])
     }
 
   }

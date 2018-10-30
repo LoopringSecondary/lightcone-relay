@@ -16,16 +16,28 @@
 
 package org.loopring.lightcone.gateway.socketio
 
+import scala.collection.JavaConverters._
+
 object SocketIOClient {
 
   private val subscribers = new java.util.HashSet[SubscriberEvent]
 
   def add(client: IOClient, event: String, json: String): Unit = {
+
+    require(getClient(_ == event).isEmpty, s"event [$event] has bean registered")
+
     subscribers.add(SubscriberEvent(client, event, json))
   }
 
+  def remove(client: IOClient): Unit = {
+    subscribers.asScala.filter(_.client == client).map(subscribers.remove)
+  }
+
+  def getClient(fallback: String ⇒ Boolean): Option[SubscriberEvent] = {
+    subscribers.asScala.toSeq.find(x ⇒ fallback(x.event)).headOption
+  }
+
   def getClients(fallback: String ⇒ Boolean): Seq[SubscriberEvent] = {
-    import scala.collection.JavaConverters._
     subscribers.asScala.toSeq.filter(x ⇒ fallback(x.event))
   }
 

@@ -66,8 +66,6 @@ class SocketIOSystemExtensionImpl(router: ActorRef) extends Extension {
       ProviderEventClass(i, cls, pms)
     }
 
-    println(providers)
-
     SocketIOServer(injector, copySettings, providers, server, router)
   }
 
