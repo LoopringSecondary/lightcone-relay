@@ -37,6 +37,7 @@ lazy val gateway = (project in file("gateway"))
       basicSettings,
       libraryDependencies ++= commonDependency,
       libraryDependencies ++= akkaDenepdencies,
+      libraryDependencies ++= databaseDenepdencies,
       libraryDependencies ++= socketIODenepdencies)
 
 lazy val core = (project in file("core"))

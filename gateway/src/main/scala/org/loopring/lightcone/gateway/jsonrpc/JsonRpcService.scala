@@ -35,7 +35,6 @@ class JsonRpcService {
     true
   )
 
-
   //  这里要注册广播事件
   // event = 事件名称
   // interval = 时间间隔(秒)

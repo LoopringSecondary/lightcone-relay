@@ -33,7 +33,6 @@ object Dependencies {
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "com.github.briandilley.jsonrpc4j" % "jsonrpc4j" % "1.5.3",
     "javax.servlet" % "javax.servlet-api" % "4.0.1",
-    "org.mybatis.scala" %% "mybatis-scala-core" % "1.0.3",
     "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(
@@ -55,5 +54,10 @@ object Dependencies {
     "org.reflections" % "reflections" % "0.9.11",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
     "com.corundumstudio.socketio" % "netty-socketio" % "1.7.16"
+  )
+
+  lazy val databaseDenepdencies = Seq(
+    "org.mybatis" % "mybatis" % "3.4.6",
+    "mysql" % "mysql-connector-java" % "6.0.6"
   )
 }
