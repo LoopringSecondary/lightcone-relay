@@ -33,7 +33,8 @@ object Dependencies {
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "com.github.briandilley.jsonrpc4j" % "jsonrpc4j" % "1.5.3",
     "javax.servlet" % "javax.servlet-api" % "4.0.1",
-  "io.spray" %% "spray-json" % "1.3.4")
+    "org.mybatis.scala" %% "mybatis-scala-core" % "1.0.3",
+    "io.spray" %% "spray-json" % "1.3.4")
 
   lazy val ethereumDependency = Seq(
     "org.ethereum" % "ethereumj-core" % "1.8.2-RELEASE")
