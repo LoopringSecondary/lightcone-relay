@@ -16,18 +16,23 @@
 
 package org.loopring.lightcone.gateway.api.service
 
-import org.loopring.lightcone.gateway.api.exception.BalanceException
 import org.loopring.lightcone.gateway.api.model.{ BalanceReq, BalanceResp }
+import org.loopring.lightcone.gateway.socketio.event
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class BalanceServiceImpl(implicit val ec: ExecutionContext) extends BalanceService {
+class BalanceServiceImpl extends BalanceService {
+
+  // broadcat => 0: 不广播直接回复给请求者, 1: 广播订阅者, 2: 主动给广播所有(这种情况event无效)
+  @event(event = "aabb", broadcast = 0, interval = -1, replyTo = "ccdd")
   override def getBalance(req: BalanceReq): Future[BalanceResp] = {
     println("xxxxxxxxxxxxxxxxxxx")
     println(req.getOwner)
     println(req.getDelegateAddress)
     //    println(BalanceResp("123", "456", Seq.empty))
     //    Future(BalanceResp("123", "456", Seq.empty))
-    throw new BalanceException("xxxxxalkdfjadjflk")
+    // throw new BalanceException("xxxxxalkdfjadjflk")
+
+    Future.successful(BalanceResp("aabbcc", "ddeeff", Seq.empty))
   }
 }

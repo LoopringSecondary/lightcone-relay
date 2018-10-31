@@ -53,6 +53,7 @@ object Dependencies {
 
   lazy val socketIODenepdencies = Seq(
     "org.reflections" % "reflections" % "0.9.11",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
     "com.corundumstudio.socketio" % "netty-socketio" % "1.7.16"
   )
 }

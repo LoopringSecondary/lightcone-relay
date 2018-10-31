@@ -32,6 +32,7 @@ class DisconnectionListener extends com.corundumstudio.socketio.listener.Disconn
   lazy val logger = LoggerFactory.getLogger(getClass)
 
   override def onDisconnect(client: IOClient): Unit = {
+    SocketIOClient.remove(client)
     logger.info(s"SocketIO: remote ${client.getRemoteAddress.toString} has disconnected")
   }
 }
