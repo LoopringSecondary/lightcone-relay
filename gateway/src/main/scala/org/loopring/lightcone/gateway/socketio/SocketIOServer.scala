@@ -16,41 +16,29 @@
 
 package org.loopring.lightcone.gateway.socketio
 
-import akka.actor.ActorRef
-import com.corundumstudio.socketio.AckRequest
+import akka.actor.{ ActorSystem, Props }
 import com.corundumstudio.socketio.listener.DataListener
+import com.corundumstudio.socketio.{ AckRequest, Configuration }
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.google.inject.Injector
+import com.typesafe.config.Config
+import org.loopring.lightcone.gateway.jsonrpc.JsonRpcService
 import org.slf4j.LoggerFactory
 
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
-import scala.reflect.ClassTag
 
-private[socketio] object SocketIOServer {
-
-  def apply(
-    injector: Injector,
-    settings: SocketIOSettings,
-    providers: Seq[ProviderEventClass[_]],
-    server: com.corundumstudio.socketio.SocketIOServer,
-    router: ActorRef
-  ): SocketIOServer = {
-    new SocketIOServer(injector, settings, providers, server, router)
-  }
-
-}
-
-private[socketio] class SocketIOServer(
-    injector: Injector,
-    settings: SocketIOSettings,
-    providers: Seq[ProviderEventClass[_]],
-    server: IOServer,
-    router: ActorRef
+class SocketIOServer(
+    jsonRpcService: JsonRpcService,
+    config: Config
+)(
+    implicit
+    system: ActorSystem
 ) {
 
   lazy val logger = LoggerFactory.getLogger(getClass)
+
+  private lazy val port = config.getInt("jsonrpc.socketio.port")
 
   private lazy val mapper = {
     val _mapper = new ObjectMapper()
@@ -58,84 +46,62 @@ private[socketio] class SocketIOServer(
     _mapper
   }
 
-  def getProviders(fallback: Int ⇒ Boolean): Seq[ProviderEventClass[_]] = {
-    providers.map { p ⇒
-      val ms = p.methods.filter(e ⇒ fallback(e.event.broadcast))
-      p.copy(methods = ms)
-    }.filter(_.methods.nonEmpty)
+  private lazy val ioConfig = {
+    val _config = new Configuration
+    _config.setHostname("0.0.0.0")
+    _config.setPort(port)
+    _config.setMaxFramePayloadLength(1024 * 1024)
+    _config.setMaxHttpContentLength(1024 * 1024)
+    _config.getSocketConfig.setReuseAddress(true)
+    _config
   }
+
+  private lazy val router = system.actorOf(Props[SocketIOServerRouter], "socketio_router")
 
   def start: Unit = {
 
-    router ! StartBroadcast(this, getProviders(_ != 0), settings.pool)
+    val server = new IOServer(ioConfig)
+    server.addConnectListener(new ConnectionListener)
+    server.addDisconnectListener(new DisconnectionListener)
 
     server.addEventListener("", classOf[java.util.Map[String, Any]], new DataListener[java.util.Map[String, Any]] {
       override def onData(client: IOClient, data: java.util.Map[String, Any], ackSender: AckRequest): Unit = {
+
         val event = data.get("method").toString
 
-        val json = mapper.writeValueAsString(data.get("params"))
+        val json = mapper.writeValueAsString(data)
 
-        logger.info(s"request msg: ${data}")
+        logger.info(s"${client.getRemoteAddress} request: ${data}")
 
         SocketIOClient.add(client, event, json)
 
-        getProviders(_ == 0).foreach(replyMessage(ackSender, _, json))
+        invoke(json).foreach(ackSender.sendAckData(_))
 
       }
     })
 
-    getProviders(_ ⇒ true).foreach(x ⇒ logger.info(s"${x.clazz} has bean registered"))
+    router ! StartBroadcast(
+      this,
+      jsonRpcService.registering,
+      config.getInt("jsonrpc.socketio.pool")
+    )
 
     server.start
+
+    logger.info(s"socketio server started @ ${port}")
   }
 
-  def replyMessage(ackSender: AckRequest, clazz: ProviderEventClass[_], json: String): Unit = {
+  def invoke(json: String) = {
 
-    val methodEvent = clazz.methods.head
+    Await.result(jsonRpcService.getAPIResult(json), Duration.Inf).map {
+      json ⇒
 
-    val instance = clazz.instance
+        val resp = mapper.readValue(json, classOf[java.util.Map[String, Any]])
 
-    val resp = invokeMethod(instance, methodEvent, Some(json))
+        logger.info(s"socketio rpc response: ${resp}")
 
-    logger.info(s"ack message: ${resp}")
-
-    ackSender.sendAckData(resp)
-
-  }
-
-  def broadMessage(event: String, anyRef: AnyRef): Unit = {
-    server.getBroadcastOperations.sendEvent(event, anyRef)
-  }
-
-  def invokeMethod[T: ClassTag](instance: T, method: ProviderEventMethod, data: Option[String]): AnyRef = {
-
-    // 这里还有异常没处理
-    val params = data.nonEmpty && method.paramClazz.nonEmpty match {
-      case true ⇒
-        Some(mapper.readValue(data.get, method.paramClazz.get))
-      case _ ⇒ None
+        resp
     }
-
-    val mm = EventReflection.methodMirror(instance, method.method)
-
-    // 这里获取 future
-    val futureResp = params match {
-      case Some(p) ⇒ mm(p)
-      case _       ⇒ mm()
-    }
-
-    // 这里等待返回值
-    val respAny = futureResp match {
-      case f: Future[_] ⇒ Await.result(f, Duration.Inf)
-      case x            ⇒ x
-    }
-
-    // 这里没有考虑proto message
-    respAny match {
-      case r: String ⇒ r
-      case r ⇒ mapper.convertValue(r, classOf[java.util.Map[String, Any]])
-    }
-
   }
 
 }

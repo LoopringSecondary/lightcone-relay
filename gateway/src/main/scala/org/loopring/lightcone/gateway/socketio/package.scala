@@ -16,40 +16,16 @@
 
 package org.loopring.lightcone.gateway
 
-import scala.reflect.runtime.universe._
-
 package object socketio {
 
   type IOServer = com.corundumstudio.socketio.SocketIOServer
 
   type IOClient = com.corundumstudio.socketio.SocketIOClient
 
-  // broadcat => 0: 不广播直接回复请求者, 1: 广播订阅者, 2: 主动给广播所有(这种情况event无效)
-  case class event(event: String, broadcast: Int, interval: Long, replyTo: String) extends scala.annotation.StaticAnnotation {
-
-    def this(event: String) =
-      this(event, broadcast = 0, interval = -1, replyTo = "")
-
-    def this(broadcast: Int, interval: Long, replyTo: String) =
-      this(event = "", broadcast = broadcast, interval = interval, replyTo = replyTo)
-  }
-
-  case class ProviderEventClass[T](instance: T, clazz: Class[_ <: T], methods: Seq[ProviderEventMethod])
-
-  case class ProviderEventMethod(event: event, method: MethodSymbol,
-      paramClazz: Option[Class[_]], futureType: Type)
-
-  // 客户端订阅的消息
   case class SubscriberEvent(client: IOClient, event: String, json: String)
 
-  case class BroadcastMessage(server: SocketIOServer, provider: ProviderEventClass[_], method: ProviderEventMethod)
+  case class StartBroadcast(server: SocketIOServer, eventRegistering: EventRegistering, pool: Int)
 
-  case class StartBroadcast(server: SocketIOServer, providers: Seq[ProviderEventClass[_]], pool: Int)
-
-  final case class SocketIOException(
-      message: String = "",
-      cause: Throwable = None.orNull
-  )
-    extends Exception(message, cause)
+  case class BroadcastMessage(server: SocketIOServer, event: String, replyTo: String)
 
 }

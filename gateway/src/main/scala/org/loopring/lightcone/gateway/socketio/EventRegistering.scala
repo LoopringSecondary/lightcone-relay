@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.gateway.api.service
+package org.loopring.lightcone.gateway.socketio
 
-import org.loopring.lightcone.gateway.api.model.{ BalanceReq, BalanceResp }
+object EventRegistering {
 
-import scala.concurrent.Future
+  def apply(): EventRegistering = new EventRegistering(Seq.empty)
 
-class BalanceServiceImpl extends BalanceService {
-
-  override def getBalance(req: BalanceReq): Future[BalanceResp] = {
-    println("xxxxxxxxxxxxxxxxxxx")
-    println(req.getOwner)
-    println(req.getDelegateAddress)
-    //    println(BalanceResp("123", "456", Seq.empty))
-    //    Future(BalanceResp("123", "456", Seq.empty))
-    // throw new BalanceException("xxxxxalkdfjadjflk")
-
-    Future.successful(BalanceResp("aabbcc", "ddeeff", Seq.empty))
-  }
 }
+
+class EventRegistering(val events: Seq[EventRegister]) {
+
+  def registering(event: String, interval: Long, replyTo: String): EventRegistering = {
+    registering(EventRegister(event, interval, replyTo))
+  }
+
+  def registering(event: EventRegister): EventRegistering = {
+    new EventRegistering(events :+ event)
+  }
+
+}
+
+case class EventRegister(event: String, interval: Long, replyTo: String)

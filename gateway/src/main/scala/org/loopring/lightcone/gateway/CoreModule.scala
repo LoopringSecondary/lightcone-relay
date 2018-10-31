@@ -22,6 +22,7 @@ import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import org.loopring.lightcone.gateway.api.service.{ BalanceService, BalanceServiceImpl }
+import org.loopring.lightcone.gateway.jsonrpc.{ JsonRpcServer, JsonRpcServerImpl }
 
 object CoreModule {
 
@@ -40,9 +41,9 @@ class CoreModule(implicit system: ActorSystem)
 
     bind[ActorMaterializer].toInstance(ActorMaterializer())
 
-    // bind[ExecutionContext].toInstance(system.dispatcher)
-
     bind[BalanceService].to[BalanceServiceImpl]
+
+    bind[JsonRpcServer].to[JsonRpcServerImpl]
 
   }
 
