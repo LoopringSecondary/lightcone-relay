@@ -37,9 +37,7 @@ lazy val gateway = (project in file("gateway"))
       basicSettings,
       libraryDependencies ++= commonDependency,
       libraryDependencies ++= akkaDenepdencies,
-      libraryDependencies ++= socketIODenepdencies,
-      libraryDependencies ++= mybatisDenepdencies
-      )
+      libraryDependencies ++= socketIODenepdencies)
 
 lazy val core = (project in file("core"))
   .enablePlugins(AutomateHeaderPlugin)
@@ -48,7 +46,7 @@ lazy val core = (project in file("core"))
   .dependsOn(proto)
   .dependsOn(lib)
   .dependsOn(ethconn)
-  .settings(scalaVersion := "2.11.12").dependsOn(gateway)
+  .dependsOn(gateway)
   .settings(
     basicSettings,
     libraryDependencies ++= commonDependency,
