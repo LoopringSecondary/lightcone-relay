@@ -16,19 +16,32 @@
 
 package org.loopring.lightcone.gateway.jsonrpc
 
+import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.http.scaladsl.Http
 import com.typesafe.config.Config
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import com.corundumstudio.socketio.Configuration
 import com.google.inject.Inject
+import org.loopring.lightcone.gateway.socketio.{ ConnectionListener, DisconnectionListener, EventRegistering, SocketIOServer }
+import org.slf4j.LoggerFactory
 
 trait JsonRpcServer {
 }
 
-class JsonRpcServerImpl @Inject() (config: Config)(implicit val cluster: Cluster, implicit val materializer: ActorMaterializer) extends JsonRpcServer {
+class JsonRpcServerImpl @Inject() (
+    implicit
+    system: ActorSystem,
+    mat: ActorMaterializer
+) extends JsonRpcServer {
 
-  implicit val system = cluster.system
+  lazy val logger = LoggerFactory.getLogger(getClass)
+
+  implicit val ex = system.dispatcher
+
+  // implicit val system = cluster.system
+
   val jsonRpcService = new JsonRpcService()
 
   lazy val route =
@@ -46,6 +59,23 @@ class JsonRpcServerImpl @Inject() (config: Config)(implicit val cluster: Cluster
       )
     }
 
-  Http().bindAndHandle(route, "localhost",
-    config.getInt("jsonrpc.http.port"))
+  lazy val registering = EventRegistering().registering("getBalance", 10, "balance")
+
+  lazy val bind = Http().bindAndHandle(route, "localhost", system.settings.config.getInt("jsonrpc.http.port"))
+
+  bind onComplete {
+    case scala.util.Success(value) ⇒ logger.info(s"http server has started @ $value")
+    case scala.util.Failure(ex)    ⇒ logger.error("http server failed", ex)
+  }
+
+  lazy val socketIOServer = new SocketIOServer(
+    jsonRpcService,
+    config = system.settings.config,
+    eventRegistering = registering
+  )
+
+  try socketIOServer.start
+  catch {
+    case t: Throwable ⇒ logger.error("socketio started failed!", t)
+  }
 }
