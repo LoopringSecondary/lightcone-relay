@@ -56,10 +56,6 @@ class JsonRpcServerImpl @Inject() (
       )
     }
 
-
-  //  这里要注册广播事件
-  lazy val registering = EventRegistering().registering("getBalance", 10, "balance")
-
   lazy val bind = Http().bindAndHandle(route, "localhost", system.settings.config.getInt("jsonrpc.http.port"))
 
   bind onComplete {
@@ -69,8 +65,7 @@ class JsonRpcServerImpl @Inject() (
 
   lazy val socketIOServer = new SocketIOServer(
     jsonRpcService,
-    config = system.settings.config,
-    eventRegistering = registering
+    config = system.settings.config
   )
 
   try socketIOServer.start

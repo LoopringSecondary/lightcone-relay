@@ -20,6 +20,7 @@ import java.io.{ ByteArrayInputStream, ByteArrayOutputStream }
 
 import com.googlecode.jsonrpc4j.{ ProxyUtil, JsonRpcServer ⇒ GoogleRpcServer }
 import org.loopring.lightcone.gateway.api.service.{ BalanceService, BalanceServiceImpl, OrderService, OrderServiceImpl }
+import org.loopring.lightcone.gateway.socketio.{ EventRegister, EventRegistering }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -33,6 +34,15 @@ class JsonRpcService {
     Array(classOf[BalanceService], classOf[OrderService]),
     true
   )
+
+
+  //  这里要注册广播事件
+  // event = 事件名称
+  // interval = 时间间隔(秒)
+  // replyTo = 客户端接收事件
+  lazy val registering = EventRegistering()
+    .registering("getBalance", 10, "balance")
+    .registering(EventRegister("getBalance", 20, "balance"))
 
   val server = new GoogleRpcServer(multiService)
 
