@@ -16,13 +16,11 @@
 
 package org.loopring.lightcone.core
 
-import com.typesafe.config.ConfigFactory
 import java.net.InetAddress
 
-import akka.actor._
-import org.loopring.lightcone.gateway.jsonrpc.JsonRpcServer
 import com.google.inject._
-import org.loopring.lightcone.gateway.socketio.{ SocketIOSettings, SocketIOSystemExtension }
+import com.typesafe.config.ConfigFactory
+import org.loopring.lightcone.gateway.jsonrpc.JsonRpcServer
 
 object Main {
 
@@ -111,14 +109,6 @@ object Main {
         val injector = Guice.createInjector(new CoreModule(config))
         injector.getActor("node_manager")
         injector.getInstance(classOf[JsonRpcServer])
-
-        val system = injector.getInstance(classOf[ActorSystem])
-
-        // socketio server
-        // register [trait or interface]
-        val settings = SocketIOSettings() //.register[EventTest]
-        val server = SocketIOSystemExtension(system).init(injector, settings)
-        server.start
 
         Thread.sleep(2000)
         println("\n\n\n\n============= Akka Node Ready =============\n" +
