@@ -17,14 +17,11 @@
 package org.loopring.lightcone.gateway.jsonrpc
 
 import akka.actor.ActorSystem
-import akka.cluster.Cluster
 import akka.http.scaladsl.Http
-import com.typesafe.config.Config
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.corundumstudio.socketio.Configuration
 import com.google.inject.Inject
-import org.loopring.lightcone.gateway.socketio.{ ConnectionListener, DisconnectionListener, EventRegistering, SocketIOServer }
+import org.loopring.lightcone.gateway.socketio.{ EventRegistering, SocketIOServer }
 import org.slf4j.LoggerFactory
 
 trait JsonRpcServer {
@@ -59,6 +56,8 @@ class JsonRpcServerImpl @Inject() (
       )
     }
 
+
+  //  这里要注册广播事件
   lazy val registering = EventRegistering().registering("getBalance", 10, "balance")
 
   lazy val bind = Http().bindAndHandle(route, "localhost", system.settings.config.getInt("jsonrpc.http.port"))
