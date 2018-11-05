@@ -21,22 +21,25 @@ import com.corundumstudio.socketio.listener.DataListener
 import com.corundumstudio.socketio.{ AckRequest, Configuration }
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.typesafe.config.Config
-import org.loopring.lightcone.gateway.jsonrpc.JsonRpcService
+import org.loopring.lightcone.gateway.jsonrpc.JsonRpcServer
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class SocketIOServer(
-    jsonRpcService: JsonRpcService,
-    config: Config
+    jsonRpcServer: JsonRpcServer,
+    eventRegistering: EventRegistering
 )(
     implicit
     system: ActorSystem
 ) {
 
+  implicit val ex = system.dispatcher
+
   lazy val logger = LoggerFactory.getLogger(getClass)
+
+  private lazy val config = system.settings.config
 
   private lazy val port = config.getInt("jsonrpc.socketio.port")
 
@@ -82,7 +85,7 @@ class SocketIOServer(
 
     router ! StartBroadcast(
       this,
-      jsonRpcService.registering,
+      eventRegistering,
       config.getInt("jsonrpc.socketio.pool")
     )
 
@@ -93,14 +96,11 @@ class SocketIOServer(
 
   def invoke(json: String) = {
 
-    Await.result(jsonRpcService.getAPIResult(json), Duration.Inf).map {
-      json ⇒
-
-        val resp = mapper.readValue(json, classOf[java.util.Map[String, Any]])
-
-        logger.info(s"socketio rpc response: ${resp}")
-
-        resp
+    Await.result(jsonRpcServer.handleRequest(json), Duration.Inf).map {
+      resp ⇒
+        val respMap = mapper.readValue(resp, classOf[java.util.Map[String, Any]])
+        logger.info(s"socketio rpc response: ${respMap}")
+        respMap
     }
   }
 

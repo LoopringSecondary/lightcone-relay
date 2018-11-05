@@ -18,11 +18,13 @@ package org.loopring.lightcone.gateway
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.google.inject.AbstractModule
+import com.google.inject.{ AbstractModule, Injector, Provides, Singleton }
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
+import org.loopring.lightcone.gateway.api.HttpAndIOServer
 import org.loopring.lightcone.gateway.api.service.{ BalanceService, BalanceServiceImpl }
-import org.loopring.lightcone.gateway.jsonrpc.{ JsonRpcServer, JsonRpcServerImpl }
+import org.loopring.lightcone.gateway.jsonrpc.{ JsonRpcServer, JsonRpcSettings }
+import org.loopring.lightcone.gateway.socketio.{ EventRegistering, SocketIOServer }
 
 object CoreModule {
 
@@ -43,8 +45,29 @@ class CoreModule(implicit system: ActorSystem)
 
     bind[BalanceService].to[BalanceServiceImpl]
 
-    bind[JsonRpcServer].to[JsonRpcServerImpl]
+  }
 
+  @Provides
+  @Singleton
+  def providerHttpAndIOServer(
+    implicit
+    system: ActorSystem,
+    mat: ActorMaterializer,
+    injector: Injector
+  ): Unit = {
+
+    // 这里注册需要反射类
+    val settings = JsonRpcSettings().register[BalanceServiceImpl]
+
+    val jsonRpcServer = new JsonRpcServer(settings)
+
+    // 这里注册定时任务
+    val registering = EventRegistering()
+      .registering("getBalance", 10000, "balance")
+
+    val ioServer = new SocketIOServer(jsonRpcServer, registering)
+
+    new HttpAndIOServer(jsonRpcServer, ioServer)
   }
 
 }

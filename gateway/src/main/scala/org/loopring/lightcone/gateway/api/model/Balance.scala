@@ -25,4 +25,5 @@ class BalanceReq(@BeanProperty var owner: String = "", @BeanProperty var delegat
 }
 
 case class TokenBalance(symbol: String, balance: String, allowance: String)
+
 case class BalanceResp(delegateAddress: String, owner: String, tokens: Seq[TokenBalance])
