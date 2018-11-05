@@ -36,7 +36,6 @@ import org.loopring.lightcone.core.cache._
 import org.loopring.lightcone.core.database._
 import org.loopring.lightcone.core.order._
 import org.loopring.lightcone.core.block._
-import org.loopring.lightcone.gateway.jsonrpc.{ JsonRpcServer, JsonRpcServerImpl }
 import org.loopring.lightcone.core.utils._
 import org.loopring.lightcone.lib.abi._
 import org.loopring.lightcone.lib.cache._
@@ -102,7 +101,7 @@ class CoreModule(config: Config)
     bind[BlockAccessHelper].to[BlockAccessHelperImpl].in[Singleton]
     bind[TransactionHelper].to[TransactionHelperImpl].in[Singleton]
 
-    bind[JsonRpcServer].to[JsonRpcServerImpl].in[Singleton]
+    // bind[JsonRpcServer].to[JsonRpcServerImpl].in[Singleton]
   }
 
   @Provides
