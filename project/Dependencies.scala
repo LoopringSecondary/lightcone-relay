@@ -11,6 +11,7 @@ object Dependencies {
 
   lazy val commonDependency = Seq(
     "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+    "org.scalamock" %% "scalamock" % "4.1.0" % Test,
     "com.github.scopt" %% "scopt" % "3.7.0",
     "net.codingwell" %% "scala-guice" % "4.2.1",
     "com.thesamet.scalapb" %% "scalapb-json4s" % "0.7.0",
@@ -51,6 +52,7 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 
   lazy val socketIODenepdencies = Seq(
+    "io.socket" % "socket.io-client" % "1.0.0" % Test,
     "org.reflections" % "reflections" % "0.9.11",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
     "com.corundumstudio.socketio" % "netty-socketio" % "1.7.16"
