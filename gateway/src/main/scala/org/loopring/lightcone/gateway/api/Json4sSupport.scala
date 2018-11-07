@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package org.loopring.lightcone.gateway
+package org.loopring.lightcone.gateway.api
 
-import akka.actor.ActorSystem
-import com.google.inject.Guice
-import com.typesafe.config.ConfigFactory
-import net.codingwell.scalaguice.InjectorExtensions._
-import org.loopring.lightcone.gateway.api.HttpAndIOServer
+trait Json4sSupport extends de.heikoseeberger.akkahttpjson4s.Json4sSupport {
 
-object Main extends App {
-
-  implicit val system = ActorSystem("Api", ConfigFactory.load())
-
-  val injector = Guice.createInjector(CoreModule(system))
-
-  injector.instance[HttpAndIOServer]
+  implicit val serialization = org.json4s.native.Serialization
+  implicit val formats = org.json4s.DefaultFormats
 
 }

@@ -24,13 +24,22 @@ object SocketIOClient {
 
   def add(client: IOClient, event: String, json: String): Unit = {
 
-    require(getClient(_ == event).isEmpty, s"event [$event] has bean registered")
+    require(
+      getClientByEvent(x ⇒
+        x.event == event &&
+          x.client == client).isEmpty,
+      s"event [$event] has bean registered"
+    )
 
     subscribers.add(SubscriberEvent(client, event, json))
   }
 
   def remove(client: IOClient): Unit = {
     subscribers.asScala.filter(_.client == client).map(subscribers.remove)
+  }
+
+  def getClientByEvent(fallback: SubscriberEvent ⇒ Boolean): Option[SubscriberEvent] = {
+    subscribers.asScala.toSeq.find(x ⇒ fallback(x)).headOption
   }
 
   def getClient(fallback: String ⇒ Boolean): Option[SubscriberEvent] = {

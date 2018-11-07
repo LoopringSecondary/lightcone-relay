@@ -18,6 +18,7 @@ package org.loopring.lightcone.gateway.jsonrpc
 
 import com.google.inject.Injector
 import com.google.inject.name.Names
+import net.codingwell.scalaguice.InjectorExtensions._
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
@@ -53,7 +54,6 @@ class JsonRpcSettings(ps: Map[String, MethodMirror]) {
     implicit
     injector: Injector
   ): JsonRpcSettings = {
-    import net.codingwell.scalaguice.InjectorExtensions._
     register(injector.instance[T])
   }
 
@@ -61,7 +61,6 @@ class JsonRpcSettings(ps: Map[String, MethodMirror]) {
     implicit
     injector: Injector
   ): JsonRpcSettings = {
-    import net.codingwell.scalaguice.InjectorExtensions._
     register(injector.instance[T](Names.named(named)))
   }
 

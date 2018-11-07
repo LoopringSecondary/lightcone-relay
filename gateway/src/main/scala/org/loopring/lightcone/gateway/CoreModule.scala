@@ -54,7 +54,7 @@ class CoreModule(implicit system: ActorSystem)
     system: ActorSystem,
     mat: ActorMaterializer,
     injector: Injector
-  ): Unit = {
+  ): HttpAndIOServer = {
 
     // 这里注册需要反射类
     val settings = JsonRpcSettings().register[BalanceServiceImpl]
@@ -63,7 +63,7 @@ class CoreModule(implicit system: ActorSystem)
 
     // 这里注册定时任务
     val registering = EventRegistering()
-      .registering("getBalance", 10000, "balance")
+      .registering("getBalance", 10, "balance")
 
     val ioServer = new SocketIOServer(jsonRpcServer, registering)
 

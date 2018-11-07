@@ -23,15 +23,18 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
-//object JsonRpcServer {
-//  def apply(settings: JsonRpcSettings): JsonRpcServer = new JsonRpcServer(settings)
-//}
-
 class JsonRpcServer(settings: JsonRpcSettings) {
 
   private[jsonrpc] lazy val logger = LoggerFactory.getLogger(getClass)
 
   private[jsonrpc] implicit val formats = DefaultFormats
+
+  def handleRequest(json: String)(
+    implicit
+    ex: ExecutionContext
+  ): Future[Option[String]] = {
+    handleRequest(parseJson(json))
+  }
 
   //  -32700	解析错误	服务器接收到无效的JSON；服务器解析JSON文本发生错误。
   //  -32600	无效的请求	发送的JSON不是一个有效的请求。
@@ -39,14 +42,14 @@ class JsonRpcServer(settings: JsonRpcSettings) {
   //  -36602	无效的参数	无效的方法参数。
   //  -36603	内部错误	JSON-RPC内部错误。
   //  -32000到-32099	服务器端错误	保留给具体实现服务器端错误。
-  def handleRequest(json: String)(
+  def handleRequest(req: JsonRpcRequest)(
     implicit
     ex: ExecutionContext
   ): Future[Option[String]] = {
 
     val futureValue = try {
 
-      val request = parseJson(json)
+      val request = checkJsonRpcRequest(req)
 
       val mmOption = settings.findProvider(request.method)
 
@@ -69,11 +72,11 @@ class JsonRpcServer(settings: JsonRpcSettings) {
 
   }
 
-  private[jsonrpc] def parseJson(json: String): JsonRpcRequest = {
+  def checkJsonRpcRequest(request: JsonRpcRequest): JsonRpcRequest = {
+    parseJValue(Extraction.decompose(request))
+  }
 
-    import org.json4s.jackson.JsonMethods._
-
-    val jValue = parse(json)
+  def parseJValue(jValue: JValue): JsonRpcRequest = {
 
     val idOpt = jValue \\ "id" match {
       case JString(x) if x.nonEmpty ⇒ Some(x.toInt)
@@ -91,14 +94,19 @@ class JsonRpcServer(settings: JsonRpcSettings) {
       case _ ⇒ None
     }
 
-    require(idOpt.isDefined, s"""not found "id" from request json: ${json}""")
+    require(idOpt.isDefined, s"""id has invalid value""")
 
-    require(mthOpt.isDefined, s"""invalid field "method" from request json: ${json}""")
+    require(mthOpt.isDefined, s"""method has invalid value""")
 
-    require(rpcOpt.isDefined, s"""invalid field "jsonrpc", only "2.0",  from request json: ${json}""")
+    require(rpcOpt.isDefined, s"""jsonrpc just only 2.0""")
 
-    JsonRpcRequest(id = idOpt.get, jsonrpc = rpcOpt.get, method = mthOpt.get, params = compact(render(jValue \\ "params")))
+    JsonRpcRequest(id = idOpt.get, jsonrpc = rpcOpt.get, method = mthOpt.get, params = (jValue \\ "params"))
 
+  }
+
+  def parseJson(json: String): JsonRpcRequest = {
+    import org.json4s.jackson.JsonMethods._
+    parseJValue(parse(json))
   }
 
 }

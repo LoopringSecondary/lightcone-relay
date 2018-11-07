@@ -43,6 +43,8 @@ class SocketIOServer(
 
   private lazy val port = config.getInt("jsonrpc.socketio.port")
 
+  private lazy val pathName = config.getString("jsonrpc.socketio.path")
+
   private lazy val mapper = {
     val _mapper = new ObjectMapper()
     _mapper.registerModule(DefaultScalaModule)
@@ -67,14 +69,14 @@ class SocketIOServer(
     server.addConnectListener(new ConnectionListener)
     server.addDisconnectListener(new DisconnectionListener)
 
-    server.addEventListener("", classOf[java.util.Map[String, Any]], new DataListener[java.util.Map[String, Any]] {
+    server.addEventListener(pathName, classOf[java.util.Map[String, Any]], new DataListener[java.util.Map[String, Any]] {
       override def onData(client: IOClient, data: java.util.Map[String, Any], ackSender: AckRequest): Unit = {
 
         val event = data.get("method").toString
 
         val json = mapper.writeValueAsString(data)
 
-        logger.info(s"${client.getRemoteAddress} request: ${data}")
+        logger.info(s"client: ${client.getRemoteAddress}, request: ${data}")
 
         SocketIOClient.add(client, event, json)
 

@@ -18,12 +18,12 @@ package org.loopring.lightcone.gateway
 
 package object jsonrpc {
 
-  case class JsonRpcRequest(id: Int, method: String, jsonrpc: String, params: String)
+  case class JsonRpcRequest(id: Any, method: String, jsonrpc: String, params: Any)
 
-  case class JsonRpcException(code: Int, message: String, id: Option[Int] = None) extends Exception(message)
+  case class JsonRpcException(code: Int, message: String, id: Option[Any] = None) extends Exception(message)
 
   case class JsonRpcResponse(
-      id: Option[Int] = None.orNull,
+      id: Option[Any] = None.orNull,
       jsonrpc: String = "2.0",
       result: Any = None,
       error: Option[JsonRpcException] = None
