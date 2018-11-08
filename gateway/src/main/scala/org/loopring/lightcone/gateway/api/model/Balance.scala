@@ -16,12 +16,8 @@
 
 package org.loopring.lightcone.gateway.api.model
 
-import scala.beans.BeanProperty
-
-class BalanceReq(@BeanProperty var owner: String = "", @BeanProperty var delegateAddress: String = "") extends {
-  def this() {
-    this("", "")
-  }
+case class BalanceReq(owner: String = "", delegateAddress: String = "") {
+  def this() = this("", "")
 }
 
 case class TokenBalance(symbol: String, balance: String, allowance: String)

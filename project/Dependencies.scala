@@ -21,7 +21,7 @@ object Dependencies {
     "net.codingwell" %% "scala-guice" % "4.2.1",
     "ch.qos.logback" % "logback-core" % logbackVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "ch.qos.logback" % "logback-access" % logbackVersion,
+    // "ch.qos.logback" % "logback-access" % logbackVersion,
     "org.json4s" %% "json4s-native" % json4sVersion,
     "org.json4s" %% "json4s-jackson" % json4sVersion,
     "org.json4s" %% "json4s-native" % json4sVersion,
@@ -29,7 +29,6 @@ object Dependencies {
     "org.json4s" %% "json4s-ext" % json4sVersion,
     "com.github.etaty" %% "rediscala" % "1.8.0",
     "com.github.nscala-time" %% "nscala-time" % "2.20.0",
-    "mysql" % "mysql-connector-java" % "5.1.22",
     "com.typesafe.slick" %% "slick" % slickVersion,
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "com.github.briandilley.jsonrpc4j" % "jsonrpc4j" % "1.5.3",
@@ -59,7 +58,7 @@ object Dependencies {
   )
 
   lazy val databaseDenepdencies = Seq(
-    "org.mybatis" % "mybatis" % "3.4.6",
-    "mysql" % "mysql-connector-java" % "6.0.6"
+    "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "0.20",
+    "mysql" % "mysql-connector-java" % "5.1.47"
   )
 }

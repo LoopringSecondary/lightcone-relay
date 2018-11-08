@@ -37,7 +37,7 @@ class JsonRpcSettings(ps: Map[String, MethodMirror]) {
     val iMr = m.reflect(instance)
 
     val providers = iMr.symbol.typeSignature.decls
-      .map(_.asMethod)
+      // .map(_.asMethod)
       .filter(filterMethod)
       .map {
         case symbol: MethodSymbol ⇒
@@ -66,8 +66,8 @@ class JsonRpcSettings(ps: Map[String, MethodMirror]) {
 
   private[jsonrpc] def findProvider(method: String): Option[MethodMirror] = ps.get(method)
 
-  private[jsonrpc] def filterMethod: PartialFunction[MethodSymbol, Boolean] = {
-    case m: MethodSymbol ⇒ m.isPublic && !m.isConstructor
+  private[jsonrpc] def filterMethod: PartialFunction[Symbol, Boolean] = {
+    case m: Symbol ⇒ m.isMethod && m.isPublic && !m.isConstructor
   }
 
 }

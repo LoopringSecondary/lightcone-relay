@@ -49,11 +49,11 @@ class JsonRpcServer(settings: JsonRpcSettings) {
 
     val futureValue = try {
 
-      val request = checkJsonRpcRequest(req)
+      val request = parseRequest(req)
 
       val mmOption = settings.findProvider(request.method)
 
-      require(mmOption.isDefined, s"can not found method: ${request.method} mapping")
+      require(mmOption.isDefined, JsonRpcMethodException)
 
       JsonRpcProxy.invoke(request, mmOption.get)
 
@@ -62,8 +62,8 @@ class JsonRpcServer(settings: JsonRpcSettings) {
         logger.error(s"${e.code} @ ${e.message}", e)
         Future(JsonRpcResponse(id = e.id, error = Some(e.copy(id = None))))
       case e: Exception ⇒
-        logger.error(s"failed @ ${e.getLocalizedMessage}", e)
-        Future(JsonRpcResponse(error = Some(JsonRpcException(code = -36603, message = e.getMessage))))
+        logger.error(s"failed @ ${e.getMessage}", e)
+        Future(JsonRpcResponse(error = Some(JsonRpcInternalException(e.getMessage))))
     }
 
     futureValue map { resp ⇒
@@ -72,7 +72,7 @@ class JsonRpcServer(settings: JsonRpcSettings) {
 
   }
 
-  def checkJsonRpcRequest(request: JsonRpcRequest): JsonRpcRequest = {
+  def parseRequest(request: JsonRpcRequest): JsonRpcRequest = {
     parseJValue(Extraction.decompose(request))
   }
 
@@ -94,15 +94,18 @@ class JsonRpcServer(settings: JsonRpcSettings) {
       case _ ⇒ None
     }
 
-    require(idOpt.isDefined, s"""id has invalid value""")
+    require(idOpt.isDefined, JsonRpcInvalidException)
 
-    require(mthOpt.isDefined, s"""method has invalid value""")
+    require(mthOpt.isDefined, JsonRpcMethodException)
 
-    require(rpcOpt.isDefined, s"""jsonrpc just only 2.0""")
+    require(rpcOpt.isDefined, JsonRpcInvalidException)
 
     JsonRpcRequest(id = idOpt.get, jsonrpc = rpcOpt.get, method = mthOpt.get, params = (jValue \\ "params"))
 
   }
+
+  final def require(requirement: Boolean, error: AbstractJsonRpcException): Unit =
+    if (!requirement) throw error
 
   def parseJson(json: String): JsonRpcRequest = {
     import org.json4s.jackson.JsonMethods._

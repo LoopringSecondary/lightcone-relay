@@ -16,20 +16,32 @@
 
 package org.loopring.lightcone.gateway.api.service
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.alpakka.slick.scaladsl.SlickSession
+import com.google.inject.Inject
 import org.loopring.lightcone.gateway.api.model.{ BalanceReq, BalanceResp }
+import org.loopring.lightcone.gateway.database.DatabaseAccesser
 
 import scala.concurrent.Future
 
-class BalanceServiceImpl extends BalanceService {
+class BalanceServiceImpl @Inject() (
+    implicit
+    session: SlickSession,
+    mat: ActorMaterializer
+) extends DatabaseAccesser with BalanceService {
+
+  import session.profile.api._
+
+  implicit val toTokenInfo = (r: ResultRow) ⇒
+    BalanceResp(delegateAddress = r <<, owner = r <<, tokens = Seq.empty)
 
   override def getBalance(req: BalanceReq): Future[BalanceResp] = {
-    println("xxxxxxxxxxxxxxxxxxx")
-    println(req.getOwner)
-    println(req.getDelegateAddress)
-    //    println(BalanceResp("123", "456", Seq.empty))
-    //    Future(BalanceResp("123", "456", Seq.empty))
-    // throw new BalanceException("xxxxxalkdfjadjflk")
+    println("=" * 50)
+    println(req.owner)
+    println(req.delegateAddress)
 
-    Future.successful(BalanceResp("aabbcc", "ddeeff", Seq.empty))
+    sql"""select owner, delegateAddress from t_balance where owner<>'1'""".head[BalanceResp]
   }
+
 }

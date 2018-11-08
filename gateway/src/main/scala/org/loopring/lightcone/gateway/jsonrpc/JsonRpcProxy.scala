@@ -51,17 +51,16 @@ private[jsonrpc] object JsonRpcProxy {
             } else {
               arr.children match {
                 case (a0: JValue) :: Nil ⇒ methodMirror(convertString2Parameter(a0, head))
-                case _                   ⇒ throw new JsonRpcException(-32700, s"params not match Array", id = Some(request.id))
+                case _                   ⇒ throw JsonRpcInternalException(s"params not match Array", id = Some(request.id))
               }
             }
 
           case obj: JObject ⇒ methodMirror(convertString2Parameter(obj, head))
-          case x ⇒
-
-            throw new JsonRpcException(-32700, s"params not match", id = Some(request.id))
+          case _ ⇒
+            throw JsonRpcInternalException(s"params not match", id = Some(request.id))
         }
 
-      case _ ⇒ throw new JsonRpcException(-32000, s"method:${methodName} has multiple parameter", id = Some(request.id))
+      case _ ⇒ throw JsonRpcInternalException(s"method:${methodName} has multiple parameter", id = Some(request.id))
     }
 
     (responseAny match {

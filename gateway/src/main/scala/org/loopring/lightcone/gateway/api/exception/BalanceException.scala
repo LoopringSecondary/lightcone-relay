@@ -16,4 +16,6 @@
 
 package org.loopring.lightcone.gateway.api.exception
 
-class BalanceException(val msg: String) extends Throwable(msg: String) {}
+import org.loopring.lightcone.gateway.jsonrpc.AbstractJsonRpcException
+
+class BalanceException(message: String) extends AbstractJsonRpcException(-32007, message)
