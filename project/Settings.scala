@@ -30,6 +30,7 @@ object Settings {
         "scm:" + Globals.projectGitUrl)),
     autoScalaLibrary := false,
     resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/",
+    resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
     resolvers += "ethereumlibrepository" at "https://dl.bintray.com/ethereum/maven/",
     resolvers += "JFrog" at "https://oss.jfrog.org/libs-release/",
     resolvers += "bintray" at "https://dl.bintray.com/ethereum/maven/",

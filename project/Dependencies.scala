@@ -59,6 +59,9 @@ object Dependencies {
 
   lazy val databaseDenepdencies = Seq(
     "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "0.20",
-    "mysql" % "mysql-connector-java" % "5.1.47"
+    "org.mybatis" % "mybatis" % "3.4.6",
+    "org.hsqldb" % "hsqldb" % "2.3.5",
+    "mysql" % "mysql-connector-java" % "6.0.6",
+    "org.mybatis.scala" % "mybatis-scala-core_2.12" % "1.0.6-SNAPSHOT"
   )
 }
