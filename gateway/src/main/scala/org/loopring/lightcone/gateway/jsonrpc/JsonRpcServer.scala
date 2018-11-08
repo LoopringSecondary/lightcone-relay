@@ -100,7 +100,7 @@ class JsonRpcServer(settings: JsonRpcSettings) {
 
     require(rpcOpt.isDefined, JsonRpcInvalidException)
 
-    JsonRpcRequest(id = idOpt.get, jsonrpc = rpcOpt.get, method = mthOpt.get, params = (jValue \\ "params"))
+    JsonRpcRequest(id = idOpt.get, jsonrpc = rpcOpt.get, method = mthOpt.get, params = jValue \\ "params")
 
   }
 
