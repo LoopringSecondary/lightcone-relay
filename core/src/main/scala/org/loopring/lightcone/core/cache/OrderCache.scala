@@ -16,6 +16,15 @@
 
 package org.loopring.lightcone.core.cache
 
-trait OrderCache {
+import org.loopring.lightcone.proto.cache._
 
+import scala.concurrent.Future
+
+trait OrderCache {
+  def getOrders(req: GetOrdersFromCache): Future[Map[String, CachedOrder]]
+  def addOrUpdateOrders(req: SaveOrdersToCache): Future[Boolean]
+  def purgeOrders(req: DelOrders): Future[Long]
+  def purgeAll(): Future[Long]
+  def purgeAllForAddresses(owners: Seq[String]): Future[Long]
+  def purgeAllAfterBlock(forkFrom: Long, forkTo: Long): Future[Long]
 }
